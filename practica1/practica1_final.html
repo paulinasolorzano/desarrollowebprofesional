@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',Arial,sans-serif; background:#fff; color:#1a1a2e; font-size:14px; line-height:1.7; }
+.wrap { max-width:860px; margin:0 auto; padding:30px; }
+.file-label { display:inline-block; background:#E3F2FD; color:#0D47A1; font-family:'Courier New',monospace; font-size:12px; padding:4px 12px; border-radius:6px 6px 0 0; border:1px solid #BBDEFB; border-bottom:none; font-weight:600; margin-bottom:0; }
+.code-wrap { border:1px solid #BBDEFB; border-radius:0 8px 8px 8px; overflow:hidden; margin-bottom:16px; background:#fff; }
+.code-wrap canvas { display:block; max-width:100%; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p style="margin-bottom:16px;color:#1565C0;font-weight:600;">Prueba de renderizado de código como canvas (fondo blanco)</p>
+
+  <div class="file-label">📄 Paso 1 — Crear la base de datos</div>
+  <div class="code-wrap"><canvas id="c1"></canvas></div>
+
+  <div class="file-label">📄 Paso 2 — Tabla personas</div>
+  <div class="code-wrap"><canvas id="c2"></canvas></div>
+
+  <div class="file-label">📄 Paso 3 — Tabla usuarios</div>
+  <div class="code-wrap"><canvas id="c3"></canvas></div>
+
+  <div class="file-label">📄 Paso 4 — Tabla proyectos</div>
+  <div class="code-wrap"><canvas id="c4"></canvas></div>
+
+  <div class="file-label">📄 Paso 5 — Tabla tareas</div>
+  <div class="code-wrap"><canvas id="c5"></canvas></div>
+
+  <div class="file-label">📄 Paso 6 — Datos semilla</div>
+  <div class="code-wrap"><canvas id="c6"></canvas></div>
+
+  <div class="file-label">📄 Paso 7 — Consultas JOIN</div>
+  <div class="code-wrap"><canvas id="c7"></canvas></div>
+</div>
+
+<script>
+// Cada bloque de código es un array de líneas.
+// Cada línea es un array de segmentos: [color, texto]
+const KW='#1565C0', TY='#0277BD', ST='#2E7D32', NM='#E65100',
+      FN='#6A1B9A', TB='#AD1457', CT='#4527A0', CM='#9E9E9E', PL='#1a1a2e';
+
+const bloques = {
+  c1: [
+    [[CM,"-- Crear la base de datos del sistema administrativo"]],
+    [[KW,"CREATE DATABASE IF NOT EXISTS "],[TB,"sistema_admin"]],
+    [[PL,"  CHARACTER SET "],[ST,"utf8mb4"]],
+    [[PL,"  COLLATE "],[ST,"utf8mb4_unicode_ci"],[PL,";"]],
+    [[PL,""]],
+    [[KW,"USE "],[TB,"sistema_admin"],[PL,";"]],
+  ],
+  c2: [
+    [[KW,"CREATE TABLE "],[TB,"personas"],[PL," ("]],
+    [[PL,"  "],[FN,"id"],[PL,"             "],[TY,"INT AUTO_INCREMENT PRIMARY KEY"],[PL,","]],
+    [[PL,"  "],[FN,"nombre"],[PL,"         "],[TY,"VARCHAR"],[PL,"("],[NM,"150"],[PL,") "],[KW,"NOT NULL"],[PL,","]],
+    [[PL,"  "],[FN,"correo"],[PL,"         "],[TY,"VARCHAR"],[PL,"("],[NM,"150"],[PL,") "],[KW,"NOT NULL UNIQUE"],[PL,","]],
+    [[PL,"  "],[FN,"telefono"],[PL,"       "],[TY,"VARCHAR"],[PL,"("],[NM,"20"],[PL,"),"]],
+    [[PL,"  "],[FN,"puesto"],[PL,"         "],[TY,"VARCHAR"],[PL,"("],[NM,"100"],[PL,"),"]],
+    [[PL,"  "],[FN,"formacion"],[PL,"      "],[TY,"VARCHAR"],[PL,"("],[NM,"100"],[PL,"),"]],
+    [[PL,"  "],[FN,"departamento"],[PL,"   "],[TY,"VARCHAR"],[PL,"("],[NM,"100"],[PL,"),"]],
+    [[PL,"  "],[FN,"activo"],[PL,"         "],[TY,"TINYINT"],[PL,"("],[NM,"1"],[PL,") "],[KW,"NOT NULL DEFAULT "],[NM,"1"],[PL,","]],
+    [[PL,"  "],[FN,"fecha_registro"],[PL," "],[TY,"DATETIME"],[PL," "],[KW,"NOT NULL DEFAULT "],[FN,"CURRENT_TIMESTAMP"]],
+    [[PL,");"]],
+  ],
+  c3: [
+    [[KW,"CREATE TABLE "],[TB,"usuarios"],[PL," ("]],
+    [[PL,"  "],[FN,"id"],[PL,"              "],[TY,"INT AUTO_INCREMENT PRIMARY KEY"],[PL,","]],
+    [[PL,"  "],[FN,"persona_id"],[PL,"      "],[TY,"INT"],[PL," "],[KW,"NOT NULL"],[PL,","]],
+    [[PL,"  "],[FN,"usuario"],[PL,"         "],[TY,"VARCHAR"],[PL,"("],[NM,"80"],[PL,") "],[KW,"NOT NULL UNIQUE"],[PL,","]],
+    [[PL,"  "],[FN,"password_hash"],[PL,"   "],[TY,"VARCHAR"],[PL,"("],[NM,"255"],[PL,") "],[KW,"NOT NULL"],[PL,","]],
+    [[PL,"  "],[FN,"rol"],[PL,"             "],[TY,"ENUM"],[PL,"("],[ST,"'admin'"],[PL,", "],[ST,"'usuario'"],[PL,", "],[ST,"'invitado'"],[PL,") "],[KW,"NOT NULL DEFAULT "],[ST,"'invitado'"],[PL,","]],
+    [[PL,"  "],[FN,"activo"],[PL,"          "],[TY,"TINYINT"],[PL,"("],[NM,"1"],[PL,") "],[KW,"NOT NULL DEFAULT "],[NM,"1"],[PL,","]],
+    [[PL,"  "],[FN,"fecha_creacion"],[PL,"  "],[TY,"DATETIME"],[PL," "],[KW,"NOT NULL DEFAULT "],[FN,"CURRENT_TIMESTAMP"],[PL,","]],
+    [[PL,""]],
+    [[PL,"  "],[CT,"CONSTRAINT"],[PL," "],[FN,"fk_usuario_persona"]],
+    [[PL,"    "],[KW,"FOREIGN KEY"],[PL," ("],[FN,"persona_id"],[PL,") "],[KW,"REFERENCES "],[TB,"personas"],[PL,"("],[FN,"id"],[PL,")"]],
+    [[PL,"    "],[KW,"ON DELETE RESTRICT"]],
+    [[PL,"    "],[KW,"ON UPDATE CASCADE"]],
+    [[PL,");"]],
+  ],
+  c4: [
+    [[KW,"CREATE TABLE "],[TB,"proyectos"],[PL," ("]],
+    [[PL,"  "],[FN,"id"],[PL,"               "],[TY,"INT AUTO_INCREMENT PRIMARY KEY"],[PL,","]],
+    [[PL,"  "],[FN,"nombre"],[PL,"           "],[TY,"VARCHAR"],[PL,"("],[NM,"200"],[PL,") "],[KW,"NOT NULL"],[PL,","]],
+    [[PL,"  "],[FN,"descripcion"],[PL,"      "],[TY,"TEXT"],[PL,","]],
+    [[PL,"  "],[FN,"fecha_inicio"],[PL,"     "],[TY,"DATE"],[PL,","]],
+    [[PL,"  "],[FN,"fecha_fin"],[PL,"        "],[TY,"DATE"],[PL,","]],
+    [[PL,"  "],[FN,"prioridad"],[PL,"        "],[TY,"ENUM"],[PL,"("],[ST,"'baja'"],[PL,", "],[ST,"'media'"],[PL,", "],[ST,"'alta'"],[PL,") "],[KW,"NOT NULL DEFAULT "],[ST,"'media'"],[PL,","]],
+    [[PL,"  "],[FN,"estado"],[PL,"           "],[TY,"ENUM"],[PL,"("],[ST,"'pendiente'"],[PL,", "],[ST,"'en_progreso'"],[PL,", "],[ST,"'completado'"],[PL,", "],[ST,"'cancelado'"],[PL,")"]],
+    [[PL,"             "],[KW,"NOT NULL DEFAULT "],[ST,"'pendiente'"],[PL,","]],
+    [[PL,"  "],[FN,"responsable_id"],[PL,"   "],[TY,"INT"],[PL," "],[KW,"NOT NULL"],[PL,","]],
+    [[PL,"  "],[FN,"fecha_registro"],[PL,"   "],[TY,"DATETIME"],[PL," "],[KW,"NOT NULL DEFAULT "],[FN,"CURRENT_TIMESTAMP"],[PL,","]],
+    [[PL,""]],
+    [[PL,"  "],[CT,"CONSTRAINT"],[PL," "],[FN,"fk_proyecto_responsable"]],
+    [[PL,"    "],[KW,"FOREIGN KEY"],[PL," ("],[FN,"responsable_id"],[PL,") "],[KW,"REFERENCES "],[TB,"personas"],[PL,"("],[FN,"id"],[PL,")"]],
+    [[PL,"    "],[KW,"ON DELETE RESTRICT"]],
+    [[PL,"    "],[KW,"ON UPDATE CASCADE"]],
+    [[PL,");"]],
+  ],
+  c5: [
+    [[KW,"CREATE TABLE "],[TB,"tareas"],[PL," ("]],
+    [[PL,"  "],[FN,"id"],[PL,"              "],[TY,"INT AUTO_INCREMENT PRIMARY KEY"],[PL,","]],
+    [[PL,"  "],[FN,"proyecto_id"],[PL,"     "],[TY,"INT"],[PL," "],[KW,"NOT NULL"],[PL,","]],
+    [[PL,"  "],[FN,"responsable_id"],[PL,"  "],[TY,"INT"],[PL," "],[KW,"NOT NULL"],[PL,","]],
+    [[PL,"  "],[FN,"titulo"],[PL,"          "],[TY,"VARCHAR"],[PL,"("],[NM,"200"],[PL,") "],[KW,"NOT NULL"],[PL,","]],
+    [[PL,"  "],[FN,"descripcion"],[PL,"     "],[TY,"TEXT"],[PL,","]],
+    [[PL,"  "],[FN,"fecha_entrega"],[PL,"   "],[TY,"DATE"],[PL,","]],
+    [[PL,"  "],[FN,"prioridad"],[PL,"       "],[TY,"ENUM"],[PL,"("],[ST,"'baja'"],[PL,", "],[ST,"'media'"],[PL,", "],[ST,"'alta'"],[PL,", "],[ST,"'urgente'"],[PL,") "],[KW,"NOT NULL DEFAULT "],[ST,"'media'"],[PL,","]],
+    [[PL,"  "],[FN,"estado"],[PL,"          "],[TY,"ENUM"],[PL,"("],[ST,"'pendiente'"],[PL,", "],[ST,"'en_progreso'"],[PL,", "],[ST,"'completada'"],[PL,", "],[ST,"'cancelada'"],[PL,")"]],
+    [[PL,"             "],[KW,"NOT NULL DEFAULT "],[ST,"'pendiente'"],[PL,","]],
+    [[PL,"  "],[FN,"fecha_registro"],[PL,"  "],[TY,"DATETIME"],[PL," "],[KW,"NOT NULL DEFAULT "],[FN,"CURRENT_TIMESTAMP"],[PL,","]],
+    [[PL,""]],
+    [[PL,"  "],[CT,"CONSTRAINT"],[PL," "],[FN,"fk_tarea_proyecto"]],
+    [[PL,"    "],[KW,"FOREIGN KEY"],[PL," ("],[FN,"proyecto_id"],[PL,") "],[KW,"REFERENCES "],[TB,"proyectos"],[PL,"("],[FN,"id"],[PL,")"]],
+    [[PL,"    "],[KW,"ON DELETE CASCADE"],[PL,","]],
+    [[PL,""]],
+    [[PL,"  "],[CT,"CONSTRAINT"],[PL," "],[FN,"fk_tarea_responsable"]],
+    [[PL,"    "],[KW,"FOREIGN KEY"],[PL," ("],[FN,"responsable_id"],[PL,") "],[KW,"REFERENCES "],[TB,"personas"],[PL,"("],[FN,"id"],[PL,")"]],
+    [[PL,"    "],[KW,"ON DELETE RESTRICT"]],
+    [[PL,"    "],[KW,"ON UPDATE CASCADE"]],
+    [[PL,");"]],
+  ],
+  c6: [
+    [[CM,"-- Personas de prueba"]],
+    [[KW,"INSERT INTO "],[TB,"personas"],[PL," ("],[FN,"nombre"],[PL,", "],[FN,"correo"],[PL,", "],[FN,"puesto"],[PL,", "],[FN,"departamento"],[PL,") "],[KW,"VALUES"]],
+    [[PL,"  ("],[ST,"'Ana García López'"],[PL,", "],[ST,"'ana.garcia@empresa.com'"],[PL,", "],[ST,"'Coordinadora'"],[PL,", "],[ST,"'Sistemas'"],[PL,"),"]],
+    [[PL,"  ("],[ST,"'Luis Martínez Ruiz'"],[PL,", "],[ST,"'luis.martinez@empresa.com'"],[PL,", "],[ST,"'Desarrollador'"],[PL,", "],[ST,"'TI'"],[PL,"),"]],
+    [[PL,"  ("],[ST,"'María Torres Vega'"],[PL,", "],[ST,"'maria.torres@empresa.com'"],[PL,", "],[ST,"'Diseñadora'"],[PL,", "],[ST,"'TI'"],[PL,"),"]],
+    [[PL,"  ("],[ST,"'Carlos Mendoza'"],[PL,", "],[ST,"'carlos.mendoza@empresa.com'"],[PL,", "],[ST,"'Contador'"],[PL,", "],[ST,"'Finanzas'"],[PL,"),"]],
+    [[PL,"  ("],[ST,"'Sofía Reyes Díaz'"],[PL,", "],[ST,"'sofia.reyes@empresa.com'"],[PL,", "],[ST,"'Administradora'"],[PL,", "],[ST,"'RH'"],[PL,");"]],
+    [[PL,""]],
+    [[CM,"-- Proyectos de prueba"]],
+    [[KW,"INSERT INTO "],[TB,"proyectos"],[PL," ("],[FN,"nombre"],[PL,", "],[FN,"prioridad"],[PL,", "],[FN,"estado"],[PL,", "],[FN,"responsable_id"],[PL,") "],[KW,"VALUES"]],
+    [[PL,"  ("],[ST,"'Portal web corporativo'"],[PL,", "],[ST,"'alta'"],[PL,", "],[ST,"'en_progreso'"],[PL,", "],[NM,"1"],[PL,"),"]],
+    [[PL,"  ("],[ST,"'Sistema de nómina'"],[PL,", "],[ST,"'media'"],[PL,", "],[ST,"'pendiente'"],[PL,", "],[NM,"4"],[PL,");"]],
+    [[PL,""]],
+    [[CM,"-- Tareas de prueba"]],
+    [[KW,"INSERT INTO "],[TB,"tareas"],[PL," ("],[FN,"proyecto_id"],[PL,", "],[FN,"responsable_id"],[PL,", "],[FN,"titulo"],[PL,", "],[FN,"estado"],[PL,") "],[KW,"VALUES"]],
+    [[PL,"  ("],[NM,"1"],[PL,", "],[NM,"2"],[PL,", "],[ST,"'Diseño de wireframes'"],[PL,", "],[ST,"'completada'"],[PL,"),"]],
+    [[PL,"  ("],[NM,"1"],[PL,", "],[NM,"3"],[PL,", "],[ST,"'Maquetación HTML/CSS'"],[PL,", "],[ST,"'en_progreso'"],[PL,");"]],
+  ],
+  c7: [
+    [[CM,"-- Proyectos con su responsable"]],
+    [[KW,"SELECT"]],
+    [[PL,"  "],[FN,"p"],[PL,"."],[FN,"nombre"],[PL," "],[KW,"AS "],[ST,"proyecto"],[PL,","]],
+    [[PL,"  "],[FN,"per"],[PL,"."],[FN,"nombre"],[PL," "],[KW,"AS "],[ST,"responsable"],[PL,","]],
+    [[PL,"  "],[FN,"p"],[PL,"."],[FN,"estado"],[PL,", "],[FN,"p"],[PL,"."],[FN,"prioridad"]],
+    [[KW,"FROM "],[TB,"proyectos"],[PL," "],[FN,"p"]],
+    [[KW,"INNER JOIN "],[TB,"personas"],[PL," "],[FN,"per"],[PL," "],[KW,"ON "],[FN,"p"],[PL,"."],[FN,"responsable_id"],[PL," = "],[FN,"per"],[PL,"."],[FN,"id"],[PL,";"]],
+    [[PL,""]],
+    [[CM,"-- Tareas con proyecto y responsable"]],
+    [[KW,"SELECT"]],
+    [[PL,"  "],[FN,"t"],[PL,"."],[FN,"titulo"],[PL,", "],[FN,"t"],[PL,"."],[FN,"estado"],[PL,","]],
+    [[PL,"  "],[FN,"pr"],[PL,"."],[FN,"nombre"],[PL," "],[KW,"AS "],[ST,"proyecto"],[PL,","]],
+    [[PL,"  "],[FN,"pe"],[PL,"."],[FN,"nombre"],[PL," "],[KW,"AS "],[ST,"responsable"]],
+    [[KW,"FROM "],[TB,"tareas"],[PL," "],[FN,"t"]],
+    [[KW,"INNER JOIN "],[TB,"proyectos"],[PL," "],[FN,"pr"],[PL," "],[KW,"ON "],[FN,"t"],[PL,"."],[FN,"proyecto_id"],[PL," = "],[FN,"pr"],[PL,"."],[FN,"id"]],
+    [[KW,"INNER JOIN "],[TB,"personas"],[PL," "],[FN,"pe"],[PL," "],[KW,"ON "],[FN,"t"],[PL,"."],[FN,"responsable_id"],[PL," = "],[FN,"pe"],[PL,"."],[FN,"id"],[PL,";"]],
+  ],
+};
+
+const FONT_SIZE = 13;
+const FONT = `${FONT_SIZE}px "Courier New", monospace`;
+const LINE_H = 22;
+const PAD_X = 16;
+const PAD_Y = 12;
+
+function drawCode(canvasId, lines) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+
+  // Medir el ancho máximo con un canvas temporal
+  const tmp = document.createElement('canvas');
+  const tc = tmp.getContext('2d');
+  tc.font = FONT;
+  let maxW = 0;
+  for (const line of lines) {
+    const full = line.map(s => s[1]).join('');
+    const w = tc.measureText(full).width;
+    if (w > maxW) maxW = w;
+  }
+
+  const W = Math.ceil(maxW + PAD_X * 2);
+  const H = lines.length * LINE_H + PAD_Y * 2;
+
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  // Fondo blanco
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.font = FONT;
+  ctx.textBaseline = 'alphabetic';
+
+  lines.forEach((segs, i) => {
+    const y = PAD_Y + i * LINE_H + LINE_H * 0.75;
+    let x = PAD_X;
+    for (const [color, text] of segs) {
+      ctx.fillStyle = color;
+      ctx.fillText(text, x, y);
+      x += tc.measureText(text).width;
+    }
+  });
+}
+
+// Esperar a que la fuente esté lista antes de renderizar
+document.fonts.ready.then(() => {
+  for (const [id, lines] of Object.entries(bloques)) {
+    drawCode(id, lines);
+  }
+});
+</script>
+</body>
+</html>
