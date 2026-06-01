@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica 1 — Diseño de base de datos</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',Arial,sans-serif; background:#fff; color:#1a1a2e; font-size:14px; line-height:1.7; }
+.header { background:#1565C0; color:#fff; }
+.header-top { background:#0D47A1; padding:18px 40px 14px; display:flex; justify-content:space-between; align-items:flex-start; }
+.header-inst { font-size:11px; opacity:0.85; letter-spacing:0.03em; text-transform:uppercase; }
+.header-carrera { font-size:13px; font-weight:600; margin-top:3px; }
+.header-badge { background:#fff; color:#0D47A1; font-weight:700; font-size:13px; padding:6px 16px; border-radius:20px; white-space:nowrap; align-self:center; }
+.header-main { padding:20px 40px 24px; }
+.header-practica { font-size:11px; opacity:0.75; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; }
+.header-titulo { font-size:26px; font-weight:700; margin-bottom:8px; }
+.header-meta { display:flex; gap:24px; font-size:12px; opacity:0.85; flex-wrap:wrap; }
+.header-strip { height:5px; background:#42A5F5; }
+.content { max-width:900px; margin:0 auto; padding:36px 40px 60px; }
+.toc { background:#E3F2FD; border-left:4px solid #1565C0; border-radius:0 8px 8px 0; padding:20px 24px; margin-bottom:36px; }
+.toc-title { font-size:13px; font-weight:700; color:#0D47A1; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px; }
+.toc ol { padding-left:18px; }
+.toc li { font-size:13px; color:#1565C0; padding:3px 0; }
+.toc li a { color:#1565C0; text-decoration:none; }
+.toc li a:hover { text-decoration:underline; }
+.seccion { margin-bottom:36px; }
+.seccion-titulo { font-size:16px; font-weight:700; color:#0D47A1; border-bottom:2px solid #BBDEFB; padding-bottom:8px; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+.seccion-num { background:#1565C0; color:#fff; font-size:12px; font-weight:700; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.subseccion-titulo { font-size:14px; font-weight:700; color:#1565C0; margin:18px 0 8px; }
+p { margin-bottom:10px; }
+.contexto-card { background:#F8FBFF; border:1px solid #BBDEFB; border-radius:10px; padding:20px 24px; margin-bottom:16px; }
+.contexto-card p:last-child { margin-bottom:0; }
+.modulos-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0; }
+.modulo-card { background:#fff; border:1px solid #BBDEFB; border-radius:8px; padding:14px 16px; }
+.modulo-num { font-size:10px; font-weight:700; color:#1565C0; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px; }
+.modulo-nombre { font-size:13px; font-weight:700; color:#0D47A1; margin-bottom:6px; }
+.modulo-campos { font-size:12px; color:#555; line-height:1.6; }
+.modulo-campos code { background:#E3F2FD; color:#0D47A1; padding:1px 5px; border-radius:3px; font-size:11px; }
+.concepto-bloque { border:1px solid #BBDEFB; border-radius:10px; margin-bottom:14px; overflow:hidden; }
+.concepto-header { background:#1565C0; color:#fff; padding:10px 16px; font-size:13px; font-weight:700; }
+.concepto-body { padding:14px 16px; font-size:13.5px; background:#F8FBFF; }
+.concepto-body p { margin-bottom:8px; }
+.concepto-body p:last-child { margin-bottom:0; }
+.analogia { background:#FFF8E1; border-left:3px solid #F59E0B; padding:10px 14px; margin-top:8px; border-radius:0 6px 6px 0; font-size:13px; }
+.analogia strong { color:#92400E; }
+.obj-lista { list-style:none; padding:0; }
+.obj-lista li { padding:6px 0 6px 24px; position:relative; font-size:13.5px; border-bottom:1px solid #F0F4FF; }
+.obj-lista li:last-child { border-bottom:none; }
+.obj-lista li::before { content:'✓'; position:absolute; left:0; color:#1565C0; font-weight:700; }
+.conceptos { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0; }
+.concepto-tag { background:#E3F2FD; color:#0D47A1; font-size:12px; padding:5px 12px; border-radius:14px; border:1px solid #90CAF9; }
+.nota  { background:#FFF8E1; border-left:4px solid #F59E0B; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.nota strong { color:#92400E; }
+.info  { background:#E8F5E9; border-left:4px solid #43A047; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.info strong { color:#1B5E20; }
+.peligro { background:#FFEBEE; border-left:4px solid #E53935; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.peligro strong { color:#B71C1C; }
+.paso { background:#fff; border:1px solid #BBDEFB; border-radius:10px; padding:20px 24px; margin-bottom:20px; }
+.paso-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.paso-num { background:#1565C0; color:#fff; font-size:13px; font-weight:700; padding:4px 12px; border-radius:14px; }
+.paso-titulo { font-size:14px; font-weight:700; color:#0D47A1; }
+.paso p { font-size:13.5px; margin-bottom:10px; }
+.file-label { display:inline-block; background:#E3F2FD; color:#0D47A1; font-family:'Courier New',monospace; font-size:12px; padding:4px 12px; border-radius:6px 6px 0 0; border:1px solid #BBDEFB; border-bottom:none; font-weight:600; margin-top:10px; }
+.code-wrap { border:1px solid #BBDEFB; border-radius:0 8px 8px 8px; overflow:hidden; margin-bottom:12px; }
+.code-wrap canvas { display:block; max-width:100%; }
+.actividades { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.actividades th { background:#1565C0; color:#fff; padding:10px 14px; text-align:left; font-weight:600; font-size:12px; }
+.actividades td { padding:9px 14px; border-bottom:1px solid #E3F2FD; vertical-align:top; }
+.actividades tr:nth-child(even) td { background:#F8FBFF; }
+.actividades tr:last-child td { border-bottom:none; }
+.tipo-badge { font-size:11px; padding:3px 8px; border-radius:10px; font-weight:600; white-space:nowrap; }
+.tipo-sql    { background:#E3F2FD; color:#0D47A1; }
+.tipo-diseno { background:#EDE7F6; color:#4527A0; }
+.tipo-prueba { background:#E8F5E9; color:#1B5E20; }
+.reflexion-lista { list-style:none; padding:0; counter-reset:ref; }
+.reflexion-lista li { counter-increment:ref; padding:10px 14px 10px 44px; position:relative; background:#F8FBFF; border:1px solid #BBDEFB; border-radius:8px; margin-bottom:8px; font-size:13.5px; }
+.reflexion-lista li::before { content:counter(ref); position:absolute; left:12px; top:50%; transform:translateY(-50%); background:#1565C0; color:#fff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
+.rubrica { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.rubrica th { background:#0D47A1; color:#fff; padding:10px 14px; text-align:left; font-weight:600; font-size:12px; }
+.rubrica td { padding:9px 14px; border-bottom:1px solid #E3F2FD; }
+.rubrica tr:nth-child(even) td { background:#F8FBFF; }
+.rubrica .total td { background:#1565C0; color:#fff; font-weight:700; }
+.pts { font-weight:700; color:#0D47A1; }
+.entregable-lista { list-style:none; padding:0; }
+.entregable-lista li { padding:8px 14px 8px 36px; position:relative; font-size:13.5px; border-bottom:1px solid #F0F4FF; }
+.entregable-lista li:last-child { border-bottom:none; }
+.entregable-lista li::before { content:'📄'; position:absolute; left:8px; }
+.footer { background:#0D47A1; color:#fff; text-align:center; padding:14px 40px; font-size:12px; margin-top:40px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-inst">Ingeniería de Desarrollo y Gestión de Software</div>
+      <div class="header-carrera">Desarrollo Web Integral y Seguridad</div>
+    </div>
+    <div class="header-badge">Práctica 1</div>
+  </div>
+  <div class="header-main">
+    <div class="header-practica">Fase 1 — Fundamentos del sistema</div>
+    <div class="header-titulo">Diseño e implementación de la base de datos</div>
+    <div class="header-meta">
+      <span>⏱ Duración: 2 horas</span>
+      <span>🛠 Herramienta: phpMyAdmin</span>
+      <span>📦 Entregable: database.sql + capturas</span>
+    </div>
+  </div>
+  <div class="header-strip"></div>
+</div>
+
+<div class="content">
+
+  <div class="toc">
+    <div class="toc-title">Tabla de contenidos</div>
+    <ol>
+      <li><a href="#contexto">Contexto del sistema a desarrollar</a></li>
+      <li><a href="#conceptos">Conceptos clave que debes conocer</a></li>
+      <li><a href="#objetivos">Objetivos de la práctica</a></li>
+      <li><a href="#previos">Conocimientos previos requeridos</a></li>
+      <li><a href="#desarrollo">Desarrollo paso a paso</a></li>
+      <li><a href="#actividades">Actividades</a></li>
+      <li><a href="#reflexion">Preguntas de reflexión</a></li>
+      <li><a href="#entregable">Entregable</a></li>
+      <li><a href="#rubrica">Criterios de evaluación</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. CONTEXTO -->
+  <div class="seccion" id="contexto">
+    <div class="seccion-titulo"><span class="seccion-num">1</span> Contexto del sistema a desarrollar</div>
+    <div class="contexto-card">
+      <p>A lo largo de este curso construirás un <strong>Sistema Administrativo</strong> completo, funcional y seguro. No se trata de ejercicios aislados: cada práctica es un bloque que se conecta con las anteriores y prepara el terreno para las siguientes.</p>
+      <p>El sistema permitirá a una organización registrar personas, asignarles acceso con diferentes niveles de permisos, gestionar proyectos y controlar las tareas asociadas a cada uno.</p>
+      <p>Esta primera práctica es la base de todo: sin una base de datos bien diseñada, el resto del sistema no puede funcionar.</p>
+    </div>
+
+    <div class="subseccion-titulo">¿Qué módulos tendrá el sistema?</div>
+    <div class="modulos-grid">
+      <div class="modulo-card">
+        <div class="modulo-num">Módulo 1</div>
+        <div class="modulo-nombre">Personas</div>
+        <div class="modulo-campos">Cualquier individuo de la organización. No necesariamente tiene acceso al sistema.<br><br>Campos: <code>nombre</code> <code>correo</code> <code>puesto</code> <code>departamento</code> <code>activo</code></div>
+      </div>
+      <div class="modulo-card">
+        <div class="modulo-num">Módulo 2</div>
+        <div class="modulo-nombre">Usuarios del sistema</div>
+        <div class="modulo-campos">Solo quienes necesitan iniciar sesión. Siempre vinculados a una persona.<br><br>Campos: <code>usuario</code> <code>password_hash</code> <code>rol</code> <code>activo</code></div>
+      </div>
+      <div class="modulo-card">
+        <div class="modulo-num">Módulo 3</div>
+        <div class="modulo-nombre">Proyectos</div>
+        <div class="modulo-campos">Proyectos con responsable, fechas, prioridad y estado de avance.<br><br>Campos: <code>nombre</code> <code>fecha_inicio</code> <code>prioridad</code> <code>estado</code> <code>responsable_id</code></div>
+      </div>
+      <div class="modulo-card">
+        <div class="modulo-num">Módulo 4</div>
+        <div class="modulo-nombre">Tareas</div>
+        <div class="modulo-campos">Tareas vinculadas a un proyecto y a una persona responsable.<br><br>Campos: <code>titulo</code> <code>fecha_entrega</code> <code>prioridad</code> <code>estado</code> <code>proyecto_id</code></div>
+      </div>
+    </div>
+    <div class="nota"><strong>Importante:</strong> Una persona puede existir en el sistema sin tener acceso. Un coordinador, por ejemplo, puede ser responsable de proyectos sin necesidad de iniciar sesión.</div>
+  </div>
+
+  <!-- 2. CONCEPTOS -->
+  <div class="seccion" id="conceptos">
+    <div class="seccion-titulo"><span class="seccion-num">2</span> Conceptos clave que debes conocer</div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header">¿Qué es una base de datos relacional?</div>
+      <div class="concepto-body">
+        <p>Una base de datos relacional organiza la información en <strong>tablas</strong> (como hojas de cálculo), donde cada fila es un registro y cada columna es un atributo. Lo que hace especial a este tipo de base de datos es que las tablas pueden <strong>relacionarse entre sí</strong> mediante llaves.</p>
+        <div class="analogia"><strong>Analogía:</strong> Imagina un archivo de expedientes en una empresa. Tienes un archivero de empleados y otro de proyectos. En cada proyecto hay una nota que dice "responsable: expediente #5". Eso es una relación: el proyecto apunta al empleado sin duplicar su información.</div>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header">¿Qué es una llave primaria (PK) y una llave foránea (FK)?</div>
+      <div class="concepto-body">
+        <p>La <strong>llave primaria (PRIMARY KEY)</strong> es un identificador único para cada registro en una tabla. No puede repetirse ni estar vacío. En nuestro sistema, el campo <code>id</code> de cada tabla es la llave primaria.</p>
+        <p>La <strong>llave foránea (FOREIGN KEY)</strong> es un campo que guarda el valor de la llave primaria de otra tabla, creando así la relación entre ambas. Por ejemplo, <code>responsable_id</code> en proyectos guarda el <code>id</code> de la tabla personas.</p>
+        <div class="analogia"><strong>Analogía:</strong> La llave primaria es como el número de CURP de una persona: único e irrepetible. La llave foránea es como escribir ese número de CURP en un contrato para indicar quién es el firmante, sin tener que copiar todos sus datos.</div>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header">¿Qué es la integridad referencial? (RESTRICT vs CASCADE)</div>
+      <div class="concepto-body">
+        <p>La integridad referencial garantiza que las relaciones entre tablas sean siempre válidas. MySQL no te dejará crear un registro hijo que apunte a un padre inexistente.</p>
+        <p><strong>ON DELETE RESTRICT:</strong> No permite borrar un registro padre si tiene hijos que dependen de él. Protege los datos históricos.</p>
+        <p><strong>ON DELETE CASCADE:</strong> Si borras el registro padre, todos sus hijos se borran automáticamente.</p>
+        <div class="analogia"><strong>Ejemplo en nuestro sistema:</strong> No puedes borrar una persona que tiene proyectos asignados (RESTRICT). Pero si borras un proyecto, sus tareas se eliminan solas porque no tienen sentido sin el proyecto (CASCADE).</div>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header">¿Qué es el tipo ENUM?</div>
+      <div class="concepto-body">
+        <p>ENUM es un tipo de dato que restringe los valores posibles de un campo a una lista predefinida. Si intentas insertar un valor que no está en la lista, MySQL lo rechaza automáticamente.</p>
+        <p>En nuestro sistema lo usamos para campos como <code>rol</code> ('admin', 'usuario', 'invitado'), <code>prioridad</code> ('baja', 'media', 'alta') y <code>estado</code> ('pendiente', 'en_progreso', 'completado').</p>
+        <div class="analogia"><strong>¿Por qué no usar VARCHAR?</strong> Con VARCHAR alguien podría escribir "ADMINISTRADOR", "Admin" o "administrador" y serían tres valores distintos. ENUM garantiza consistencia: el valor siempre será exactamente uno de los permitidos.</div>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header">¿Qué es el soft delete?</div>
+      <div class="concepto-body">
+        <p>En lugar de eliminar físicamente un registro de la base de datos, el <strong>soft delete</strong> consiste en marcarlo como inactivo usando un campo booleano como <code>activo = 0</code>. El registro sigue existiendo pero el sistema lo trata como eliminado.</p>
+        <p>Esto es una práctica profesional que preserva el historial: si alguien fue responsable de un proyecto hace un año y después se "elimina" del sistema, los registros históricos siguen siendo válidos.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 3. OBJETIVOS -->
+  <div class="seccion" id="objetivos">
+    <div class="seccion-titulo"><span class="seccion-num">3</span> Objetivos de la práctica</div>
+    <ul class="obj-lista">
+      <li>Identificar entidades, atributos y relaciones del sistema administrativo.</li>
+      <li>Crear una base de datos relacional con llaves primarias, foráneas y restricciones de integridad.</li>
+      <li>Aplicar tipos de dato adecuados: VARCHAR, TEXT, DATE, DATETIME, ENUM, TINYINT.</li>
+      <li>Comprender y aplicar ON DELETE RESTRICT y ON DELETE CASCADE correctamente.</li>
+      <li>Insertar datos semilla (seed) para pruebas funcionales del sistema.</li>
+      <li>Verificar las relaciones entre tablas ejecutando consultas JOIN básicas.</li>
+    </ul>
+  </div>
+
+  <!-- 4. PREVIOS -->
+  <div class="seccion" id="previos">
+    <div class="seccion-titulo"><span class="seccion-num">4</span> Conocimientos previos requeridos</div>
+    <div class="conceptos">
+      <span class="concepto-tag">¿Qué es una base de datos?</span>
+      <span class="concepto-tag">Sentencia SELECT básica</span>
+      <span class="concepto-tag">Sentencia INSERT</span>
+      <span class="concepto-tag">Tipos de dato SQL</span>
+      <span class="concepto-tag">Uso básico de phpMyAdmin</span>
+      <span class="concepto-tag">Diagrama entidad-relación</span>
+    </div>
+  </div>
+
+  <!-- 5. DESARROLLO -->
+  <div class="seccion" id="desarrollo">
+    <div class="seccion-titulo"><span class="seccion-num">5</span> Desarrollo paso a paso</div>
+    <p>Ejecuta cada paso en orden dentro de phpMyAdmin. Las tablas deben crearse respetando sus dependencias: primero las independientes, después las que referencian a otras.</p>
+
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 1</span><span class="paso-titulo">Crear la base de datos</span></div>
+      <p>Abre phpMyAdmin, haz clic en la pestaña <strong>SQL</strong> y escribe el siguiente código. Luego presiona <strong>Continuar</strong>.</p>
+      <div class="file-label">📄 database.sql</div>
+      <div class="code-wrap"><canvas id="c1"></canvas></div>
+      <div class="info"><strong>¿Por qué utf8mb4?</strong> Es la codificación que permite almacenar correctamente tildes, la letra ñ, emojis y cualquier carácter especial. Sin esto, algunos textos en español podrían guardarse de forma incorrecta.</div>
+    </div>
+
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 2</span><span class="paso-titulo">Crear la tabla personas</span></div>
+      <p>Esta tabla es la base de todo el sistema. No depende de ninguna otra, por eso se crea primero. Registra a cualquier persona de la organización, tenga o no acceso al sistema.</p>
+      <div class="file-label">📄 database.sql — tabla personas</div>
+      <div class="code-wrap"><canvas id="c2"></canvas></div>
+      <div class="nota"><strong>Soft delete:</strong> El campo <code>activo</code> usa TINYINT(1) como booleano: 1 = activo, 0 = inactivo. Nunca borraremos personas físicamente para no perder historial de proyectos y tareas asociadas.</div>
+    </div>
+
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 3</span><span class="paso-titulo">Crear la tabla usuarios</span></div>
+      <p>Un usuario representa a una persona que sí puede iniciar sesión en el sistema. Siempre debe estar vinculado a un registro en la tabla <code>personas</code> mediante <code>persona_id</code>.</p>
+      <p>El campo <code>password_hash</code> <strong>nunca almacenará contraseñas en texto plano</strong>. En prácticas posteriores usaremos <strong>bcrypt</strong> para cifrarlas correctamente antes de guardarlas.</p>
+      <div class="file-label">📄 database.sql — tabla usuarios</div>
+      <div class="code-wrap"><canvas id="c3"></canvas></div>
+      <div class="peligro"><strong>Seguridad:</strong> Guardar contraseñas en texto plano es una vulnerabilidad crítica. Si alguien accede a tu base de datos, obtiene todas las contraseñas directamente. bcrypt convierte la contraseña en un hash irreversible que se implementará en la Práctica 6.</div>
+    </div>
+
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 4</span><span class="paso-titulo">Crear la tabla proyectos</span></div>
+      <p>Cada proyecto tiene un responsable que debe existir previamente en la tabla <code>personas</code>. Los campos ENUM para <code>prioridad</code> y <code>estado</code> garantizan que solo se puedan insertar valores válidos.</p>
+      <div class="file-label">📄 database.sql — tabla proyectos</div>
+      <div class="code-wrap"><canvas id="c4"></canvas></div>
+    </div>
+
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 5</span><span class="paso-titulo">Crear la tabla tareas</span></div>
+      <p>Las tareas tienen dos llaves foráneas: pertenecen a un <code>proyecto</code> y tienen un <code>responsable</code> de la tabla personas. Observa cómo se usa CASCADE para proyecto y RESTRICT para persona.</p>
+      <div class="file-label">📄 database.sql — tabla tareas</div>
+      <div class="code-wrap"><canvas id="c5"></canvas></div>
+      <div class="nota"><strong>Regla de diseño:</strong> Si se elimina un proyecto, sus tareas también desaparecen (CASCADE) porque una tarea sin proyecto no tiene sentido. Pero no se puede eliminar una persona que tiene tareas asignadas (RESTRICT) para proteger el historial.</div>
+    </div>
+
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 6</span><span class="paso-titulo">Insertar datos semilla (seed)</span></div>
+      <p>Los datos semilla son registros de prueba que permiten verificar que el sistema funciona correctamente antes de tener una interfaz gráfica. Inserta al menos los siguientes registros.</p>
+      <div class="file-label">📄 database.sql — datos de prueba</div>
+      <div class="code-wrap"><canvas id="c6"></canvas></div>
+    </div>
+
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 7</span><span class="paso-titulo">Verificar relaciones con consultas JOIN</span></div>
+      <p>Ejecuta estas consultas para confirmar que las relaciones entre tablas funcionan correctamente. Si obtienes resultados con datos de múltiples tablas, las llaves foráneas están bien configuradas.</p>
+      <div class="file-label">📄 Verificación con JOIN</div>
+      <div class="code-wrap"><canvas id="c7"></canvas></div>
+      <div class="info"><strong>¿Qué hace INNER JOIN?</strong> Combina filas de dos tablas donde existe una coincidencia en el campo de unión. En este caso, une los proyectos con el nombre de su responsable usando <code>responsable_id = personas.id</code>.</div>
+    </div>
+
+  </div>
+
+  <!-- 6. ACTIVIDADES -->
+  <div class="seccion" id="actividades">
+    <div class="seccion-titulo"><span class="seccion-num">6</span> Actividades</div>
+    <table class="actividades">
+      <thead><tr><th>#</th><th>Actividad</th><th>Tipo</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Dibujar el diagrama ER del sistema con todas sus entidades, atributos y relaciones</td><td><span class="tipo-badge tipo-diseno">Diseño</span></td></tr>
+        <tr><td>2</td><td>Crear la base de datos sistema_admin en phpMyAdmin</td><td><span class="tipo-badge tipo-sql">SQL</span></td></tr>
+        <tr><td>3</td><td>Crear las 4 tablas en el orden correcto respetando las dependencias</td><td><span class="tipo-badge tipo-sql">SQL</span></td></tr>
+        <tr><td>4</td><td>Insertar al menos 5 personas, 2 proyectos y 3 tareas de prueba</td><td><span class="tipo-badge tipo-sql">SQL</span></td></tr>
+        <tr><td>5</td><td>Ejecutar las consultas JOIN y verificar que retornan resultados correctos</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+        <tr><td>6</td><td>Tomar capturas de pantalla de las 4 tablas creadas en phpMyAdmin</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 7. REFLEXIÓN -->
+  <div class="seccion" id="reflexion">
+    <div class="seccion-titulo"><span class="seccion-num">7</span> Preguntas de reflexión</div>
+    <p>Responde cada pregunta en tu reporte de práctica con tus propias palabras:</p>
+    <ol class="reflexion-lista">
+      <li>¿Por qué la tabla personas debe crearse antes que usuarios, proyectos y tareas?</li>
+      <li>¿Qué ocurre si intentas eliminar una persona que tiene proyectos asignados? ¿Por qué MySQL lo impide?</li>
+      <li>¿Cuál es la diferencia entre ON DELETE RESTRICT y ON DELETE CASCADE? Da un ejemplo de cuándo conviene usar cada uno.</li>
+      <li>¿Por qué usamos ENUM en lugar de VARCHAR para los campos rol, estado y prioridad?</li>
+      <li>¿Qué ventaja tiene marcar activo = 0 en lugar de eliminar físicamente un registro?</li>
+    </ol>
+  </div>
+
+  <!-- 8. ENTREGABLE -->
+  <div class="seccion" id="entregable">
+    <div class="seccion-titulo"><span class="seccion-num">8</span> Entregable</div>
+    <ul class="entregable-lista">
+      <li>Archivo database.sql con todas las instrucciones ejecutadas, comentado y ordenado.</li>
+      <li>Diagrama Entidad-Relación del sistema, elaborado en draw.io o en papel escaneado.</li>
+      <li>Capturas de pantalla de las 4 tablas creadas en phpMyAdmin.</li>
+      <li>Capturas del resultado de las consultas JOIN con datos visibles.</li>
+      <li>Respuestas a las 5 preguntas de reflexión en el reporte de práctica.</li>
+    </ul>
+  </div>
+
+  <!-- 9. RÚBRICA -->
+  <div class="seccion" id="rubrica">
+    <div class="seccion-titulo"><span class="seccion-num">9</span> Criterios de evaluación</div>
+    <table class="rubrica">
+      <thead><tr><th>Criterio</th><th>Descripción</th><th>Puntos</th></tr></thead>
+      <tbody>
+        <tr><td>Diagrama ER</td><td>Entidades, atributos, relaciones y cardinalidades correctas</td><td class="pts">20</td></tr>
+        <tr><td>Tablas creadas</td><td>Las 4 tablas sin errores de sintaxis ni de estructura</td><td class="pts">25</td></tr>
+        <tr><td>Llaves foráneas</td><td>FK definidas correctamente con RESTRICT/CASCADE según corresponda</td><td class="pts">20</td></tr>
+        <tr><td>Datos semilla</td><td>Al menos 5 personas, 2 proyectos y 3 tareas insertadas</td><td class="pts">15</td></tr>
+        <tr><td>Consultas JOIN</td><td>Consultas ejecutadas con resultados visibles y correctos</td><td class="pts">10</td></tr>
+        <tr><td>Código documentado</td><td>Comentarios claros y código ordenado en el archivo .sql</td><td class="pts">10</td></tr>
+        <tr class="total"><td colspan="2">Total</td><td>100</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<div class="footer">
+  Ingeniería de Desarrollo y Gestión de Software &nbsp;·&nbsp; Desarrollo Web Integral y Seguridad &nbsp;·&nbsp; Práctica 1
+</div>
+
+<script>
+const KW='#1565C0', TY='#0277BD', ST='#2E7D32', NM='#E65100',
+      FN='#6A1B9A', TB='#AD1457', CT='#4527A0', CM='#9E9E9E', PL='#1a1a2e';
+
+const bloques = {
+  c1:[
+    [[CM,'-- Crear la base de datos del sistema administrativo']],
+    [[KW,'CREATE DATABASE IF NOT EXISTS '],[TB,'sistema_admin']],
+    [[PL,'  CHARACTER SET '],[ST,'utf8mb4']],
+    [[PL,'  COLLATE '],[ST,'utf8mb4_unicode_ci'],[PL,';']],
+    [[PL,'']],
+    [[KW,'USE '],[TB,'sistema_admin'],[PL,';']],
+  ],
+  c2:[
+    [[KW,'CREATE TABLE '],[TB,'personas'],[PL,' (']],
+    [[PL,'  '],[FN,'id'],[PL,'             '],[TY,'INT AUTO_INCREMENT PRIMARY KEY'],[PL,',']],
+    [[PL,'  '],[FN,'nombre'],[PL,'         '],[TY,'VARCHAR'],[PL,'('],[NM,'150'],[PL,') '],[KW,'NOT NULL'],[PL,',']],
+    [[PL,'  '],[FN,'correo'],[PL,'         '],[TY,'VARCHAR'],[PL,'('],[NM,'150'],[PL,') '],[KW,'NOT NULL UNIQUE'],[PL,',']],
+    [[PL,'  '],[FN,'telefono'],[PL,'       '],[TY,'VARCHAR'],[PL,'('],[NM,'20'],[PL,'),']],
+    [[PL,'  '],[FN,'puesto'],[PL,'         '],[TY,'VARCHAR'],[PL,'('],[NM,'100'],[PL,'),']],
+    [[PL,'  '],[FN,'formacion'],[PL,'      '],[TY,'VARCHAR'],[PL,'('],[NM,'100'],[PL,'),']],
+    [[PL,'  '],[FN,'departamento'],[PL,'   '],[TY,'VARCHAR'],[PL,'('],[NM,'100'],[PL,'),']],
+    [[PL,'  '],[FN,'activo'],[PL,'         '],[TY,'TINYINT'],[PL,'('],[NM,'1'],[PL,') '],[KW,'NOT NULL DEFAULT '],[NM,'1'],[PL,',']],
+    [[PL,'  '],[FN,'fecha_registro'],[PL,' '],[TY,'DATETIME'],[PL,' '],[KW,'NOT NULL DEFAULT '],[FN,'CURRENT_TIMESTAMP']],
+    [[PL,');']],
+  ],
+  c3:[
+    [[KW,'CREATE TABLE '],[TB,'usuarios'],[PL,' (']],
+    [[PL,'  '],[FN,'id'],[PL,'              '],[TY,'INT AUTO_INCREMENT PRIMARY KEY'],[PL,',']],
+    [[PL,'  '],[FN,'persona_id'],[PL,'      '],[TY,'INT'],[PL,' '],[KW,'NOT NULL'],[PL,',']],
+    [[PL,'  '],[FN,'usuario'],[PL,'         '],[TY,'VARCHAR'],[PL,'('],[NM,'80'],[PL,') '],[KW,'NOT NULL UNIQUE'],[PL,',']],
+    [[PL,'  '],[FN,'password_hash'],[PL,'   '],[TY,'VARCHAR'],[PL,'('],[NM,'255'],[PL,') '],[KW,'NOT NULL'],[PL,',']],
+    [[PL,'  '],[FN,'rol'],[PL,'             '],[TY,'ENUM'],[PL,'('],[ST,"'admin'"],[PL,', '],[ST,"'usuario'"],[PL,', '],[ST,"'invitado'"],[PL,') '],[KW,'NOT NULL DEFAULT '],[ST,"'invitado'"],[PL,',']],
+    [[PL,'  '],[FN,'activo'],[PL,'          '],[TY,'TINYINT'],[PL,'('],[NM,'1'],[PL,') '],[KW,'NOT NULL DEFAULT '],[NM,'1'],[PL,',']],
+    [[PL,'  '],[FN,'fecha_creacion'],[PL,'  '],[TY,'DATETIME'],[PL,' '],[KW,'NOT NULL DEFAULT '],[FN,'CURRENT_TIMESTAMP'],[PL,',']],
+    [[PL,'']],
+    [[PL,'  '],[CT,'CONSTRAINT'],[PL,' '],[FN,'fk_usuario_persona']],
+    [[PL,'    '],[KW,'FOREIGN KEY '],[PL,'('],[FN,'persona_id'],[PL,') '],[KW,'REFERENCES '],[TB,'personas'],[PL,'('],[FN,'id'],[PL,')']],
+    [[PL,'    '],[KW,'ON DELETE RESTRICT']],
+    [[PL,'    '],[KW,'ON UPDATE CASCADE']],
+    [[PL,');']],
+  ],
+  c4:[
+    [[KW,'CREATE TABLE '],[TB,'proyectos'],[PL,' (']],
+    [[PL,'  '],[FN,'id'],[PL,'               '],[TY,'INT AUTO_INCREMENT PRIMARY KEY'],[PL,',']],
+    [[PL,'  '],[FN,'nombre'],[PL,'           '],[TY,'VARCHAR'],[PL,'('],[NM,'200'],[PL,') '],[KW,'NOT NULL'],[PL,',']],
+    [[PL,'  '],[FN,'descripcion'],[PL,'      '],[TY,'TEXT'],[PL,',']],
+    [[PL,'  '],[FN,'fecha_inicio'],[PL,'     '],[TY,'DATE'],[PL,',']],
+    [[PL,'  '],[FN,'fecha_fin'],[PL,'        '],[TY,'DATE'],[PL,',']],
+    [[PL,'  '],[FN,'prioridad'],[PL,'        '],[TY,'ENUM'],[PL,'('],[ST,"'baja'"],[PL,', '],[ST,"'media'"],[PL,', '],[ST,"'alta'"],[PL,') '],[KW,'NOT NULL DEFAULT '],[ST,"'media'"],[PL,',']],
+    [[PL,'  '],[FN,'estado'],[PL,'           '],[TY,'ENUM'],[PL,'('],[ST,"'pendiente'"],[PL,', '],[ST,"'en_progreso'"],[PL,', '],[ST,"'completado'"],[PL,', '],[ST,"'cancelado'"],[PL,')']],
+    [[PL,'             '],[KW,'NOT NULL DEFAULT '],[ST,"'pendiente'"],[PL,',']],
+    [[PL,'  '],[FN,'responsable_id'],[PL,'   '],[TY,'INT'],[PL,' '],[KW,'NOT NULL'],[PL,',']],
+    [[PL,'  '],[FN,'fecha_registro'],[PL,'   '],[TY,'DATETIME'],[PL,' '],[KW,'NOT NULL DEFAULT '],[FN,'CURRENT_TIMESTAMP'],[PL,',']],
+    [[PL,'']],
+    [[PL,'  '],[CT,'CONSTRAINT'],[PL,' '],[FN,'fk_proyecto_responsable']],
+    [[PL,'    '],[KW,'FOREIGN KEY '],[PL,'('],[FN,'responsable_id'],[PL,') '],[KW,'REFERENCES '],[TB,'personas'],[PL,'('],[FN,'id'],[PL,')']],
+    [[PL,'    '],[KW,'ON DELETE RESTRICT']],
+    [[PL,'    '],[KW,'ON UPDATE CASCADE']],
+    [[PL,');']],
+  ],
+  c5:[
+    [[KW,'CREATE TABLE '],[TB,'tareas'],[PL,' (']],
+    [[PL,'  '],[FN,'id'],[PL,'              '],[TY,'INT AUTO_INCREMENT PRIMARY KEY'],[PL,',']],
+    [[PL,'  '],[FN,'proyecto_id'],[PL,'     '],[TY,'INT'],[PL,' '],[KW,'NOT NULL'],[PL,',']],
+    [[PL,'  '],[FN,'responsable_id'],[PL,'  '],[TY,'INT'],[PL,' '],[KW,'NOT NULL'],[PL,',']],
+    [[PL,'  '],[FN,'titulo'],[PL,'          '],[TY,'VARCHAR'],[PL,'('],[NM,'200'],[PL,') '],[KW,'NOT NULL'],[PL,',']],
+    [[PL,'  '],[FN,'descripcion'],[PL,'     '],[TY,'TEXT'],[PL,',']],
+    [[PL,'  '],[FN,'fecha_entrega'],[PL,'   '],[TY,'DATE'],[PL,',']],
+    [[PL,'  '],[FN,'prioridad'],[PL,'       '],[TY,'ENUM'],[PL,'('],[ST,"'baja'"],[PL,', '],[ST,"'media'"],[PL,', '],[ST,"'alta'"],[PL,', '],[ST,"'urgente'"],[PL,') '],[KW,'NOT NULL DEFAULT '],[ST,"'media'"],[PL,',']],
+    [[PL,'  '],[FN,'estado'],[PL,'          '],[TY,'ENUM'],[PL,'('],[ST,"'pendiente'"],[PL,', '],[ST,"'en_progreso'"],[PL,', '],[ST,"'completada'"],[PL,', '],[ST,"'cancelada'"],[PL,')']],
+    [[PL,'             '],[KW,'NOT NULL DEFAULT '],[ST,"'pendiente'"],[PL,',']],
+    [[PL,'  '],[FN,'fecha_registro'],[PL,'  '],[TY,'DATETIME'],[PL,' '],[KW,'NOT NULL DEFAULT '],[FN,'CURRENT_TIMESTAMP'],[PL,',']],
+    [[PL,'']],
+    [[PL,'  '],[CT,'CONSTRAINT'],[PL,' '],[FN,'fk_tarea_proyecto']],
+    [[PL,'    '],[KW,'FOREIGN KEY '],[PL,'('],[FN,'proyecto_id'],[PL,') '],[KW,'REFERENCES '],[TB,'proyectos'],[PL,'('],[FN,'id'],[PL,')']],
+    [[PL,'    '],[KW,'ON DELETE CASCADE'],[PL,',']],
+    [[PL,'']],
+    [[PL,'  '],[CT,'CONSTRAINT'],[PL,' '],[FN,'fk_tarea_responsable']],
+    [[PL,'    '],[KW,'FOREIGN KEY '],[PL,'('],[FN,'responsable_id'],[PL,') '],[KW,'REFERENCES '],[TB,'personas'],[PL,'('],[FN,'id'],[PL,')']],
+    [[PL,'    '],[KW,'ON DELETE RESTRICT']],
+    [[PL,'    '],[KW,'ON UPDATE CASCADE']],
+    [[PL,');']],
+  ],
+  c6:[
+    [[CM,'-- Personas de prueba']],
+    [[KW,'INSERT INTO '],[TB,'personas'],[PL,' ('],[FN,'nombre'],[PL,', '],[FN,'correo'],[PL,', '],[FN,'puesto'],[PL,', '],[FN,'departamento'],[PL,') '],[KW,'VALUES']],
+    [[PL,'  ('],[ST,"'Ana García López'"],[PL,', '],[ST,"'ana.garcia@empresa.com'"],[PL,', '],[ST,"'Coordinadora'"],[PL,', '],[ST,"'Sistemas'"],[PL,'),']],
+    [[PL,'  ('],[ST,"'Luis Martínez Ruiz'"],[PL,', '],[ST,"'luis.martinez@empresa.com'"],[PL,', '],[ST,"'Desarrollador'"],[PL,', '],[ST,"'TI'"],[PL,'),']],
+    [[PL,'  ('],[ST,"'María Torres Vega'"],[PL,', '],[ST,"'maria.torres@empresa.com'"],[PL,', '],[ST,"'Diseñadora'"],[PL,', '],[ST,"'TI'"],[PL,'),']],
+    [[PL,'  ('],[ST,"'Carlos Mendoza'"],[PL,', '],[ST,"'carlos.mendoza@empresa.com'"],[PL,', '],[ST,"'Contador'"],[PL,', '],[ST,"'Finanzas'"],[PL,'),']],
+    [[PL,'  ('],[ST,"'Sofía Reyes Díaz'"],[PL,', '],[ST,"'sofia.reyes@empresa.com'"],[PL,', '],[ST,"'Administradora'"],[PL,', '],[ST,"'RH'"],[PL,');']],
+    [[PL,'']],
+    [[CM,'-- Proyectos de prueba']],
+    [[KW,'INSERT INTO '],[TB,'proyectos'],[PL,' ('],[FN,'nombre'],[PL,', '],[FN,'prioridad'],[PL,', '],[FN,'estado'],[PL,', '],[FN,'responsable_id'],[PL,') '],[KW,'VALUES']],
+    [[PL,'  ('],[ST,"'Portal web corporativo'"],[PL,', '],[ST,"'alta'"],[PL,', '],[ST,"'en_progreso'"],[PL,', '],[NM,'1'],[PL,'),']],
+    [[PL,'  ('],[ST,"'Sistema de nómina'"],[PL,', '],[ST,"'media'"],[PL,', '],[ST,"'pendiente'"],[PL,', '],[NM,'4'],[PL,');']],
+    [[PL,'']],
+    [[CM,'-- Tareas de prueba']],
+    [[KW,'INSERT INTO '],[TB,'tareas'],[PL,' ('],[FN,'proyecto_id'],[PL,', '],[FN,'responsable_id'],[PL,', '],[FN,'titulo'],[PL,', '],[FN,'estado'],[PL,') '],[KW,'VALUES']],
+    [[PL,'  ('],[NM,'1'],[PL,', '],[NM,'2'],[PL,', '],[ST,"'Diseño de wireframes'"],[PL,', '],[ST,"'completada'"],[PL,'),']],
+    [[PL,'  ('],[NM,'1'],[PL,', '],[NM,'3'],[PL,', '],[ST,"'Maquetación HTML/CSS'"],[PL,', '],[ST,"'en_progreso'"],[PL,'),']],
+    [[PL,'  ('],[NM,'2'],[PL,', '],[NM,'4'],[PL,', '],[ST,"'Análisis de requerimientos'"],[PL,', '],[ST,"'pendiente'"],[PL,');']],
+  ],
+  c7:[
+    [[CM,'-- Ver proyectos con el nombre de su responsable']],
+    [[KW,'SELECT']],
+    [[PL,'  '],[FN,'p'],[PL,'.'],[FN,'nombre'],[PL,' '],[KW,'AS '],[ST,'proyecto'],[PL,',']],
+    [[PL,'  '],[FN,'per'],[PL,'.'],[FN,'nombre'],[PL,' '],[KW,'AS '],[ST,'responsable'],[PL,',']],
+    [[PL,'  '],[FN,'p'],[PL,'.'],[FN,'estado'],[PL,', '],[FN,'p'],[PL,'.'],[FN,'prioridad']],
+    [[KW,'FROM '],[TB,'proyectos'],[PL,' '],[FN,'p']],
+    [[KW,'INNER JOIN '],[TB,'personas'],[PL,' '],[FN,'per'],[PL,' '],[KW,'ON '],[FN,'p'],[PL,'.'],[FN,'responsable_id'],[PL,' = '],[FN,'per'],[PL,'.'],[FN,'id'],[PL,';']],
+    [[PL,'']],
+    [[CM,'-- Ver tareas con su proyecto y responsable']],
+    [[KW,'SELECT']],
+    [[PL,'  '],[FN,'t'],[PL,'.'],[FN,'titulo'],[PL,', '],[FN,'t'],[PL,'.'],[FN,'estado'],[PL,',']],
+    [[PL,'  '],[FN,'pr'],[PL,'.'],[FN,'nombre'],[PL,' '],[KW,'AS '],[ST,'proyecto'],[PL,',']],
+    [[PL,'  '],[FN,'pe'],[PL,'.'],[FN,'nombre'],[PL,' '],[KW,'AS '],[ST,'responsable']],
+    [[KW,'FROM '],[TB,'tareas'],[PL,' '],[FN,'t']],
+    [[KW,'INNER JOIN '],[TB,'proyectos'],[PL,' '],[FN,'pr'],[PL,' '],[KW,'ON '],[FN,'t'],[PL,'.'],[FN,'proyecto_id'],[PL,' = '],[FN,'pr'],[PL,'.'],[FN,'id']],
+    [[KW,'INNER JOIN '],[TB,'personas'],[PL,' '],[FN,'pe'],[PL,' '],[KW,'ON '],[FN,'t'],[PL,'.'],[FN,'responsable_id'],[PL,' = '],[FN,'pe'],[PL,'.'],[FN,'id'],[PL,';']],
+  ],
+};
+
+const FONT='13px "Courier New",monospace', LINE_H=22, PAD_X=16, PAD_Y=12;
+
+function draw(id, lines) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const tmp = document.createElement('canvas');
+  const tc  = tmp.getContext('2d');
+  tc.font = FONT;
+  let maxW = 0;
+  for (const line of lines) {
+    const w = tc.measureText(line.map(s=>s[1]).join('')).width;
+    if (w > maxW) maxW = w;
+  }
+  const W = Math.ceil(maxW + PAD_X*2);
+  const H = lines.length * LINE_H + PAD_Y*2;
+  canvas.width  = W*dpr;
+  canvas.height = H*dpr;
+  canvas.style.width  = W+'px';
+  canvas.style.height = H+'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = '#f8fbff';
+  ctx.fillRect(0, 0, W, H);
+  ctx.font = FONT;
+  ctx.textBaseline = 'alphabetic';
+  lines.forEach((segs, i) => {
+    const y = PAD_Y + i*LINE_H + LINE_H*0.75;
+    let x = PAD_X;
+    for (const [color, text] of segs) {
+      ctx.fillStyle = color;
+      ctx.fillText(text, x, y);
+      x += tc.measureText(text).width;
+    }
+  });
+}
+
+document.fonts.ready.then(() => {
+  for (const [id, lines] of Object.entries(bloques)) draw(id, lines);
+});
+</script>
+</body>
+</html>
