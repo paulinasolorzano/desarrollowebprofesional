@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema Administrativo — Portada</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI', Arial, sans-serif; background:#fff; color:#1a1a2e; }
+
+/* ENCABEZADO INSTITUCIONAL */
+.inst-bar { background:#0D47A1; padding:14px 48px; display:flex; align-items:center; justify-content:space-between; }
+.inst-nombre { color:#fff; font-size:12px; letter-spacing:0.05em; text-transform:uppercase; opacity:0.9; }
+.inst-carrera { color:#90CAF9; font-size:11px; margin-top:3px; }
+.inst-ciclo { color:#fff; font-size:11px; opacity:0.75; white-space:nowrap; }
+
+/* BANDA AZUL PRINCIPAL */
+.hero { background:#1565C0; padding:56px 48px 48px; position:relative; overflow:hidden; }
+.hero::after {
+  content:'';
+  position:absolute;
+  bottom:-40px; right:-60px;
+  width:320px; height:320px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.04);
+}
+.hero-label { font-size:11px; color:#90CAF9; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:10px; }
+.hero-titulo { font-size:38px; font-weight:700; color:#fff; line-height:1.2; margin-bottom:10px; max-width:600px; }
+.hero-subtitulo { font-size:16px; color:#BBDEFB; max-width:560px; line-height:1.6; }
+.hero-strip { height:5px; background:#42A5F5; margin-top:40px; }
+
+/* MATERIAS */
+.materias-row { display:grid; grid-template-columns:1fr 1fr; gap:0; border-bottom:1px solid #E3F2FD; }
+.materia { padding:28px 48px; border-right:1px solid #E3F2FD; }
+.materia:last-child { border-right:none; }
+.materia-num { font-size:10px; font-weight:700; color:#1565C0; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; }
+.materia-nombre { font-size:17px; font-weight:700; color:#0D47A1; margin-bottom:8px; line-height:1.3; }
+.materia-desc { font-size:13px; color:#555; line-height:1.6; }
+
+/* DESCRIPCIÓN DEL PROYECTO */
+.proyecto-sec { padding:36px 48px; border-bottom:1px solid #E3F2FD; }
+.sec-titulo { font-size:13px; font-weight:700; color:#0D47A1; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+.sec-titulo::after { content:''; flex:1; height:1px; background:#E3F2FD; }
+.proyecto-desc { font-size:14px; color:#333; line-height:1.8; max-width:820px; margin-bottom:20px; }
+
+/* TECNOLOGÍAS */
+.tech-grid { display:flex; flex-wrap:wrap; gap:10px; margin-top:4px; }
+.tech-item { display:flex; align-items:center; gap:8px; background:#F8FBFF; border:1px solid #BBDEFB; border-radius:8px; padding:8px 14px; }
+.tech-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.tech-label { font-size:12px; font-weight:600; color:#0D47A1; }
+.tech-sub { font-size:11px; color:#888; margin-left:2px; }
+
+/* MÓDULOS */
+.modulos-sec { padding:36px 48px; border-bottom:1px solid #E3F2FD; }
+.modulos-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:4px; }
+.modulo { background:#F8FBFF; border:1px solid #BBDEFB; border-radius:10px; padding:16px; }
+.mod-num { font-size:10px; font-weight:700; color:#1565C0; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:5px; }
+.mod-nombre { font-size:13px; font-weight:700; color:#0D47A1; margin-bottom:6px; }
+.mod-desc { font-size:12px; color:#666; line-height:1.5; }
+
+/* TEMAS POR MATERIA */
+.temas-row { display:grid; grid-template-columns:1fr 1fr; gap:0; border-bottom:1px solid #E3F2FD; }
+.temas-col { padding:32px 48px; border-right:1px solid #E3F2FD; }
+.temas-col:last-child { border-right:none; }
+.temas-titulo { font-size:13px; font-weight:700; color:#0D47A1; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+.temas-titulo .dot { width:10px; height:10px; border-radius:50%; background:#1565C0; flex-shrink:0; }
+.tema-lista { list-style:none; padding:0; }
+.tema-lista li { font-size:13px; color:#333; padding:5px 0 5px 20px; position:relative; border-bottom:1px solid #F0F4FF; line-height:1.5; }
+.tema-lista li:last-child { border-bottom:none; }
+.tema-lista li::before { content:'→'; position:absolute; left:0; color:#1565C0; font-size:11px; top:7px; }
+
+/* FASES */
+.fases-sec { padding:32px 48px; border-bottom:1px solid #E3F2FD; }
+.fases-row { display:flex; gap:0; margin-top:4px; }
+.fase { flex:1; padding:16px 20px; border-right:1px solid #E3F2FD; position:relative; }
+.fase:last-child { border-right:none; }
+.fase-num { font-size:10px; font-weight:700; color:#1565C0; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:5px; }
+.fase-nombre { font-size:13px; font-weight:700; color:#0D47A1; margin-bottom:6px; }
+.fase-items { font-size:12px; color:#666; line-height:1.7; }
+.fase-badge { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; margin-top:6px; }
+.badge-bd   { background:#EAF3DE; color:#3B6D11; }
+.badge-back { background:#E6F1FB; color:#185FA5; }
+.badge-auth { background:#FAEEDA; color:#854F0B; }
+.badge-crud { background:#FAECE7; color:#993C1D; }
+.badge-adv  { background:#FBEAF0; color:#993556; }
+
+/* FOOTER */
+.footer { background:#0D47A1; padding:16px 48px; display:flex; justify-content:space-between; align-items:center; }
+.footer-texto { color:#fff; font-size:11px; opacity:0.8; }
+.footer-practicas { color:#90CAF9; font-size:12px; font-weight:600; }
+</style>
+</head>
+<body>
+
+<!-- BARRA INSTITUCIONAL -->
+<div class="inst-bar">
+  <div>
+    <div class="inst-nombre">Ingeniería de Desarrollo y Gestión de Software</div>
+    <div class="inst-carrera">Proyecto integrador de dos materias</div>
+  </div>
+  <div class="inst-ciclo">Ciclo escolar 2025</div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-label">Proyecto integrador</div>
+  <div class="hero-titulo">Sistema Administrativo Web</div>
+  <div class="hero-subtitulo">Construcción progresiva de un sistema real de gestión de personas, usuarios, proyectos y tareas, aplicando desarrollo web moderno y seguridad en cada capa de la aplicación.</div>
+  <div class="hero-strip"></div>
+</div>
+
+<!-- MATERIAS -->
+<div class="materias-row">
+  <div class="materia">
+    <div class="materia-num">Materia 1</div>
+    <div class="materia-nombre">Desarrollo Web Profesional</div>
+    <div class="materia-desc">Construcción de APIs REST con Node.js y Express, interfaces reactivas con React y Vite, comunicación cliente-servidor, manejo de estado y arquitectura MVC aplicada a un sistema real.</div>
+  </div>
+  <div class="materia">
+    <div class="materia-num">Materia 2</div>
+    <div class="materia-nombre">Seguridad en el Desarrollo de Aplicaciones</div>
+    <div class="materia-desc">Autenticación con JWT, cifrado de contraseñas con bcrypt, control de acceso por roles y permisos, protección contra vulnerabilidades web comunes y buenas prácticas de seguridad en cada capa.</div>
+  </div>
+</div>
+
+<!-- DESCRIPCIÓN DEL PROYECTO -->
+<div class="proyecto-sec">
+  <div class="sec-titulo">¿Qué es este proyecto?</div>
+  <p class="proyecto-desc">
+    Este proyecto integra ambas materias en un único sistema administrativo construido de forma progresiva a lo largo del semestre. Cada práctica añade un componente nuevo sobre lo anterior: primero la base de datos, luego el servidor, después la interfaz, y finalmente la seguridad completa con autenticación, autorización y permisos granulares.
+  </p>
+  <p class="proyecto-desc" style="margin-bottom:20px;">
+    Al finalizar el curso tendrás un sistema funcional, seguro y con arquitectura profesional que podrás incluir en tu portafolio de proyectos.
+  </p>
+
+  <div class="sec-titulo">Tecnologías del proyecto</div>
+  <div class="tech-grid">
+    <div class="tech-item"><div class="tech-dot" style="background:#639922"></div><span class="tech-label">MySQL</span><span class="tech-sub">Base de datos relacional</span></div>
+    <div class="tech-item"><div class="tech-dot" style="background:#3B6D11"></div><span class="tech-label">phpMyAdmin</span><span class="tech-sub">Gestión de BD</span></div>
+    <div class="tech-item"><div class="tech-dot" style="background:#1565C0"></div><span class="tech-label">Node.js</span><span class="tech-sub">Entorno de ejecución</span></div>
+    <div class="tech-item"><div class="tech-dot" style="background:#185FA5"></div><span class="tech-label">Express</span><span class="tech-sub">Framework backend</span></div>
+    <div class="tech-item"><div class="tech-dot" style="background:#7F77DD"></div><span class="tech-label">React</span><span class="tech-sub">Interfaz de usuario</span></div>
+    <div class="tech-item"><div class="tech-dot" style="background:#534AB7"></div><span class="tech-label">Vite</span><span class="tech-sub">Bundler moderno</span></div>
+    <div class="tech-item"><div class="tech-dot" style="background:#854F0B"></div><span class="tech-label">JWT</span><span class="tech-sub">Autenticación</span></div>
+    <div class="tech-item"><div class="tech-dot" style="background:#993C1D"></div><span class="tech-label">bcrypt</span><span class="tech-sub">Cifrado de contraseñas</span></div>
+    <div class="tech-item"><div class="tech-dot" style="background:#AD1457"></div><span class="tech-label">Bootstrap</span><span class="tech-sub">Estilos CSS</span></div>
+    <div class="tech-item"><div class="tech-dot" style="background:#444441"></div><span class="tech-label">Thunder Client</span><span class="tech-sub">Pruebas de API</span></div>
+  </div>
+</div>
+
+<!-- MÓDULOS -->
+<div class="modulos-sec">
+  <div class="sec-titulo">Módulos del sistema</div>
+  <div class="modulos-grid">
+    <div class="modulo">
+      <div class="mod-num">Módulo 1</div>
+      <div class="mod-nombre">Personas</div>
+      <div class="mod-desc">Registro de cualquier individuo de la organización, con o sin acceso al sistema.</div>
+    </div>
+    <div class="modulo">
+      <div class="mod-num">Módulo 2</div>
+      <div class="mod-nombre">Usuarios</div>
+      <div class="mod-desc">Cuentas de acceso vinculadas a personas. Control de roles: admin, usuario, invitado.</div>
+    </div>
+    <div class="modulo">
+      <div class="mod-num">Módulo 3</div>
+      <div class="mod-nombre">Proyectos</div>
+      <div class="mod-desc">Gestión de proyectos con responsable, fechas, prioridad y estado de avance.</div>
+    </div>
+    <div class="modulo">
+      <div class="mod-num">Módulo 4</div>
+      <div class="mod-nombre">Tareas</div>
+      <div class="mod-desc">Tareas vinculadas a proyectos y responsables. Con prioridad, estado y fechas de entrega.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TEMAS POR MATERIA -->
+<div class="temas-row">
+  <div class="temas-col">
+    <div class="temas-titulo"><div class="dot"></div>Temas de Desarrollo Web Profesional</div>
+    <ul class="tema-lista">
+      <li>Diseño de bases de datos relacionales con MySQL</li>
+      <li>Creación de APIs REST con Node.js y Express</li>
+      <li>Patrón de arquitectura MVC (Modelo-Vista-Controlador)</li>
+      <li>Construcción de interfaces con React y Vite</li>
+      <li>Enrutamiento con React Router DOM</li>
+      <li>Manejo de estado global con Context API</li>
+      <li>Consumo de APIs desde el frontend con axios</li>
+      <li>Operaciones CRUD completas (Create, Read, Update, Delete)</li>
+      <li>Relaciones entre tablas y consultas JOIN en MySQL</li>
+    </ul>
+  </div>
+  <div class="temas-col">
+    <div class="temas-titulo"><div class="dot" style="background:#E53935"></div>Temas de Seguridad en el Desarrollo</div>
+    <ul class="tema-lista">
+      <li>Autenticación con JSON Web Tokens (JWT)</li>
+      <li>Cifrado de contraseñas con bcrypt</li>
+      <li>Protección de rutas en el frontend (PrivateRoute)</li>
+      <li>Middleware de autenticación en Express</li>
+      <li>Control de acceso basado en roles (RBAC)</li>
+      <li>Sistema de permisos granulares por recurso y acción</li>
+      <li>Uso seguro de variables de entorno (.env)</li>
+      <li>Protección con CORS, helmet y rate limiting</li>
+      <li>Buenas prácticas contra vulnerabilidades web comunes</li>
+    </ul>
+  </div>
+</div>
+
+<!-- FASES DEL PROYECTO -->
+<div class="fases-sec">
+  <div class="sec-titulo">Fases de desarrollo — 13 prácticas</div>
+  <div class="fases-row">
+    <div class="fase">
+      <div class="fase-num">Fase 1 — P01 a P03</div>
+      <div class="fase-nombre">Fundamentos</div>
+      <div class="fase-items">Base de datos<br>Servidor backend<br>Primera API REST</div>
+      <div><span class="fase-badge badge-bd">BD</span> <span class="fase-badge badge-back">Back</span></div>
+    </div>
+    <div class="fase">
+      <div class="fase-num">Fase 2 — P04 a P05</div>
+      <div class="fase-nombre">Frontend base</div>
+      <div class="fase-items">Proyecto React + Vite<br>CRUD Personas UI<br>Conexión con la API</div>
+      <div><span class="fase-badge badge-back">Front</span></div>
+    </div>
+    <div class="fase">
+      <div class="fase-num">Fase 3 — P06 a P07</div>
+      <div class="fase-nombre">Autenticación</div>
+      <div class="fase-items">Login con JWT<br>AuthContext en React<br>Rutas protegidas</div>
+      <div><span class="fase-badge badge-auth">Auth</span></div>
+    </div>
+    <div class="fase">
+      <div class="fase-num">Fase 4 — P08 a P10</div>
+      <div class="fase-nombre">Módulos CRUD</div>
+      <div class="fase-items">Usuarios del sistema<br>Proyectos con relaciones<br>Tareas con JOINs</div>
+      <div><span class="fase-badge badge-crud">CRUD</span></div>
+    </div>
+    <div class="fase">
+      <div class="fase-num">Fase 5 — P11 a P13</div>
+      <div class="fase-nombre">Avanzado</div>
+      <div class="fase-items">Manejo de errores<br>Permisos granulares<br>Seguridad y cierre</div>
+      <div><span class="fase-badge badge-adv">Avanz.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-texto">Ingeniería de Desarrollo y Gestión de Software &nbsp;·&nbsp; Proyecto integrador semestral</div>
+  <div class="footer-practicas">13 prácticas progresivas</div>
+</div>
+
+</body>
+</html>
