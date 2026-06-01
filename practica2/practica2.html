@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica 2 — Configuración del backend base</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',Arial,sans-serif; background:#fff; color:#1a1a2e; font-size:14px; line-height:1.7; }
+.header { background:#1565C0; color:#fff; }
+.header-top { background:#0D47A1; padding:18px 40px 14px; display:flex; justify-content:space-between; align-items:flex-start; }
+.header-inst { font-size:11px; opacity:0.85; letter-spacing:0.03em; text-transform:uppercase; }
+.header-carrera { font-size:13px; font-weight:600; margin-top:3px; }
+.header-badge { background:#fff; color:#0D47A1; font-weight:700; font-size:13px; padding:6px 16px; border-radius:20px; white-space:nowrap; align-self:center; }
+.header-main { padding:20px 40px 24px; }
+.header-practica { font-size:11px; opacity:0.75; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; }
+.header-titulo { font-size:26px; font-weight:700; margin-bottom:8px; }
+.header-meta { display:flex; gap:24px; font-size:12px; opacity:0.85; flex-wrap:wrap; }
+.header-strip { height:5px; background:#42A5F5; }
+.content { max-width:900px; margin:0 auto; padding:36px 40px 60px; }
+.toc { background:#E3F2FD; border-left:4px solid #1565C0; border-radius:0 8px 8px 0; padding:20px 24px; margin-bottom:36px; }
+.toc-title { font-size:13px; font-weight:700; color:#0D47A1; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px; }
+.toc ol { padding-left:18px; }
+.toc li { font-size:13px; color:#1565C0; padding:3px 0; }
+.toc li a { color:#1565C0; text-decoration:none; }
+.toc li a:hover { text-decoration:underline; }
+.seccion { margin-bottom:36px; }
+.seccion-titulo { font-size:16px; font-weight:700; color:#0D47A1; border-bottom:2px solid #BBDEFB; padding-bottom:8px; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+.seccion-num { background:#1565C0; color:#fff; font-size:12px; font-weight:700; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.subseccion-titulo { font-size:14px; font-weight:700; color:#1565C0; margin:18px 0 8px; }
+p { margin-bottom:10px; }
+.contexto-card { background:#F8FBFF; border:1px solid #BBDEFB; border-radius:10px; padding:20px 24px; margin-bottom:16px; }
+.contexto-card p:last-child { margin-bottom:0; }
+
+/* CONCEPTOS EXPLICADOS */
+.concepto-bloque { border:1px solid #BBDEFB; border-radius:10px; margin-bottom:14px; overflow:hidden; }
+.concepto-header { background:#1565C0; color:#fff; padding:10px 16px; font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px; }
+.concepto-icon { font-size:16px; }
+.concepto-body { padding:14px 16px; font-size:13.5px; background:#F8FBFF; }
+.concepto-body p { margin-bottom:8px; }
+.concepto-body p:last-child { margin-bottom:0; }
+.analogia { background:#FFF8E1; border-left:3px solid #F59E0B; padding:10px 14px; margin-top:8px; border-radius:0 6px 6px 0; font-size:13px; }
+.analogia strong { color:#92400E; }
+
+.obj-lista { list-style:none; padding:0; }
+.obj-lista li { padding:6px 0 6px 24px; position:relative; font-size:13.5px; border-bottom:1px solid #F0F4FF; }
+.obj-lista li:last-child { border-bottom:none; }
+.obj-lista li::before { content:'✓'; position:absolute; left:0; color:#1565C0; font-weight:700; }
+.nota { background:#FFF8E1; border-left:4px solid #F59E0B; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.nota strong { color:#92400E; }
+.info { background:#E8F5E9; border-left:4px solid #43A047; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.info strong { color:#1B5E20; }
+.peligro { background:#FFEBEE; border-left:4px solid #E53935; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.peligro strong { color:#B71C1C; }
+.profesional { background:#EDE7F6; border-left:4px solid #7B1FA2; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.profesional strong { color:#4A148C; }
+.react-aviso { background:#E8F5E9; border:2px solid #43A047; border-radius:10px; padding:16px 20px; margin:20px 0; }
+.react-aviso-titulo { font-size:14px; font-weight:700; color:#1B5E20; margin-bottom:6px; }
+.react-aviso p { font-size:13.5px; color:#1B5E20; margin-bottom:0; }
+
+/* FLUJO VISUAL */
+.flujo { display:flex; align-items:center; gap:0; margin:16px 0; flex-wrap:wrap; }
+.flujo-item { background:#E3F2FD; border:1px solid #90CAF9; border-radius:8px; padding:10px 16px; text-align:center; font-size:12px; flex:1; min-width:100px; }
+.flujo-item.activo { background:#1565C0; color:#fff; border-color:#1565C0; font-weight:700; }
+.flujo-item.futuro { background:#F5F5F5; border-color:#ddd; color:#999; }
+.flujo-item .fi-num { font-size:10px; opacity:0.7; margin-bottom:2px; }
+.flujo-item .fi-nombre { font-size:12px; font-weight:600; }
+.flujo-sep { color:#90CAF9; font-size:18px; padding:0 4px; }
+
+.paso { background:#fff; border:1px solid #BBDEFB; border-radius:10px; padding:20px 24px; margin-bottom:20px; }
+.paso-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.paso-num { background:#1565C0; color:#fff; font-size:13px; font-weight:700; padding:4px 12px; border-radius:14px; }
+.paso-titulo { font-size:14px; font-weight:700; color:#0D47A1; }
+.paso p { font-size:13.5px; margin-bottom:10px; }
+.file-label { display:inline-block; background:#E3F2FD; color:#0D47A1; font-family:'Courier New',monospace; font-size:12px; padding:4px 12px; border-radius:6px 6px 0 0; border:1px solid #BBDEFB; border-bottom:none; font-weight:600; margin-top:10px; }
+.code-wrap { border:1px solid #BBDEFB; border-radius:0 8px 8px 8px; overflow:hidden; margin-bottom:12px; background:#fff; }
+.code-wrap canvas { display:block; max-width:100%; }
+.folder-tree { background:#fff; border:1px solid #BBDEFB; border-radius:8px; padding:16px 20px; margin:12px 0; font-family:'Courier New',monospace; font-size:13px; line-height:2.1; }
+.folder-tree .d { color:#1565C0; font-weight:700; }
+.folder-tree .f { color:#2E7D32; }
+.folder-tree .cm { color:#9E9E9E; font-style:italic; }
+
+/* TABLA DEPENDENCIAS */
+.deps-tabla { width:100%; border-collapse:collapse; font-size:13px; margin:12px 0; }
+.deps-tabla th { background:#1565C0; color:#fff; padding:9px 14px; text-align:left; font-size:12px; }
+.deps-tabla td { padding:9px 14px; border-bottom:1px solid #E3F2FD; vertical-align:top; }
+.deps-tabla tr:nth-child(even) td { background:#F8FBFF; }
+.deps-tabla code { background:#E3F2FD; color:#0D47A1; padding:1px 6px; border-radius:3px; font-size:12px; }
+.dep-dev { background:#FFF8E1 !important; }
+
+.actividades { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.actividades th { background:#1565C0; color:#fff; padding:10px 14px; text-align:left; font-weight:600; font-size:12px; }
+.actividades td { padding:9px 14px; border-bottom:1px solid #E3F2FD; vertical-align:top; }
+.actividades tr:nth-child(even) td { background:#F8FBFF; }
+.actividades tr:last-child td { border-bottom:none; }
+.tipo-badge { font-size:11px; padding:3px 8px; border-radius:10px; font-weight:600; white-space:nowrap; }
+.tipo-terminal { background:#1a1a2e; color:#A6E3A1; }
+.tipo-config { background:#FFF8E1; color:#92400E; }
+.tipo-codigo { background:#E3F2FD; color:#0D47A1; }
+.tipo-prueba { background:#E8F5E9; color:#1B5E20; }
+.reflexion-lista { list-style:none; padding:0; counter-reset:ref; }
+.reflexion-lista li { counter-increment:ref; padding:10px 14px 10px 44px; position:relative; background:#F8FBFF; border:1px solid #BBDEFB; border-radius:8px; margin-bottom:8px; font-size:13.5px; }
+.reflexion-lista li::before { content:counter(ref); position:absolute; left:12px; top:50%; transform:translateY(-50%); background:#1565C0; color:#fff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
+.rubrica { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.rubrica th { background:#0D47A1; color:#fff; padding:10px 14px; text-align:left; font-weight:600; font-size:12px; }
+.rubrica td { padding:9px 14px; border-bottom:1px solid #E3F2FD; }
+.rubrica tr:nth-child(even) td { background:#F8FBFF; }
+.rubrica .total td { background:#1565C0; color:#fff; font-weight:700; }
+.pts { font-weight:700; color:#0D47A1; }
+.entregable-lista { list-style:none; padding:0; }
+.entregable-lista li { padding:8px 14px 8px 36px; position:relative; font-size:13.5px; border-bottom:1px solid #F0F4FF; }
+.entregable-lista li:last-child { border-bottom:none; }
+.entregable-lista li::before { content:'📄'; position:absolute; left:8px; }
+.footer { background:#0D47A1; color:#fff; text-align:center; padding:14px 40px; font-size:12px; margin-top:40px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-inst">Ingeniería de Desarrollo y Gestión de Software</div>
+      <div class="header-carrera">Desarrollo Web Integral y Seguridad</div>
+    </div>
+    <div class="header-badge">Práctica 2</div>
+  </div>
+  <div class="header-main">
+    <div class="header-practica">Fase 1 — Fundamentos del sistema</div>
+    <div class="header-titulo">Configuración del backend base</div>
+    <div class="header-meta">
+      <span>⏱ Duración: 2 horas</span>
+      <span>🛠 Node.js · Express · MySQL · VS Code</span>
+      <span>📦 Entregable: proyecto backend funcional</span>
+    </div>
+  </div>
+  <div class="header-strip"></div>
+</div>
+
+<div class="content">
+
+  <div class="toc">
+    <div class="toc-title">Tabla de contenidos</div>
+    <ol>
+      <li><a href="#donde">¿Dónde estamos en el proyecto?</a></li>
+      <li><a href="#conceptos">Conceptos clave que debes conocer</a></li>
+      <li><a href="#objetivos">Objetivos de la práctica</a></li>
+      <li><a href="#estructura">Estructura del proyecto</a></li>
+      <li><a href="#desarrollo">Desarrollo paso a paso</a></li>
+      <li><a href="#actividades">Actividades</a></li>
+      <li><a href="#reflexion">Preguntas de reflexión</a></li>
+      <li><a href="#entregable">Entregable</a></li>
+      <li><a href="#rubrica">Criterios de evaluación</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. DÓNDE ESTAMOS -->
+  <div class="seccion" id="donde">
+    <div class="seccion-titulo"><span class="seccion-num">1</span> ¿Dónde estamos en el proyecto?</div>
+
+    <div class="contexto-card">
+      <p>En la práctica anterior creamos la base de datos con sus cuatro tablas: <code>personas</code>, <code>usuarios</code>, <code>proyectos</code> y <code>tareas</code>. Ya tenemos los datos guardados en MySQL.</p>
+      <p>Ahora necesitamos construir el <strong>backend</strong>: el servidor que recibirá peticiones, consultará la base de datos y devolverá respuestas. Sin el backend, la base de datos no puede comunicarse con ninguna aplicación.</p>
+    </div>
+
+    <p>El sistema completo que vamos a construir a lo largo del curso se divide en tres partes. En esta práctica trabajamos en la parte del <strong>servidor</strong>:</p>
+
+    <div class="flujo">
+      <div class="flujo-item futuro"><div class="fi-num">P04–P05</div><div class="fi-nombre">Frontend (React)</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item activo"><div class="fi-num">P02–P03</div><div class="fi-nombre">Backend (Node.js)</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item futuro"><div class="fi-num">P01</div><div class="fi-nombre">Base de datos (MySQL)</div></div>
+    </div>
+
+    <div class="react-aviso">
+      <div class="react-aviso-titulo">¿Y React? ¿Cuándo lo usamos?</div>
+      <p>React es el <strong>frontend</strong>, es decir, la interfaz visual que verá el usuario en el navegador. <strong>Todavía no lo usamos.</strong> Primero necesitamos tener el backend funcionando correctamente. React se introduce en la Práctica 4, una vez que las APIs estén listas y probadas. Por ahora, todo el trabajo es del lado del servidor.</p>
+    </div>
+  </div>
+
+  <!-- 2. CONCEPTOS -->
+  <div class="seccion" id="conceptos">
+    <div class="seccion-titulo"><span class="seccion-num">2</span> Conceptos clave que debes conocer</div>
+    <p>Antes de escribir código, es importante entender qué hace cada tecnología y por qué la usamos.</p>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">⚙️</span> ¿Qué es Node.js?</div>
+      <div class="concepto-body">
+        <p>Node.js es un entorno de ejecución que permite correr código JavaScript <strong>fuera del navegador</strong>, directamente en el servidor o en tu computadora. Antes de Node.js, JavaScript solo podía ejecutarse dentro de un navegador web.</p>
+        <p>Gracias a Node.js podemos escribir el servidor de nuestro sistema administrativo usando el mismo lenguaje (JavaScript) tanto en el frontend como en el backend.</p>
+        <div class="analogia"><strong>Analogía:</strong> Piensa en JavaScript como un idioma. Antes solo podías hablarlo dentro del navegador (como hablar solo en tu habitación). Node.js te permite hablar ese mismo idioma en cualquier lugar: en el servidor, en la terminal, en scripts automatizados.</div>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🚂</span> ¿Qué es Express?</div>
+      <div class="concepto-body">
+        <p>Express es un <strong>framework</strong> (conjunto de herramientas) para Node.js que facilita la creación de servidores web. Node.js solo te da las herramientas básicas; Express las organiza y simplifica para que puedas crear rutas, manejar peticiones y respuestas de forma mucho más sencilla.</p>
+        <div class="analogia"><strong>Analogía:</strong> Node.js es como tener todos los materiales de construcción sueltos (ladrillos, cemento, varillas). Express es como tener un plano y herramientas organizadas para construir más rápido y con orden.</div>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🌐</span> ¿Qué es un servidor HTTP y una API REST?</div>
+      <div class="concepto-body">
+        <p>Un <strong>servidor HTTP</strong> es un programa que está "escuchando" en un puerto de tu computadora esperando peticiones. Cuando alguien hace una petición (por ejemplo, abrir una página web o consultar datos), el servidor responde con información.</p>
+        <p>Una <strong>API REST</strong> (Application Programming Interface) es una forma estandarizada de comunicarse con un servidor. En lugar de páginas HTML, devuelve datos en formato <strong>JSON</strong> que cualquier aplicación puede interpretar, ya sea una app móvil, un sitio web o un sistema de escritorio.</p>
+        <div class="analogia"><strong>Analogía:</strong> El servidor es como un restaurante. La API REST es el menú con las opciones disponibles. Tú (el cliente) haces un pedido (petición HTTP), el mesero lo lleva a cocina (servidor), y recibes tu platillo (respuesta JSON).</div>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">📡</span> ¿Qué es un endpoint y los verbos HTTP?</div>
+      <div class="concepto-body">
+        <p>Un <strong>endpoint</strong> es una URL específica de tu API que realiza una acción concreta. Cada endpoint se combina con un <strong>verbo HTTP</strong> que indica qué tipo de acción se quiere realizar:</p>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;">
+          <tr style="background:#E3F2FD;">
+            <th style="padding:8px 12px;text-align:left;color:#0D47A1;">Verbo</th>
+            <th style="padding:8px 12px;text-align:left;color:#0D47A1;">Acción</th>
+            <th style="padding:8px 12px;text-align:left;color:#0D47A1;">Ejemplo</th>
+          </tr>
+          <tr><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;"><code>GET</code></td><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;">Obtener datos</td><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;">GET /api/personas → lista todas las personas</td></tr>
+          <tr style="background:#F8FBFF;"><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;"><code>POST</code></td><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;">Crear un registro</td><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;">POST /api/personas → crea una nueva persona</td></tr>
+          <tr><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;"><code>PUT</code></td><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;">Actualizar un registro</td><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;">PUT /api/personas/5 → actualiza la persona con id 5</td></tr>
+          <tr style="background:#F8FBFF;"><td style="padding:7px 12px;"><code>DELETE</code></td><td style="padding:7px 12px;">Eliminar un registro</td><td style="padding:7px 12px;">DELETE /api/personas/5 → elimina la persona con id 5</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🔒</span> ¿Qué son las variables de entorno?</div>
+      <div class="concepto-body">
+        <p>Las variables de entorno son datos sensibles (contraseñas, claves secretas, nombres de servidores) que <strong>no deben estar escritos directamente en el código</strong>. Se guardan en un archivo separado llamado <code>.env</code> que nunca se sube a internet.</p>
+        <p>Imagina que tu código es un libro que compartes con otros. Si escribes tu contraseña de MySQL dentro del código, cualquier persona que vea ese código tendrá tu contraseña. Con las variables de entorno, el libro solo dice "aquí va la contraseña" pero el valor real está en un cuaderno privado tuyo.</p>
+        <div class="analogia"><strong>Analogía:</strong> El archivo <code>.env</code> es como tu cartera: contiene información personal que no muestras a todo el mundo. El archivo <code>.env.example</code> es como un formulario vacío que le das a alguien para que sepa qué datos necesita poner en su propia cartera.</div>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🔗</span> ¿Qué es un pool de conexiones?</div>
+      <div class="concepto-body">
+        <p>Cada vez que el servidor necesita consultar la base de datos, necesita abrir una conexión a MySQL. Abrir y cerrar una conexión nueva en cada petición es lento y consume muchos recursos.</p>
+        <p>Un <strong>pool de conexiones</strong> mantiene un grupo de conexiones abiertas y listas para usar. Cuando llega una petición, toma una conexión disponible del pool, la usa, y la devuelve al pool para que otra petición pueda usarla.</p>
+        <div class="analogia"><strong>Analogía:</strong> Imagina un estacionamiento con 10 lugares (el pool). En lugar de construir un lugar nuevo cada vez que llega un carro (abrir conexión), simplemente asignas un lugar disponible y cuando el carro se va, el lugar queda libre para otro.</div>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🔄</span> ¿Qué es async/await?</div>
+      <div class="concepto-body">
+        <p>Cuando Node.js consulta la base de datos, esa operación tarda un tiempo. <code>async/await</code> es una forma de decirle a JavaScript: <em>"espera a que esta operación termine antes de continuar"</em>, sin bloquear todo el servidor.</p>
+        <p>La palabra <code>async</code> marca una función como asíncrona. La palabra <code>await</code> pausa la ejecución dentro de esa función hasta que la promesa se resuelva. Si algo falla, se captura el error con <code>try/catch</code>.</p>
+        <div class="analogia"><strong>Analogía:</strong> Es como pedir comida a domicilio. No te quedas parado en la puerta esperando (bloqueado). Sigues haciendo tus cosas y cuando llega el repartidor (la respuesta), atiendes la puerta (continúas la ejecución).</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 3. OBJETIVOS -->
+  <div class="seccion" id="objetivos">
+    <div class="seccion-titulo"><span class="seccion-num">3</span> Objetivos de la práctica</div>
+    <ul class="obj-lista">
+      <li>Inicializar un proyecto Node.js con npm y configurar sus dependencias.</li>
+      <li>Instalar y configurar Express para manejar peticiones HTTP.</li>
+      <li>Establecer la conexión a MySQL mediante un pool de conexiones reutilizable.</li>
+      <li>Usar variables de entorno con dotenv para proteger datos sensibles.</li>
+      <li>Organizar el proyecto con una arquitectura MVC básica desde el inicio.</li>
+      <li>Crear y probar una ruta de diagnóstico (health check) con Thunder Client.</li>
+    </ul>
+  </div>
+
+  <!-- 4. ESTRUCTURA -->
+  <div class="seccion" id="estructura">
+    <div class="seccion-titulo"><span class="seccion-num">4</span> Estructura del proyecto</div>
+    <p>Crea la siguiente estructura de carpetas antes de escribir cualquier código. Esta organización sigue el patrón <strong>MVC (Modelo-Vista-Controlador)</strong>, que separa responsabilidades y facilita el mantenimiento del proyecto.</p>
+    <div class="folder-tree">
+      <span class="d">/backend</span><br>
+      &nbsp;&nbsp;├── <span class="f">server.js</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← punto de entrada del servidor</span><br>
+      &nbsp;&nbsp;├── <span class="f">db.js</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← conexión a MySQL (pool)</span><br>
+      &nbsp;&nbsp;├── <span class="f">.env</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← variables de entorno (NO subir a Git)</span><br>
+      &nbsp;&nbsp;├── <span class="f">.env.example</span> &nbsp;&nbsp;&nbsp;<span class="cm">← plantilla sin valores reales</span><br>
+      &nbsp;&nbsp;├── <span class="f">.gitignore</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← archivos que Git debe ignorar</span><br>
+      &nbsp;&nbsp;├── <span class="f">package.json</span> &nbsp;&nbsp;&nbsp;<span class="cm">← configuración del proyecto npm</span><br>
+      &nbsp;&nbsp;├── <span class="d">/routes</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← definición de rutas por módulo</span><br>
+      &nbsp;&nbsp;├── <span class="d">/controllers</span> &nbsp;&nbsp;<span class="cm">← lógica de negocio por módulo</span><br>
+      &nbsp;&nbsp;├── <span class="d">/middlewares</span> &nbsp;&nbsp;<span class="cm">← autenticación, permisos, errores</span><br>
+      &nbsp;&nbsp;└── <span class="d">/config</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← configuraciones generales</span>
+    </div>
+    <div class="nota"><strong>Por ahora</strong> solo crearás los archivos <code>server.js</code>, <code>db.js</code>, <code>.env</code>, <code>.env.example</code> y <code>.gitignore</code>. Las carpetas <code>/routes</code>, <code>/controllers</code> y <code>/middlewares</code> se irán llenando en prácticas posteriores.</div>
+  </div>
+
+  <!-- 5. DESARROLLO -->
+  <div class="seccion" id="desarrollo">
+    <div class="seccion-titulo"><span class="seccion-num">5</span> Desarrollo paso a paso</div>
+
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 1</span><span class="paso-titulo">Inicializar el proyecto e instalar dependencias</span></div>
+      <p>Abre la terminal en la carpeta <code>/backend</code> y ejecuta los siguientes comandos. El flag <code>-y</code> en <code>npm init</code> acepta todos los valores por defecto automáticamente.</p>
+      <div class="file-label">Terminal</div>
+      <div class="code-wrap"><canvas id="c1"></canvas></div>
+
+      <p style="margin-top:14px;">Una vez instaladas, estas son las dependencias y para qué sirve cada una:</p>
+      <table class="deps-tabla">
+        <thead><tr><th>Paquete</th><th>Tipo</th><th>¿Para qué sirve?</th></tr></thead>
+        <tbody>
+          <tr><td><code>express</code></td><td>Producción</td><td>Framework web para crear rutas y manejar peticiones HTTP</td></tr>
+          <tr><td><code>mysql2</code></td><td>Producción</td><td>Conector para MySQL con soporte de promesas (async/await)</td></tr>
+          <tr><td><code>dotenv</code></td><td>Producción</td><td>Carga las variables del archivo .env en el proyecto</td></tr>
+          <tr><td><code>cors</code></td><td>Producción</td><td>Permite que el frontend (React) pueda hacer peticiones al servidor</td></tr>
+          <tr class="dep-dev"><td><code>nodemon</code></td><td>Desarrollo</td><td>Reinicia el servidor automáticamente cada vez que guardas un archivo</td></tr>
+        </tbody>
+      </table>
+      <div class="info"><strong>Dependencias de desarrollo vs producción:</strong> <code>nodemon</code> se instala con <code>--save-dev</code> porque solo se usa mientras desarrollamos, no en el servidor final. Las otras dependencias sí se necesitan cuando el sistema esté en producción.</div>
+    </div>
+
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 2</span><span class="paso-titulo">Configurar package.json</span></div>
+      <p>Abre el archivo <code>package.json</code> que se generó y agrégale los scripts de inicio y la propiedad <code>"type": "module"</code> para poder usar la sintaxis moderna de JavaScript (<code>import</code> en lugar de <code>require</code>).</p>
+      <div class="file-label">📄 package.json</div>
+      <div class="code-wrap"><canvas id="c2"></canvas></div>
+      <div class="profesional"><strong>Básico vs profesional:</strong> <code>"type": "module"</code> activa los módulos ES6 nativos de JavaScript. Esto nos permite usar <code>import/export</code> en lugar del antiguo <code>require()</code>. Es la forma moderna y la que usaremos en todo el proyecto.</div>
+    </div>
+
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 3</span><span class="paso-titulo">Crear los archivos de configuración</span></div>
+      <p>Crea los tres archivos siguientes. El <code>.env</code> contiene los valores reales de tu entorno. El <code>.env.example</code> es una plantilla vacía que sí se puede compartir. El <code>.gitignore</code> protege el <code>.env</code> de ser subido accidentalmente a Git.</p>
+      <div class="file-label">📄 .env — tus datos reales (nunca compartir)</div>
+      <div class="code-wrap"><canvas id="c3a"></canvas></div>
+      <div class="file-label">📄 .env.example — plantilla sin valores</div>
+      <div class="code-wrap"><canvas id="c3b"></canvas></div>
+      <div class="file-label">📄 .gitignore</div>
+      <div class="code-wrap"><canvas id="c3c"></canvas></div>
+      <div class="peligro"><strong>Seguridad crítica:</strong> Si subes el archivo <code>.env</code> a GitHub, cualquier persona en internet puede ver tu contraseña de MySQL y la clave secreta del JWT. Siempre agrega <code>.env</code> al <code>.gitignore</code> antes de hacer tu primer commit.</div>
+    </div>
+
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 4</span><span class="paso-titulo">Crear db.js — la conexión a MySQL</span></div>
+      <p>Este archivo crea un pool de conexiones a MySQL y lo exporta para que cualquier parte del proyecto pueda usarlo. Usa <code>mysql2/promise</code> para poder trabajar con <code>async/await</code>.</p>
+      <div class="file-label">📄 db.js</div>
+      <div class="code-wrap"><canvas id="c4"></canvas></div>
+      <div class="info"><strong>¿Por qué connectionLimit: 10?</strong> Significa que como máximo habrá 10 conexiones abiertas al mismo tiempo. Si llegan más peticiones simultáneas, esperarán a que se libere una. Esto evita saturar la base de datos.</div>
+    </div>
+
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 5</span><span class="paso-titulo">Crear server.js — el servidor Express</span></div>
+      <p>Este es el corazón del backend. Aquí se configura Express, se habilitan los middlewares globales, se define la primera ruta de prueba y se arranca el servidor en el puerto definido en el <code>.env</code>.</p>
+      <div class="file-label">📄 server.js</div>
+      <div class="code-wrap"><canvas id="c5"></canvas></div>
+      <div class="nota"><strong>¿Qué es un middleware?</strong> Es una función que se ejecuta en medio de cada petición, antes de llegar a la ruta final. <code>cors()</code> y <code>express.json()</code> son middlewares globales que procesan todas las peticiones. En prácticas posteriores crearemos nuestros propios middlewares para autenticación y permisos.</div>
+    </div>
+
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 6</span><span class="paso-titulo">Ejecutar y probar el servidor</span></div>
+      <p>Ejecuta el servidor en modo desarrollo. El comando <code>npm run dev</code> usa nodemon, que reiniciará el servidor automáticamente cada vez que modifiques un archivo.</p>
+      <div class="file-label">Terminal — ejecutar</div>
+      <div class="code-wrap"><canvas id="c6a"></canvas></div>
+      <p style="margin-top:12px;">Si todo está correcto, verás estos mensajes en la terminal:</p>
+      <div class="file-label">Terminal — salida esperada</div>
+      <div class="code-wrap"><canvas id="c6b"></canvas></div>
+      <p style="margin-top:12px;">Abre Thunder Client en VS Code y crea una petición <strong>GET</strong> a la siguiente URL:</p>
+      <div class="file-label">Thunder Client — petición GET</div>
+      <div class="code-wrap"><canvas id="c6c"></canvas></div>
+      <p style="margin-top:12px;">La respuesta esperada con código <strong>200 OK</strong> es:</p>
+      <div class="file-label">Thunder Client — respuesta JSON</div>
+      <div class="code-wrap"><canvas id="c6d"></canvas></div>
+      <div class="info"><strong>¿Por qué Thunder Client y no el navegador?</strong> El navegador solo puede hacer peticiones GET fácilmente. Thunder Client permite probar todos los verbos HTTP (GET, POST, PUT, DELETE) con cualquier cuerpo de datos, lo cual es indispensable para desarrollar y probar APIs REST.</div>
+    </div>
+
+  </div>
+
+  <!-- 6. ACTIVIDADES -->
+  <div class="seccion" id="actividades">
+    <div class="seccion-titulo"><span class="seccion-num">6</span> Actividades</div>
+    <table class="actividades">
+      <thead><tr><th>#</th><th>Actividad</th><th>Tipo</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Crear la carpeta /backend y ejecutar npm init -y en la terminal</td><td><span class="tipo-badge tipo-terminal">Terminal</span></td></tr>
+        <tr><td>2</td><td>Instalar todas las dependencias del Paso 1</td><td><span class="tipo-badge tipo-terminal">Terminal</span></td></tr>
+        <tr><td>3</td><td>Configurar package.json con los scripts start, dev y "type": "module"</td><td><span class="tipo-badge tipo-config">Config</span></td></tr>
+        <tr><td>4</td><td>Crear los archivos .env, .env.example y .gitignore con el contenido indicado</td><td><span class="tipo-badge tipo-config">Config</span></td></tr>
+        <tr><td>5</td><td>Crear db.js con el pool de conexiones a MySQL</td><td><span class="tipo-badge tipo-codigo">Código</span></td></tr>
+        <tr><td>6</td><td>Crear server.js con Express, CORS, JSON y la ruta /api/health</td><td><span class="tipo-badge tipo-codigo">Código</span></td></tr>
+        <tr><td>7</td><td>Ejecutar npm run dev y verificar los mensajes en consola</td><td><span class="tipo-badge tipo-terminal">Terminal</span></td></tr>
+        <tr><td>8</td><td>Probar GET /api/health con Thunder Client y verificar respuesta 200</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 7. REFLEXIÓN -->
+  <div class="seccion" id="reflexion">
+    <div class="seccion-titulo"><span class="seccion-num">7</span> Preguntas de reflexión</div>
+    <ol class="reflexion-lista">
+      <li>¿Cuál es la diferencia entre import y require()? ¿Cuál es más moderno y por qué?</li>
+      <li>¿Por qué usamos un pool de conexiones en lugar de abrir y cerrar una conexión nueva en cada petición?</li>
+      <li>¿Qué problema de seguridad ocurriría si escribes la contraseña de MySQL directamente en server.js?</li>
+      <li>¿Para qué sirve nodemon y por qué se instala como dependencia de desarrollo y no de producción?</li>
+      <li>¿Qué significa el código de estado HTTP 200? ¿Y el 500? ¿Y el 404? ¿En qué situación aparece cada uno?</li>
+    </ol>
+  </div>
+
+  <!-- 8. ENTREGABLE -->
+  <div class="seccion" id="entregable">
+    <div class="seccion-titulo"><span class="seccion-num">8</span> Entregable</div>
+    <ul class="entregable-lista">
+      <li>Carpeta /backend con todos los archivos creados y organizados correctamente.</li>
+      <li>Archivo .env.example con las claves necesarias (sin valores reales).</li>
+      <li>Captura de la terminal mostrando el servidor corriendo y la conexión MySQL exitosa.</li>
+      <li>Captura de Thunder Client con la respuesta del endpoint GET /api/health con código 200.</li>
+      <li>Respuestas a las 5 preguntas de reflexión en el reporte de práctica.</li>
+    </ul>
+  </div>
+
+  <!-- 9. RÚBRICA -->
+  <div class="seccion" id="rubrica">
+    <div class="seccion-titulo"><span class="seccion-num">9</span> Criterios de evaluación</div>
+    <table class="rubrica">
+      <thead><tr><th>Criterio</th><th>Descripción</th><th>Puntos</th></tr></thead>
+      <tbody>
+        <tr><td>Estructura de carpetas</td><td>Organización correcta de archivos y directorios</td><td class="pts">15</td></tr>
+        <tr><td>Conexión a MySQL</td><td>Pool funcionando y verificación exitosa en consola</td><td class="pts">25</td></tr>
+        <tr><td>Variables de entorno</td><td>.env correcto, .env.example presente, .gitignore configurado</td><td class="pts">20</td></tr>
+        <tr><td>Endpoint health check</td><td>Respuesta JSON correcta con código 200 en Thunder Client</td><td class="pts">20</td></tr>
+        <tr><td>Scripts npm</td><td>start y dev configurados correctamente en package.json</td><td class="pts">10</td></tr>
+        <tr><td>Preguntas de reflexión</td><td>Respuestas claras y bien argumentadas</td><td class="pts">10</td></tr>
+        <tr class="total"><td colspan="2">Total</td><td>100</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<div class="footer">
+  Ingeniería de Desarrollo y Gestión de Software &nbsp;·&nbsp; Desarrollo Web Integral y Seguridad &nbsp;·&nbsp; Práctica 2
+</div>
+
+<script>
+const KW='#1565C0', TY='#0277BD', ST='#2E7D32', NM='#E65100',
+      FN='#6A1B9A', TB='#AD1457', CM='#9E9E9E', PL='#1a1a2e',
+      GR='#1B5E20', RD='#B71C1C';
+
+const bloques = {
+  c1: [
+    [[CM,"# Inicializar el proyecto (acepta valores por defecto)"]],
+    [[PL,"npm init -y"]],
+    [[PL,""]],
+    [[CM,"# Instalar dependencias de producción"]],
+    [[PL,"npm install express mysql2 dotenv cors"]],
+    [[PL,""]],
+    [[CM,"# Instalar nodemon solo para desarrollo"]],
+    [[PL,"npm install --save-dev nodemon"]],
+  ],
+  c2: [
+    [[PL,"{"]],
+    [[PL,'  '],[ST,'"name"'],[PL,":    "],[ST,'"sistema-admin-backend"'],[PL,","]],
+    [[PL,'  '],[ST,'"version"'],[PL,": "],[ST,'"1.0.0"'],[PL,","]],
+    [[PL,'  '],[ST,'"type"'],[PL,":    "],[ST,'"module"'],[PL,",       "],[CM,"// activa import/export ES Modules"]],
+    [[PL,'  '],[ST,'"scripts"'],[PL,": {"]],
+    [[PL,'    '],[ST,'"start"'],[PL,": "],[ST,'"node server.js"'],[PL,",   "],[CM,"// para producción"]],
+    [[PL,'    '],[ST,'"dev"'],[PL,":   "],[ST,'"nodemon server.js"'],[PL,"  "],[CM,"// para desarrollo"]],
+    [[PL,"  }"]],
+    [[PL,"}"]],
+  ],
+  c3a: [
+    [[CM,"# Puerto del servidor"]],
+    [[TB,"PORT"],[PL,"="],[NM,"3000"]],
+    [[PL,""]],
+    [[CM,"# Conexión a MySQL"]],
+    [[TB,"DB_HOST"],[PL,"="],[ST,"localhost"]],
+    [[TB,"DB_USER"],[PL,"="],[ST,"root"]],
+    [[TB,"DB_PASS"],[PL,"="],[ST,"tu_contraseña_aqui"]],
+    [[TB,"DB_NAME"],[PL,"="],[ST,"sistema_admin"]],
+    [[PL,""]],
+    [[CM,"# Clave para firmar tokens JWT (práctica 6)"]],
+    [[TB,"JWT_SECRET"],[PL,"="],[ST,"clave_secreta_muy_larga_y_segura"]],
+  ],
+  c3b: [
+    [[CM,"# Copia este archivo, renómbralo .env y llena los valores"]],
+    [[TB,"PORT"],[PL,"="]],
+    [[TB,"DB_HOST"],[PL,"="]],
+    [[TB,"DB_USER"],[PL,"="]],
+    [[TB,"DB_PASS"],[PL,"="]],
+    [[TB,"DB_NAME"],[PL,"="]],
+    [[TB,"JWT_SECRET"],[PL,"="]],
+  ],
+  c3c: [
+    [[CM,"# Dependencias — no se suben a repositorios"]],
+    [[ST,"node_modules/"]],
+    [[PL,""]],
+    [[CM,"# Variables de entorno — contiene datos sensibles"]],
+    [[RD,".env"]],
+  ],
+  c4: [
+    [[KW,"import "],[FN,"mysql"],[KW,"  from "],[ST,"'mysql2/promise'"],[PL,";"]],
+    [[KW,"import "],[FN,"dotenv"],[KW," from "],[ST,"'dotenv'"],[PL,";"]],
+    [[PL,""]],
+    [[FN,"dotenv"],[PL,"."],[FN,"config"],[PL,"();  "],[CM,"// carga el archivo .env"]],
+    [[PL,""]],
+    [[KW,"const "],[TB,"pool"],[PL," = "],[FN,"mysql"],[PL,"."],[FN,"createPool"],[PL,"({"]],
+    [[PL,"  "],[FN,"host"],[PL,":             "],[FN,"process"],[PL,"."],[FN,"env"],[PL,"."],[TB,"DB_HOST"],[PL,","]],
+    [[PL,"  "],[FN,"user"],[PL,":             "],[FN,"process"],[PL,"."],[FN,"env"],[PL,"."],[TB,"DB_USER"],[PL,","]],
+    [[PL,"  "],[FN,"password"],[PL,":         "],[FN,"process"],[PL,"."],[FN,"env"],[PL,"."],[TB,"DB_PASS"],[PL,","]],
+    [[PL,"  "],[FN,"database"],[PL,":         "],[FN,"process"],[PL,"."],[FN,"env"],[PL,"."],[TB,"DB_NAME"],[PL,","]],
+    [[PL,"  "],[FN,"waitForConnections"],[PL,": "],[KW,"true"],[PL,","]],
+    [[PL,"  "],[FN,"connectionLimit"],[PL,":  "],[NM,"10"],[PL,",  "],[CM,"// máximo 10 conexiones simultáneas"]],
+    [[PL,"  "],[FN,"queueLimit"],[PL,":       "],[NM,"0"]],
+    [[PL,"});"]],
+    [[PL,""]],
+    [[KW,"export default "],[TB,"pool"],[PL,";  "],[CM,"// exportar para usarlo en otros archivos"]],
+  ],
+  c5: [
+    [[KW,"import "],[FN,"express"],[KW," from "],[ST,"'express'"],[PL,";"]],
+    [[KW,"import "],[FN,"cors"],[KW,"    from "],[ST,"'cors'"],[PL,";"]],
+    [[KW,"import "],[FN,"dotenv"],[KW,"  from "],[ST,"'dotenv'"],[PL,";"]],
+    [[KW,"import "],[TB,"pool"],[KW,"    from "],[ST,"'./db.js'"],[PL,";"]],
+    [[PL,""]],
+    [[FN,"dotenv"],[PL,"."],[FN,"config"],[PL,"();"]],
+    [[PL,""]],
+    [[KW,"const "],[FN,"app"],[PL," = "],[FN,"express"],[PL,"();"]],
+    [[PL,""]],
+    [[CM,"// Middlewares globales — se aplican a TODAS las peticiones"]],
+    [[FN,"app"],[PL,"."],[FN,"use"],[PL,"("],[FN,"cors"],[PL,"());         "],[CM,"// permite peticiones desde React (frontend)"]],
+    [[FN,"app"],[PL,"."],[FN,"use"],[PL,"("],[FN,"express"],[PL,"."],[FN,"json"],[PL,"());     "],[CM,"// convierte el body JSON en objeto JavaScript"]],
+    [[PL,""]],
+    [[CM,"// Ruta de diagnóstico — verifica que el servidor responde"]],
+    [[FN,"app"],[PL,"."],[FN,"get"],[PL,"("],[ST,"'/api/health'"],[PL,", ("],[FN,"req"],[PL,", "],[FN,"res"],[PL,") => {"]],
+    [[PL,"  "],[FN,"res"],[PL,"."],[FN,"json"],[PL,"({"]],
+    [[PL,"    "],[FN,"status"],[PL,":    "],[ST,"'ok'"],[PL,","]],
+    [[PL,"    "],[FN,"mensaje"],[PL,":   "],[ST,"'Servidor funcionando correctamente'"],[PL,","]],
+    [[PL,"    "],[FN,"timestamp"],[PL,": "],[KW,"new "],[FN,"Date"],[PL,"()."],[FN,"toISOString"],[PL,"()"]],
+    [[PL,"  });"]],
+    [[PL,"});"]],
+    [[PL,""]],
+    [[CM,"// Aquí se registrarán las rutas de cada módulo (prácticas siguientes)"]],
+    [[CM,"// import personasRoutes from './routes/personas.routes.js';"]],
+    [[CM,"// app.use('/api/personas', personasRoutes);"]],
+    [[PL,""]],
+    [[CM,"// Función para verificar conexión a MySQL al arrancar"]],
+    [[KW,"const "],[FN,"verificarDB"],[PL," = "],[KW,"async "],[PL,"() => {"]],
+    [[PL,"  "],[KW,"try "],[PL,"{"]],
+    [[PL,"    "],[KW,"const "],[FN,"conn"],[PL," = "],[KW,"await "],[TB,"pool"],[PL,"."],[FN,"getConnection"],[PL,"();"]],
+    [[PL,"    "],[FN,"console"],[PL,"."],[FN,"log"],[PL,"("],[ST,"'✅ Conexión a MySQL exitosa'"],[PL,");"]],
+    [[PL,"    "],[FN,"conn"],[PL,"."],[FN,"release"],[PL,"();"]],
+    [[PL,"  } "],[KW,"catch "],[PL,"("],[FN,"err"],[PL,") {"]],
+    [[PL,"    "],[FN,"console"],[PL,"."],[FN,"error"],[PL,"("],[ST,"'❌ Error de conexión:'"],[PL,", "],[FN,"err"],[PL,"."],[FN,"message"],[PL,");"]],
+    [[PL,"  }"]],
+    [[PL,"};"]],
+    [[PL,""]],
+    [[CM,"// Arrancar el servidor"]],
+    [[KW,"const "],[TB,"PORT"],[PL," = "],[FN,"process"],[PL,"."],[FN,"env"],[PL,"."],[TB,"PORT"],[PL," || "],[NM,"3000"],[PL,";"]],
+    [[FN,"app"],[PL,"."],[FN,"listen"],[PL,"("],[TB,"PORT"],[PL,", () => {"]],
+    [[PL,"  "],[FN,"console"],[PL,"."],[FN,"log"],[PL,"("],[ST,"`Servidor en http://localhost:${"],[TB,"PORT"],[ST,"}`"],[PL,");"]],
+    [[PL,"  "],[FN,"verificarDB"],[PL,"();"]],
+    [[PL,"});"]],
+  ],
+  c6a: [
+    [[PL,"npm run dev"]],
+  ],
+  c6b: [
+    [[GR,"Servidor en http://localhost:3000"]],
+    [[GR,"✅ Conexión a MySQL exitosa"]],
+  ],
+  c6c: [
+    [[KW,"GET  "],[ST,"http://localhost:3000/api/health"]],
+  ],
+  c6d: [
+    [[PL,"{"]],
+    [[PL,'  '],[FN,'"status"'],[PL,":    "],[ST,'"ok"'],[PL,","]],
+    [[PL,'  '],[FN,'"mensaje"'],[PL,":   "],[ST,'"Servidor funcionando correctamente"'],[PL,","]],
+    [[PL,'  '],[FN,'"timestamp"'],[PL,": "],[ST,'"2025-03-15T10:30:00.000Z"']],
+    [[PL,"}"]],
+  ],
+};
+
+const FONT = `13px "Courier New", monospace`;
+const LINE_H = 22, PAD_X = 16, PAD_Y = 12;
+
+function drawCode(id, lines) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const tmp = document.createElement('canvas');
+  const tc = tmp.getContext('2d');
+  tc.font = FONT;
+  let maxW = 0;
+  for (const line of lines) {
+    const w = tc.measureText(line.map(s => s[1]).join('')).width;
+    if (w > maxW) maxW = w;
+  }
+  const W = Math.ceil(maxW + PAD_X * 2);
+  const H = lines.length * LINE_H + PAD_Y * 2;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+  ctx.font = FONT;
+  ctx.textBaseline = 'alphabetic';
+  lines.forEach((segs, i) => {
+    const y = PAD_Y + i * LINE_H + LINE_H * 0.75;
+    let x = PAD_X;
+    for (const [color, text] of segs) {
+      ctx.fillStyle = color;
+      ctx.fillText(text, x, y);
+      x += tc.measureText(text).width;
+    }
+  });
+}
+
+document.fonts.ready.then(() => {
+  for (const [id, lines] of Object.entries(bloques)) drawCode(id, lines);
+});
+</script>
+</body>
+</html>
