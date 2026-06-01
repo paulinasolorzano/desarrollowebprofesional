@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica 2 — Configuración del backend base</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #fff; color: #1a1a2e; font-size: 14px; line-height: 1.7; }
+
+  .header { background: #1565C0; color: #fff; padding: 0; }
+  .header-top { background: #0D47A1; padding: 18px 40px 14px; display: flex; justify-content: space-between; align-items: flex-start; }
+  .header-inst { font-size: 11px; opacity: 0.85; letter-spacing: 0.03em; text-transform: uppercase; }
+  .header-carrera { font-size: 13px; font-weight: 600; margin-top: 3px; }
+  .header-badge { background: #fff; color: #0D47A1; font-weight: 700; font-size: 13px; padding: 6px 16px; border-radius: 20px; white-space: nowrap; align-self: center; }
+  .header-main { padding: 20px 40px 24px; }
+  .header-practica { font-size: 11px; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  .header-titulo { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+  .header-meta { display: flex; gap: 24px; font-size: 12px; opacity: 0.85; flex-wrap: wrap; }
+  .header-strip { height: 5px; background: #42A5F5; }
+
+  .content { max-width: 900px; margin: 0 auto; padding: 36px 40px 60px; }
+
+  .toc { background: #E3F2FD; border-left: 4px solid #1565C0; border-radius: 0 8px 8px 0; padding: 20px 24px; margin-bottom: 36px; }
+  .toc-title { font-size: 13px; font-weight: 700; color: #0D47A1; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
+  .toc ol { padding-left: 18px; }
+  .toc li { font-size: 13px; color: #1565C0; padding: 3px 0; }
+  .toc li a { color: #1565C0; text-decoration: none; }
+  .toc li a:hover { text-decoration: underline; }
+
+  .seccion { margin-bottom: 36px; }
+  .seccion-titulo { font-size: 16px; font-weight: 700; color: #0D47A1; border-bottom: 2px solid #BBDEFB; padding-bottom: 8px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+  .seccion-num { background: #1565C0; color: #fff; font-size: 12px; font-weight: 700; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .subseccion-titulo { font-size: 14px; font-weight: 700; color: #1565C0; margin: 18px 0 10px; }
+
+  p { margin-bottom: 10px; }
+
+  .contexto-card { background: #F8FBFF; border: 1px solid #BBDEFB; border-radius: 10px; padding: 20px 24px; margin-bottom: 16px; }
+  .contexto-card p { margin-bottom: 8px; }
+  .contexto-card p:last-child { margin-bottom: 0; }
+
+  .obj-lista { list-style: none; padding: 0; }
+  .obj-lista li { padding: 6px 0 6px 24px; position: relative; font-size: 13.5px; border-bottom: 1px solid #F0F4FF; }
+  .obj-lista li:last-child { border-bottom: none; }
+  .obj-lista li::before { content: '✓'; position: absolute; left: 0; color: #1565C0; font-weight: 700; }
+
+  .conceptos { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+  .concepto-tag { background: #E3F2FD; color: #0D47A1; font-size: 12px; padding: 5px 12px; border-radius: 14px; border: 1px solid #90CAF9; }
+
+  .nota { background: #FFF8E1; border-left: 4px solid #F59E0B; border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 14px 0; font-size: 13px; }
+  .nota strong { color: #92400E; }
+  .info { background: #E8F5E9; border-left: 4px solid #43A047; border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 14px 0; font-size: 13px; }
+  .info strong { color: #1B5E20; }
+  .peligro { background: #FFEBEE; border-left: 4px solid #E53935; border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 14px 0; font-size: 13px; }
+  .peligro strong { color: #B71C1C; }
+  .profesional { background: #EDE7F6; border-left: 4px solid #7B1FA2; border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 14px 0; font-size: 13px; }
+  .profesional strong { color: #4A148C; }
+
+  .paso { background: #fff; border: 1px solid #BBDEFB; border-radius: 10px; padding: 20px 24px; margin-bottom: 20px; }
+  .paso-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .paso-num { background: #1565C0; color: #fff; font-size: 13px; font-weight: 700; padding: 4px 12px; border-radius: 14px; white-space: nowrap; }
+  .paso-titulo { font-size: 14px; font-weight: 700; color: #0D47A1; }
+  .paso p { font-size: 13.5px; margin-bottom: 10px; }
+
+  /* ÁRBOL DE CARPETAS */
+  .folder-tree { background: #1E1E2E; border-radius: 8px; padding: 18px 20px; margin: 12px 0; font-family: 'Courier New', monospace; font-size: 13px; line-height: 2; color: #CDD6F4; border: 1px solid #313244; }
+  .folder-tree .f-dir { color: #89B4FA; font-weight: 600; }
+  .folder-tree .f-file { color: #A6E3A1; }
+  .folder-tree .f-comment { color: #6C7086; font-style: italic; }
+
+  /* CÓDIGO IMAGEN */
+  .code-img { background: #1E1E2E; border-radius: 8px; padding: 18px 20px; margin: 12px 0; font-family: 'Courier New', 'Consolas', monospace; font-size: 12.5px; line-height: 1.9; color: #CDD6F4; overflow-x: auto; border: 1px solid #313244; }
+  .code-img .c-comment { color: #6C7086; font-style: italic; }
+  .code-img .c-keyword { color: #CBA6F7; font-weight: 600; }
+  .code-img .c-type { color: #89DCEB; }
+  .code-img .c-string { color: #A6E3A1; }
+  .code-img .c-number { color: #FAB387; }
+  .code-img .c-fn { color: #89B4FA; }
+  .code-img .c-var { color: #F9E2AF; }
+  .code-img .c-obj { color: #F38BA8; }
+  .code-img .c-op { color: #CBA6F7; }
+  .code-img .indent { padding-left: 20px; display: block; }
+  .code-img .indent2 { padding-left: 40px; display: block; }
+  .code-img .line { display: block; }
+
+  /* NOMBRE DE ARCHIVO */
+  .file-label { display: inline-flex; align-items: center; gap: 7px; background: #313244; color: #89B4FA; font-family: 'Courier New', monospace; font-size: 12px; padding: 5px 12px; border-radius: 6px 6px 0 0; margin-bottom: -1px; border: 1px solid #45475A; border-bottom: none; }
+
+  .actividades { width: 100%; border-collapse: collapse; font-size: 13px; margin: 14px 0; }
+  .actividades th { background: #1565C0; color: #fff; padding: 10px 14px; text-align: left; font-weight: 600; font-size: 12px; }
+  .actividades td { padding: 9px 14px; border-bottom: 1px solid #E3F2FD; vertical-align: top; }
+  .actividades tr:nth-child(even) td { background: #F8FBFF; }
+  .actividades tr:last-child td { border-bottom: none; }
+  .tipo-badge { font-size: 11px; padding: 3px 8px; border-radius: 10px; font-weight: 600; white-space: nowrap; }
+  .tipo-terminal { background: #1E1E2E; color: #A6E3A1; }
+  .tipo-config { background: #FFF8E1; color: #92400E; }
+  .tipo-codigo { background: #E3F2FD; color: #0D47A1; }
+  .tipo-prueba { background: #E8F5E9; color: #1B5E20; }
+
+  .reflexion-lista { list-style: none; padding: 0; counter-reset: ref; }
+  .reflexion-lista li { counter-increment: ref; padding: 10px 14px 10px 44px; position: relative; background: #F8FBFF; border: 1px solid #BBDEFB; border-radius: 8px; margin-bottom: 8px; font-size: 13.5px; }
+  .reflexion-lista li::before { content: counter(ref); position: absolute; left: 12px; top: 50%; transform: translateY(-50%); background: #1565C0; color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+
+  .rubrica { width: 100%; border-collapse: collapse; font-size: 13px; margin: 14px 0; }
+  .rubrica th { background: #0D47A1; color: #fff; padding: 10px 14px; text-align: left; font-weight: 600; font-size: 12px; }
+  .rubrica td { padding: 9px 14px; border-bottom: 1px solid #E3F2FD; }
+  .rubrica tr:nth-child(even) td { background: #F8FBFF; }
+  .rubrica .total td { background: #1565C0; color: #fff; font-weight: 700; }
+  .pts { font-weight: 700; color: #0D47A1; }
+
+  .entregable-lista { list-style: none; padding: 0; }
+  .entregable-lista li { padding: 8px 14px 8px 36px; position: relative; font-size: 13.5px; border-bottom: 1px solid #F0F4FF; }
+  .entregable-lista li:last-child { border-bottom: none; }
+  .entregable-lista li::before { content: '📄'; position: absolute; left: 8px; }
+
+  .footer { background: #0D47A1; color: #fff; text-align: center; padding: 14px 40px; font-size: 12px; opacity: 0.9; margin-top: 40px; }
+
+  @media print {
+    body { font-size: 12px; }
+    .content { padding: 20px 30px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ENCABEZADO -->
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-inst">Ingeniería de Desarrollo y Gestión de Software</div>
+      <div class="header-carrera">Desarrollo Web Integral y Seguridad</div>
+    </div>
+    <div class="header-badge">Práctica 2</div>
+  </div>
+  <div class="header-main">
+    <div class="header-practica">Fase 1 — Fundamentos del sistema</div>
+    <div class="header-titulo">Configuración del backend base</div>
+    <div class="header-meta">
+      <span>⏱ Duración: 2 horas</span>
+      <span>🛠 Herramientas: Node.js · Express · MySQL · VS Code</span>
+      <span>📦 Entregable: proyecto backend funcional</span>
+    </div>
+  </div>
+  <div class="header-strip"></div>
+</div>
+
+<div class="content">
+
+  <!-- TABLA DE CONTENIDOS -->
+  <div class="toc">
+    <div class="toc-title">Tabla de contenidos</div>
+    <ol>
+      <li><a href="#contexto">¿Dónde estamos en el proyecto?</a></li>
+      <li><a href="#objetivos">Objetivos de la práctica</a></li>
+      <li><a href="#conceptos">Conceptos previos requeridos</a></li>
+      <li><a href="#estructura">Estructura del proyecto</a></li>
+      <li><a href="#desarrollo">Desarrollo paso a paso</a></li>
+      <li><a href="#actividades">Actividades</a></li>
+      <li><a href="#reflexion">Preguntas de reflexión</a></li>
+      <li><a href="#entregable">Entregable</a></li>
+      <li><a href="#rubrica">Criterios de evaluación</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. CONTEXTO -->
+  <div class="seccion" id="contexto">
+    <div class="seccion-titulo"><span class="seccion-num">1</span> ¿Dónde estamos en el proyecto?</div>
+    <div class="contexto-card">
+      <p>En la práctica anterior diseñamos y creamos la base de datos del sistema. Ya tenemos las tablas <code>personas</code>, <code>usuarios</code>, <code>proyectos</code> y <code>tareas</code> con sus relaciones en MySQL.</p>
+      <p>Ahora necesitamos construir el <strong>backend</strong>: el servidor que recibirá peticiones desde el navegador, consultará la base de datos y devolverá respuestas en formato JSON. Este servidor es el puente entre la interfaz visual (que haremos después en React) y los datos almacenados en MySQL.</p>
+      <p>Para esto usaremos <strong>Node.js</strong> como entorno de ejecución y <strong>Express</strong> como framework para manejar las rutas y peticiones HTTP.</p>
+    </div>
+    <div class="nota"><strong>Recuerda:</strong> El backend no tiene interfaz visual. Todo se prueba mediante peticiones HTTP usando herramientas como <strong>Thunder Client</strong> (extensión de VS Code) o <strong>Postman</strong>.</div>
+  </div>
+
+  <!-- 2. OBJETIVOS -->
+  <div class="seccion" id="objetivos">
+    <div class="seccion-titulo"><span class="seccion-num">2</span> Objetivos de la práctica</div>
+    <ul class="obj-lista">
+      <li>Inicializar un proyecto Node.js con <code>npm init</code> y configurar sus dependencias.</li>
+      <li>Instalar y configurar Express para manejar peticiones HTTP.</li>
+      <li>Establecer la conexión a MySQL mediante un pool de conexiones reutilizable.</li>
+      <li>Usar variables de entorno con <code>dotenv</code> para proteger datos sensibles.</li>
+      <li>Organizar el proyecto con una arquitectura MVC básica desde el inicio.</li>
+      <li>Crear y probar una ruta de diagnóstico (<em>health check</em>).</li>
+    </ul>
+  </div>
+
+  <!-- 3. CONCEPTOS PREVIOS -->
+  <div class="seccion" id="conceptos">
+    <div class="seccion-titulo"><span class="seccion-num">3</span> Conceptos previos requeridos</div>
+    <div class="conceptos">
+      <span class="concepto-tag">¿Qué es un servidor HTTP?</span>
+      <span class="concepto-tag">¿Qué es una API REST?</span>
+      <span class="concepto-tag">¿Qué es un endpoint?</span>
+      <span class="concepto-tag">Verbos HTTP (GET, POST, PUT, DELETE)</span>
+      <span class="concepto-tag">Formato JSON</span>
+      <span class="concepto-tag">Uso básico de la terminal</span>
+      <span class="concepto-tag">Variables de entorno</span>
+    </div>
+  </div>
+
+  <!-- 4. ESTRUCTURA -->
+  <div class="seccion" id="estructura">
+    <div class="seccion-titulo"><span class="seccion-num">4</span> Estructura del proyecto</div>
+    <p>Antes de escribir código, crea esta estructura de carpetas. Una buena organización desde el inicio facilita el crecimiento del proyecto.</p>
+    <div class="folder-tree">
+      <span class="f-dir">/backend</span><br>
+      <span>&nbsp;&nbsp;├── <span class="f-file">server.js</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="f-comment">punto de entrada del servidor</span></span><br>
+      <span>&nbsp;&nbsp;├── <span class="f-file">db.js</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="f-comment">conexión a MySQL (pool)</span></span><br>
+      <span>&nbsp;&nbsp;├── <span class="f-file">.env</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="f-comment">variables de entorno (NO subir a Git)</span></span><br>
+      <span>&nbsp;&nbsp;├── <span class="f-file">.env.example</span> &nbsp;&nbsp;&nbsp;<span class="f-comment">plantilla pública sin valores reales</span></span><br>
+      <span>&nbsp;&nbsp;├── <span class="f-file">.gitignore</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="f-comment">archivos que Git debe ignorar</span></span><br>
+      <span>&nbsp;&nbsp;├── <span class="f-file">package.json</span> &nbsp;&nbsp;&nbsp;<span class="f-comment">configuración del proyecto npm</span></span><br>
+      <span>&nbsp;&nbsp;├── <span class="f-dir">/routes</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="f-comment">definición de rutas por módulo</span></span><br>
+      <span>&nbsp;&nbsp;├── <span class="f-dir">/controllers</span> &nbsp;&nbsp;<span class="f-comment">lógica de negocio por módulo</span></span><br>
+      <span>&nbsp;&nbsp;├── <span class="f-dir">/middlewares</span> &nbsp;&nbsp;<span class="f-comment">autenticación, permisos, errores</span></span><br>
+      <span>&nbsp;&nbsp;└── <span class="f-dir">/config</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="f-comment">configuraciones generales</span></span>
+    </div>
+    <div class="info"><strong>Patrón MVC básico:</strong> Separar las <em>rutas</em> (qué URL atiende qué), los <em>controladores</em> (qué hace cuando llega esa petición) y los <em>modelos o acceso a datos</em> (cómo consulta la base de datos) es una buena práctica que facilita el mantenimiento del código a largo plazo.</div>
+  </div>
+
+  <!-- 5. DESARROLLO -->
+  <div class="seccion" id="desarrollo">
+    <div class="seccion-titulo"><span class="seccion-num">5</span> Desarrollo paso a paso</div>
+
+    <!-- PASO 1 -->
+    <div class="paso">
+      <div class="paso-header">
+        <span class="paso-num">Paso 1</span>
+        <span class="paso-titulo">Inicializar el proyecto Node.js</span>
+      </div>
+      <p>Abre la terminal en la carpeta <code>/backend</code> y ejecuta los siguientes comandos. El flag <code>-y</code> acepta todos los valores por defecto del <code>package.json</code>.</p>
+      <div class="code-img">
+        <span class="line"><span class="c-comment"># Inicializar el proyecto</span></span>
+        <span class="line"><span class="c-fn">npm</span> init <span class="c-op">-y</span></span>
+        <br>
+        <span class="line"><span class="c-comment"># Instalar dependencias principales</span></span>
+        <span class="line"><span class="c-fn">npm</span> install <span class="c-string">express</span> <span class="c-string">mysql2</span> <span class="c-string">dotenv</span> <span class="c-string">cors</span></span>
+        <br>
+        <span class="line"><span class="c-comment"># Instalar nodemon como dependencia de desarrollo</span></span>
+        <span class="line"><span class="c-comment"># (reinicia el servidor automáticamente al guardar cambios)</span></span>
+        <span class="line"><span class="c-fn">npm</span> install <span class="c-op">--save-dev</span> <span class="c-string">nodemon</span></span>
+      </div>
+      <div class="nota"><strong>¿Qué instalamos?</strong> <code>express</code> — framework web. <code>mysql2</code> — conector para MySQL con soporte de promesas. <code>dotenv</code> — carga variables desde el archivo <code>.env</code>. <code>cors</code> — permite que el frontend (React) se comunique con este servidor. <code>nodemon</code> — recarga automática en desarrollo.</div>
+    </div>
+
+    <!-- PASO 2 -->
+    <div class="paso">
+      <div class="paso-header">
+        <span class="paso-num">Paso 2</span>
+        <span class="paso-titulo">Configurar <code>package.json</code></span>
+      </div>
+      <p>Agrega los scripts de inicio en el <code>package.json</code> para poder ejecutar el servidor fácilmente.</p>
+      <div class="file-label">📄 package.json</div>
+      <div class="code-img">
+        <span class="line">{</span>
+        <span class="indent"><span class="c-var">"name"</span>: <span class="c-string">"sistema-admin-backend"</span>,</span>
+        <span class="indent"><span class="c-var">"version"</span>: <span class="c-string">"1.0.0"</span>,</span>
+        <span class="indent"><span class="c-var">"type"</span>: <span class="c-string">"module"</span>, <span class="c-comment">// habilita import/export de ES Modules</span></span>
+        <span class="indent"><span class="c-var">"scripts"</span>: {</span>
+        <span class="indent2"><span class="c-var">"start"</span>: <span class="c-string">"node server.js"</span>, <span class="c-comment">// producción</span></span>
+        <span class="indent2"><span class="c-var">"dev"</span>: <span class="c-string">"nodemon server.js"</span> &nbsp;<span class="c-comment">// desarrollo</span></span>
+        <span class="indent">},</span>
+        <span class="line">}</span>
+      </div>
+      <div class="profesional"><strong>Básico vs profesional:</strong> Usar <code>"type": "module"</code> nos permite escribir <code>import</code> en lugar de <code>require()</code>. Es la sintaxis moderna de JavaScript. En este curso usaremos <code>import/export</code> desde el inicio.</div>
+    </div>
+
+    <!-- PASO 3 -->
+    <div class="paso">
+      <div class="paso-header">
+        <span class="paso-num">Paso 3</span>
+        <span class="paso-titulo">Crear el archivo <code>.env</code></span>
+      </div>
+      <p>Este archivo contiene los datos sensibles de conexión. <strong>Nunca debe subirse a GitHub.</strong> Crea también un archivo <code>.env.example</code> con las mismas claves pero sin valores reales, para que otros desarrolladores sepan qué necesitan configurar.</p>
+      <div class="file-label">📄 .env</div>
+      <div class="code-img">
+        <span class="line"><span class="c-comment"># Servidor</span></span>
+        <span class="line"><span class="c-var">PORT</span>=<span class="c-number">3000</span></span>
+        <br>
+        <span class="line"><span class="c-comment"># Base de datos MySQL</span></span>
+        <span class="line"><span class="c-var">DB_HOST</span>=<span class="c-string">localhost</span></span>
+        <span class="line"><span class="c-var">DB_USER</span>=<span class="c-string">root</span></span>
+        <span class="line"><span class="c-var">DB_PASS</span>=<span class="c-string">tu_contraseña_aqui</span></span>
+        <span class="line"><span class="c-var">DB_NAME</span>=<span class="c-string">sistema_admin</span></span>
+        <br>
+        <span class="line"><span class="c-comment"># JWT (se usará en la Práctica 6)</span></span>
+        <span class="line"><span class="c-var">JWT_SECRET</span>=<span class="c-string">clave_secreta_muy_larga_y_segura</span></span>
+      </div>
+      <div class="file-label">📄 .env.example</div>
+      <div class="code-img">
+        <span class="line"><span class="c-var">PORT</span>=</span>
+        <span class="line"><span class="c-var">DB_HOST</span>=</span>
+        <span class="line"><span class="c-var">DB_USER</span>=</span>
+        <span class="line"><span class="c-var">DB_PASS</span>=</span>
+        <span class="line"><span class="c-var">DB_NAME</span>=</span>
+        <span class="line"><span class="c-var">JWT_SECRET</span>=</span>
+      </div>
+      <div class="file-label">📄 .gitignore</div>
+      <div class="code-img">
+        <span class="line"><span class="c-comment"># Dependencias</span></span>
+        <span class="line"><span class="c-string">node_modules/</span></span>
+        <br>
+        <span class="line"><span class="c-comment"># Variables de entorno (¡NUNCA subir a Git!)</span></span>
+        <span class="line"><span class="c-string">.env</span></span>
+      </div>
+      <div class="peligro"><strong>Seguridad crítica:</strong> Si subes el archivo <code>.env</code> a GitHub, cualquier persona puede ver tu contraseña de base de datos y la clave secreta del JWT. Agrega <code>.env</code> al <code>.gitignore</code> antes de tu primer commit.</div>
+    </div>
+
+    <!-- PASO 4 -->
+    <div class="paso">
+      <div class="paso-header">
+        <span class="paso-num">Paso 4</span>
+        <span class="paso-titulo">Crear <code>db.js</code> — conexión a MySQL</span>
+      </div>
+      <p>Este archivo crea y exporta un <strong>pool de conexiones</strong>. Un pool mantiene varias conexiones abiertas y las reutiliza, lo cual es mucho más eficiente que abrir y cerrar una conexión nueva en cada petición.</p>
+      <div class="file-label">📄 db.js</div>
+      <div class="code-img">
+        <span class="line"><span class="c-keyword">import</span> <span class="c-fn">mysql</span> <span class="c-keyword">from</span> <span class="c-string">'mysql2/promise'</span>;</span>
+        <span class="line"><span class="c-keyword">import</span> <span class="c-fn">dotenv</span> <span class="c-keyword">from</span> <span class="c-string">'dotenv'</span>;</span>
+        <br>
+        <span class="line"><span class="c-fn">dotenv</span>.<span class="c-fn">config</span>();</span>
+        <br>
+        <span class="line"><span class="c-keyword">const</span> <span class="c-var">pool</span> = <span class="c-fn">mysql</span>.<span class="c-fn">createPool</span>({</span>
+        <span class="indent"><span class="c-var">host</span>:     <span class="c-fn">process</span>.<span class="c-fn">env</span>.<span class="c-var">DB_HOST</span>,</span>
+        <span class="indent"><span class="c-var">user</span>:     <span class="c-fn">process</span>.<span class="c-fn">env</span>.<span class="c-var">DB_USER</span>,</span>
+        <span class="indent"><span class="c-var">password</span>: <span class="c-fn">process</span>.<span class="c-fn">env</span>.<span class="c-var">DB_PASS</span>,</span>
+        <span class="indent"><span class="c-var">database</span>: <span class="c-fn">process</span>.<span class="c-fn">env</span>.<span class="c-var">DB_NAME</span>,</span>
+        <span class="indent"><span class="c-var">waitForConnections</span>: <span class="c-keyword">true</span>,</span>
+        <span class="indent"><span class="c-var">connectionLimit</span>: <span class="c-number">10</span>, <span class="c-comment">// máximo 10 conexiones simultáneas</span></span>
+        <span class="indent"><span class="c-var">queueLimit</span>: <span class="c-number">0</span></span>
+        <span class="line">});</span>
+        <br>
+        <span class="line"><span class="c-keyword">export default</span> <span class="c-var">pool</span>;</span>
+      </div>
+      <div class="info"><strong>¿Por qué <code>mysql2/promise</code>?</strong> Esta versión del conector devuelve promesas de forma nativa, lo que nos permite usar <code>async/await</code> en los controladores de forma limpia, sin callbacks.</div>
+    </div>
+
+    <!-- PASO 5 -->
+    <div class="paso">
+      <div class="paso-header">
+        <span class="paso-num">Paso 5</span>
+        <span class="paso-titulo">Crear <code>server.js</code> — servidor Express</span>
+      </div>
+      <p>Este es el punto de entrada de toda la aplicación. Configura Express, habilita CORS y JSON, define las rutas base y arranca el servidor en el puerto indicado en <code>.env</code>.</p>
+      <div class="file-label">📄 server.js</div>
+      <div class="code-img">
+        <span class="line"><span class="c-keyword">import</span> <span class="c-fn">express</span> <span class="c-keyword">from</span> <span class="c-string">'express'</span>;</span>
+        <span class="line"><span class="c-keyword">import</span> <span class="c-fn">cors</span> <span class="c-keyword">from</span> <span class="c-string">'cors'</span>;</span>
+        <span class="line"><span class="c-keyword">import</span> <span class="c-fn">dotenv</span> <span class="c-keyword">from</span> <span class="c-string">'dotenv'</span>;</span>
+        <br>
+        <span class="line"><span class="c-fn">dotenv</span>.<span class="c-fn">config</span>();</span>
+        <br>
+        <span class="line"><span class="c-keyword">const</span> <span class="c-var">app</span> = <span class="c-fn">express</span>();</span>
+        <br>
+        <span class="line"><span class="c-comment">// Middlewares globales</span></span>
+        <span class="line"><span class="c-var">app</span>.<span class="c-fn">use</span>(<span class="c-fn">cors</span>()); &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="c-comment">// permite peticiones desde el frontend</span></span>
+        <span class="line"><span class="c-var">app</span>.<span class="c-fn">use</span>(<span class="c-fn">express</span>.<span class="c-fn">json</span>()); &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="c-comment">// parsea el body de las peticiones como JSON</span></span>
+        <br>
+        <span class="line"><span class="c-comment">// Ruta de diagnóstico (health check)</span></span>
+        <span class="line"><span class="c-var">app</span>.<span class="c-fn">get</span>(<span class="c-string">'/api/health'</span>, (<span class="c-var">req</span>, <span class="c-var">res</span>) => {</span>
+        <span class="indent"><span class="c-var">res</span>.<span class="c-fn">json</span>({</span>
+        <span class="indent2"><span class="c-var">status</span>: <span class="c-string">'ok'</span>,</span>
+        <span class="indent2"><span class="c-var">mensaje</span>: <span class="c-string">'Servidor funcionando correctamente'</span>,</span>
+        <span class="indent2"><span class="c-var">timestamp</span>: <span class="c-keyword">new</span> <span class="c-fn">Date</span>().<span class="c-fn">toISOString</span>()</span>
+        <span class="indent">});</span>
+        <span class="line">});</span>
+        <br>
+        <span class="line"><span class="c-comment">// Aquí se agregarán las rutas de cada módulo en prácticas posteriores</span></span>
+        <span class="line"><span class="c-comment">// import personasRoutes from './routes/personas.routes.js';</span></span>
+        <span class="line"><span class="c-comment">// app.use('/api/personas', personasRoutes);</span></span>
+        <br>
+        <span class="line"><span class="c-comment">// Arrancar el servidor</span></span>
+        <span class="line"><span class="c-keyword">const</span> <span class="c-var">PORT</span> = <span class="c-fn">process</span>.<span class="c-fn">env</span>.<span class="c-var">PORT</span> <span class="c-op">||</span> <span class="c-number">3000</span>;</span>
+        <span class="line"><span class="c-var">app</span>.<span class="c-fn">listen</span>(<span class="c-var">PORT</span>, () => {</span>
+        <span class="indent"><span class="c-fn">console</span>.<span class="c-fn">log</span>(<span class="c-string">`Servidor corriendo en http://localhost:${<span class="c-var">PORT</span>}`</span>);</span>
+        <span class="line">});</span>
+      </div>
+    </div>
+
+    <!-- PASO 6 -->
+    <div class="paso">
+      <div class="paso-header">
+        <span class="paso-num">Paso 6</span>
+        <span class="paso-titulo">Verificar la conexión a MySQL</span>
+      </div>
+      <p>Agrega esta verificación al final de <code>server.js</code> para confirmar que la conexión a la base de datos es exitosa al arrancar el servidor.</p>
+      <div class="file-label">📄 server.js — agregar al final</div>
+      <div class="code-img">
+        <span class="line"><span class="c-keyword">import</span> <span class="c-var">pool</span> <span class="c-keyword">from</span> <span class="c-string">'./db.js'</span>;</span>
+        <br>
+        <span class="line"><span class="c-comment">// Verificar conexión a la base de datos al iniciar</span></span>
+        <span class="line"><span class="c-keyword">const</span> <span class="c-fn">verificarConexion</span> = <span class="c-keyword">async</span> () => {</span>
+        <span class="indent"><span class="c-keyword">try</span> {</span>
+        <span class="indent2"><span class="c-keyword">const</span> <span class="c-var">conn</span> = <span class="c-keyword">await</span> <span class="c-var">pool</span>.<span class="c-fn">getConnection</span>();</span>
+        <span class="indent2"><span class="c-fn">console</span>.<span class="c-fn">log</span>(<span class="c-string">'✅ Conexión a MySQL exitosa'</span>);</span>
+        <span class="indent2"><span class="c-var">conn</span>.<span class="c-fn">release</span>(); <span class="c-comment">// devolver la conexión al pool</span></span>
+        <span class="indent">} <span class="c-keyword">catch</span> (<span class="c-var">error</span>) {</span>
+        <span class="indent2"><span class="c-fn">console</span>.<span class="c-fn">error</span>(<span class="c-string">'❌ Error al conectar a MySQL:'</span>, <span class="c-var">error</span>.<span class="c-fn">message</span>);</span>
+        <span class="indent">}</span>
+        <span class="line">};</span>
+        <br>
+        <span class="line"><span class="c-fn">verificarConexion</span>();</span>
+      </div>
+    </div>
+
+    <!-- PASO 7 -->
+    <div class="paso">
+      <div class="paso-header">
+        <span class="paso-num">Paso 7</span>
+        <span class="paso-titulo">Ejecutar y probar el servidor</span>
+      </div>
+      <p>Ejecuta el servidor en modo desarrollo con <code>nodemon</code> y prueba el endpoint de diagnóstico con Thunder Client.</p>
+      <div class="code-img">
+        <span class="line"><span class="c-comment"># Ejecutar en modo desarrollo (se reinicia automáticamente)</span></span>
+        <span class="line"><span class="c-fn">npm</span> run <span class="c-string">dev</span></span>
+      </div>
+      <p style="margin-top:12px">En la terminal deberías ver:</p>
+      <div class="code-img">
+        <span class="line" style="color:#A6E3A1">Servidor corriendo en http://localhost:3000</span>
+        <span class="line" style="color:#A6E3A1">✅ Conexión a MySQL exitosa</span>
+      </div>
+      <p style="margin-top:12px">Abre Thunder Client en VS Code y realiza una petición <strong>GET</strong> a:</p>
+      <div class="code-img">
+        <span class="line"><span class="c-fn">GET</span> &nbsp;<span class="c-string">http://localhost:3000/api/health</span></span>
+      </div>
+      <p style="margin-top:12px">Respuesta esperada:</p>
+      <div class="code-img">
+        <span class="line">{</span>
+        <span class="indent"><span class="c-var">"status"</span>: <span class="c-string">"ok"</span>,</span>
+        <span class="indent"><span class="c-var">"mensaje"</span>: <span class="c-string">"Servidor funcionando correctamente"</span>,</span>
+        <span class="indent"><span class="c-var">"timestamp"</span>: <span class="c-string">"2025-03-15T10:30:00.000Z"</span></span>
+        <span class="line">}</span>
+      </div>
+      <div class="info"><strong>Código 200 OK:</strong> Si Thunder Client muestra código 200 junto con ese JSON, el servidor está funcionando correctamente y está conectado a la base de datos.</div>
+    </div>
+
+  </div>
+
+  <!-- 6. ACTIVIDADES -->
+  <div class="seccion" id="actividades">
+    <div class="seccion-titulo"><span class="seccion-num">6</span> Actividades</div>
+    <table class="actividades">
+      <thead>
+        <tr><th>#</th><th>Actividad</th><th>Tipo</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>Crear la carpeta <code>/backend</code> y ejecutar <code>npm init -y</code></td><td><span class="tipo-badge tipo-terminal">Terminal</span></td></tr>
+        <tr><td>2</td><td>Instalar todas las dependencias indicadas en el Paso 1</td><td><span class="tipo-badge tipo-terminal">Terminal</span></td></tr>
+        <tr><td>3</td><td>Configurar <code>package.json</code> con los scripts <code>start</code> y <code>dev</code></td><td><span class="tipo-badge tipo-config">Config</span></td></tr>
+        <tr><td>4</td><td>Crear los archivos <code>.env</code>, <code>.env.example</code> y <code>.gitignore</code></td><td><span class="tipo-badge tipo-config">Config</span></td></tr>
+        <tr><td>5</td><td>Crear <code>db.js</code> con el pool de conexiones a MySQL</td><td><span class="tipo-badge tipo-codigo">Código</span></td></tr>
+        <tr><td>6</td><td>Crear <code>server.js</code> con Express, CORS y la ruta <code>/api/health</code></td><td><span class="tipo-badge tipo-codigo">Código</span></td></tr>
+        <tr><td>7</td><td>Ejecutar el servidor con <code>npm run dev</code> y verificar los mensajes en consola</td><td><span class="tipo-badge tipo-terminal">Terminal</span></td></tr>
+        <tr><td>8</td><td>Probar el endpoint <code>GET /api/health</code> con Thunder Client</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 7. REFLEXIÓN -->
+  <div class="seccion" id="reflexion">
+    <div class="seccion-titulo"><span class="seccion-num">7</span> Preguntas de reflexión</div>
+    <ol class="reflexion-lista">
+      <li>¿Cuál es la diferencia entre <code>import</code> y <code>require()</code>? ¿Cuál es más moderno y por qué?</li>
+      <li>¿Por qué usamos un pool de conexiones en lugar de abrir y cerrar una conexión nueva en cada petición?</li>
+      <li>¿Qué problema de seguridad ocurriría si guardas la contraseña de MySQL directamente en <code>server.js</code>?</li>
+      <li>¿Para qué sirve <code>nodemon</code> y por qué se instala como dependencia de desarrollo y no de producción?</li>
+      <li>¿Qué significa el código de estado HTTP 200? ¿Y el 500? ¿Y el 404?</li>
+    </ol>
+  </div>
+
+  <!-- 8. ENTREGABLE -->
+  <div class="seccion" id="entregable">
+    <div class="seccion-titulo"><span class="seccion-num">8</span> Entregable</div>
+    <ul class="entregable-lista">
+      <li>Carpeta <code>/backend</code> con todos los archivos creados y organizados correctamente.</li>
+      <li>Archivo <code>.env.example</code> con las claves necesarias (sin valores reales).</li>
+      <li>Captura de pantalla de la terminal mostrando el servidor corriendo y la conexión MySQL exitosa.</li>
+      <li>Captura de Thunder Client mostrando la respuesta del endpoint <code>GET /api/health</code> con código 200.</li>
+      <li>Respuestas a las 5 preguntas de reflexión en el reporte de práctica.</li>
+    </ul>
+  </div>
+
+  <!-- 9. RÚBRICA -->
+  <div class="seccion" id="rubrica">
+    <div class="seccion-titulo"><span class="seccion-num">9</span> Criterios de evaluación</div>
+    <table class="rubrica">
+      <thead>
+        <tr><th>Criterio</th><th>Descripción</th><th>Puntos</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Estructura de carpetas</td><td>Organización correcta de archivos y directorios</td><td class="pts">15</td></tr>
+        <tr><td>Conexión a MySQL</td><td>Pool funcionando y verificación exitosa en consola</td><td class="pts">25</td></tr>
+        <tr><td>Variables de entorno</td><td><code>.env</code> correcto, <code>.env.example</code> presente, <code>.gitignore</code> configurado</td><td class="pts">20</td></tr>
+        <tr><td>Endpoint health check</td><td>Respuesta JSON correcta con código 200 en Thunder Client</td><td class="pts">20</td></tr>
+        <tr><td>Scripts npm</td><td><code>start</code> y <code>dev</code> configurados correctamente en <code>package.json</code></td><td class="pts">10</td></tr>
+        <tr><td>Preguntas de reflexión</td><td>Respuestas claras y bien argumentadas</td><td class="pts">10</td></tr>
+        <tr class="total"><td colspan="2">Total</td><td>100</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<div class="footer">
+  Ingeniería de Desarrollo y Gestión de Software &nbsp;·&nbsp; Desarrollo Web Integral y Seguridad &nbsp;·&nbsp; Práctica 2
+</div>
+
+</body>
+</html>
