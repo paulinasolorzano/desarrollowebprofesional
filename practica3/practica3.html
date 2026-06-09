@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica 3 — Primera API REST: CRUD de Personas</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',Arial,sans-serif; background:#fff; color:#1a1a2e; font-size:14px; line-height:1.7; }
+.header { background:#1565C0; color:#fff; }
+.header-top { background:#0D47A1; padding:18px 40px 14px; display:flex; justify-content:space-between; align-items:flex-start; }
+.header-inst { font-size:11px; opacity:0.85; letter-spacing:0.03em; text-transform:uppercase; }
+.header-carrera { font-size:13px; font-weight:600; margin-top:3px; }
+.header-badge { background:#fff; color:#0D47A1; font-weight:700; font-size:13px; padding:6px 16px; border-radius:20px; white-space:nowrap; align-self:center; }
+.header-main { padding:20px 40px 24px; }
+.header-practica { font-size:11px; opacity:0.75; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; }
+.header-titulo { font-size:26px; font-weight:700; margin-bottom:8px; }
+.header-meta { display:flex; gap:24px; font-size:12px; opacity:0.85; flex-wrap:wrap; }
+.header-strip { height:5px; background:#42A5F5; }
+.content { max-width:900px; margin:0 auto; padding:36px 40px 60px; }
+.toc { background:#E3F2FD; border-left:4px solid #1565C0; border-radius:0 8px 8px 0; padding:20px 24px; margin-bottom:36px; }
+.toc-title { font-size:13px; font-weight:700; color:#0D47A1; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px; }
+.toc ol { padding-left:18px; }
+.toc li { font-size:13px; color:#1565C0; padding:3px 0; }
+.toc li a { color:#1565C0; text-decoration:none; }
+.toc li a:hover { text-decoration:underline; }
+.seccion { margin-bottom:36px; }
+.seccion-titulo { font-size:16px; font-weight:700; color:#0D47A1; border-bottom:2px solid #BBDEFB; padding-bottom:8px; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+.seccion-num { background:#1565C0; color:#fff; font-size:12px; font-weight:700; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.subseccion-titulo { font-size:14px; font-weight:700; color:#1565C0; margin:18px 0 8px; }
+p { margin-bottom:10px; }
+.contexto-card { background:#F8FBFF; border:1px solid #BBDEFB; border-radius:10px; padding:20px 24px; margin-bottom:16px; }
+.contexto-card p:last-child { margin-bottom:0; }
+
+/* CONCEPTOS */
+.concepto-bloque { border:1px solid #BBDEFB; border-radius:10px; margin-bottom:14px; overflow:hidden; }
+.concepto-header { background:#1565C0; color:#fff; padding:10px 16px; font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px; }
+.concepto-icon { font-size:16px; }
+.concepto-body { padding:14px 16px; font-size:13.5px; background:#F8FBFF; }
+.concepto-body p { margin-bottom:8px; }
+.concepto-body p:last-child { margin-bottom:0; }
+.analogia { background:#FFF8E1; border-left:3px solid #F59E0B; padding:10px 14px; margin-top:8px; border-radius:0 6px 6px 0; font-size:13px; }
+.analogia strong { color:#92400E; }
+
+/* COMPARATIVA ANTES / DESPUÉS */
+.versus { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:14px 0; }
+.versus-col { border-radius:8px; overflow:hidden; }
+.versus-header { padding:8px 14px; font-size:12px; font-weight:700; text-align:center; }
+.versus-header.malo  { background:#FFEBEE; color:#B71C1C; }
+.versus-header.bueno { background:#E8F5E9; color:#1B5E20; }
+.versus-body { border:1px solid #BBDEFB; border-top:none; padding:0; }
+.versus-body canvas { display:block; max-width:100%; }
+
+/* CAPAS MVC */
+.mvc-capas { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:14px 0; }
+.mvc-capa { border-radius:8px; overflow:hidden; text-align:center; }
+.mvc-capa-header { padding:8px 10px; font-size:12px; font-weight:700; color:#fff; }
+.mvc-capa-body { padding:10px; font-size:12px; line-height:1.6; border:1px solid #BBDEFB; border-top:none; background:#F8FBFF; }
+.mvc-capa-body code { background:#E3F2FD; color:#0D47A1; padding:1px 5px; border-radius:3px; font-size:11px; }
+
+.obj-lista { list-style:none; padding:0; }
+.obj-lista li { padding:6px 0 6px 24px; position:relative; font-size:13.5px; border-bottom:1px solid #F0F4FF; }
+.obj-lista li:last-child { border-bottom:none; }
+.obj-lista li::before { content:'✓'; position:absolute; left:0; color:#1565C0; font-weight:700; }
+.nota { background:#FFF8E1; border-left:4px solid #F59E0B; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.nota strong { color:#92400E; }
+.info { background:#E8F5E9; border-left:4px solid #43A047; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.info strong { color:#1B5E20; }
+.peligro { background:#FFEBEE; border-left:4px solid #E53935; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.peligro strong { color:#B71C1C; }
+.profesional { background:#EDE7F6; border-left:4px solid #7B1FA2; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.profesional strong { color:#4A148C; }
+
+/* EQUIVALENCIA VISUAL */
+.equivalencia { background:#F8FBFF; border:2px solid #90CAF9; border-radius:10px; padding:16px 20px; margin:14px 0; }
+.equivalencia-titulo { font-size:13px; font-weight:700; color:#0D47A1; margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+.eq-flecha { text-align:center; color:#1565C0; font-size:20px; padding:4px 0; }
+
+/* FLUJO VISUAL */
+.flujo { display:flex; align-items:center; gap:0; margin:16px 0; flex-wrap:wrap; }
+.flujo-item { background:#E3F2FD; border:1px solid #90CAF9; border-radius:8px; padding:10px 16px; text-align:center; font-size:12px; flex:1; min-width:100px; }
+.flujo-item.activo { background:#1565C0; color:#fff; border-color:#1565C0; font-weight:700; }
+.flujo-item.futuro { background:#F5F5F5; border-color:#ddd; color:#999; }
+.flujo-item.listo  { background:#E8F5E9; border-color:#66BB6A; color:#2E7D32; }
+.flujo-item .fi-num { font-size:10px; opacity:0.7; margin-bottom:2px; }
+.flujo-item .fi-nombre { font-size:12px; font-weight:600; }
+.flujo-sep { color:#90CAF9; font-size:18px; padding:0 4px; }
+
+.paso { background:#fff; border:1px solid #BBDEFB; border-radius:10px; padding:20px 24px; margin-bottom:20px; }
+.paso-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.paso-num { background:#1565C0; color:#fff; font-size:13px; font-weight:700; padding:4px 12px; border-radius:14px; }
+.paso-titulo { font-size:14px; font-weight:700; color:#0D47A1; }
+.paso p { font-size:13.5px; margin-bottom:10px; }
+.file-label { display:inline-block; background:#E3F2FD; color:#0D47A1; font-family:'Courier New',monospace; font-size:12px; padding:4px 12px; border-radius:6px 6px 0 0; border:1px solid #BBDEFB; border-bottom:none; font-weight:600; margin-top:10px; }
+.file-label.nuevo { background:#E8F5E9; color:#1B5E20; border-color:#A5D6A7; }
+.file-label.modif { background:#FFF8E1; color:#92400E; border-color:#FFE082; }
+.code-wrap { border:1px solid #BBDEFB; border-radius:0 8px 8px 8px; overflow:hidden; margin-bottom:12px; background:#fff; }
+.code-wrap.nuevo { border-color:#A5D6A7; }
+.code-wrap.modif { border-color:#FFE082; }
+.code-wrap canvas { display:block; max-width:100%; }
+
+/* FOLDER TREE */
+.folder-tree { background:#fff; border:1px solid #BBDEFB; border-radius:8px; padding:16px 20px; margin:12px 0; font-family:'Courier New',monospace; font-size:13px; line-height:2.1; }
+.folder-tree .d { color:#1565C0; font-weight:700; }
+.folder-tree .f { color:#2E7D32; }
+.folder-tree .f-nuevo { color:#2E7D32; font-weight:700; background:#E8F5E9; padding:1px 4px; border-radius:3px; }
+.folder-tree .f-modif { color:#92400E; font-weight:700; background:#FFF8E1; padding:1px 4px; border-radius:3px; }
+.folder-tree .cm { color:#9E9E9E; font-style:italic; }
+
+/* TABLA ENDPOINTS */
+.endpoints-tabla { width:100%; border-collapse:collapse; font-size:13px; margin:16px 0; }
+.endpoints-tabla th { background:#1565C0; color:#fff; padding:10px 14px; text-align:left; font-size:12px; }
+.endpoints-tabla td { padding:10px 14px; border-bottom:1px solid #E3F2FD; vertical-align:middle; }
+.endpoints-tabla tr:nth-child(even) td { background:#F8FBFF; }
+.endpoints-tabla code { background:#E3F2FD; color:#0D47A1; padding:2px 7px; border-radius:3px; font-size:12px; }
+.verb { display:inline-block; font-size:11px; font-weight:700; padding:3px 8px; border-radius:4px; font-family:'Courier New',monospace; }
+.v-get    { background:#E8F5E9; color:#1B5E20; }
+.v-post   { background:#E3F2FD; color:#0D47A1; }
+.v-put    { background:#FFF8E1; color:#E65100; }
+.v-delete { background:#FFEBEE; color:#B71C1C; }
+
+/* TABLA RESPONSABILIDADES */
+.resp-tabla { width:100%; border-collapse:collapse; font-size:13px; margin:12px 0; }
+.resp-tabla th { background:#1565C0; color:#fff; padding:9px 14px; text-align:left; font-size:12px; }
+.resp-tabla td { padding:9px 14px; border-bottom:1px solid #E3F2FD; vertical-align:top; }
+.resp-tabla tr:nth-child(even) td { background:#F8FBFF; }
+.resp-tabla code { background:#E3F2FD; color:#0D47A1; padding:1px 6px; border-radius:3px; font-size:12px; }
+
+/* ACTIVIDADES */
+.actividades { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.actividades th { background:#1565C0; color:#fff; padding:10px 14px; text-align:left; font-weight:600; font-size:12px; }
+.actividades td { padding:9px 14px; border-bottom:1px solid #E3F2FD; vertical-align:top; }
+.actividades tr:nth-child(even) td { background:#F8FBFF; }
+.actividades tr:last-child td { border-bottom:none; }
+.tipo-badge { font-size:11px; padding:3px 8px; border-radius:10px; font-weight:600; white-space:nowrap; }
+.tipo-terminal { background:#1a1a2e; color:#A6E3A1; }
+.tipo-config   { background:#FFF8E1; color:#92400E; }
+.tipo-codigo   { background:#E3F2FD; color:#0D47A1; }
+.tipo-prueba   { background:#E8F5E9; color:#1B5E20; }
+
+.reflexion-lista { list-style:none; padding:0; counter-reset:ref; }
+.reflexion-lista li { counter-increment:ref; padding:10px 14px 10px 44px; position:relative; background:#F8FBFF; border:1px solid #BBDEFB; border-radius:8px; margin-bottom:8px; font-size:13.5px; }
+.reflexion-lista li::before { content:counter(ref); position:absolute; left:12px; top:50%; transform:translateY(-50%); background:#1565C0; color:#fff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
+.rubrica { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.rubrica th { background:#0D47A1; color:#fff; padding:10px 14px; text-align:left; font-weight:600; font-size:12px; }
+.rubrica td { padding:9px 14px; border-bottom:1px solid #E3F2FD; }
+.rubrica tr:nth-child(even) td { background:#F8FBFF; }
+.rubrica .total td { background:#1565C0; color:#fff; font-weight:700; }
+.pts { font-weight:700; color:#0D47A1; }
+.entregable-lista { list-style:none; padding:0; }
+.entregable-lista li { padding:8px 14px 8px 36px; position:relative; font-size:13.5px; border-bottom:1px solid #F0F4FF; }
+.entregable-lista li:last-child { border-bottom:none; }
+.entregable-lista li::before { content:'📄'; position:absolute; left:8px; }
+.footer { background:#0D47A1; color:#fff; text-align:center; padding:14px 40px; font-size:12px; margin-top:40px; }
+
+/* LEYENDA */
+.leyenda { display:flex; gap:16px; margin:14px 0; flex-wrap:wrap; }
+.leyenda-item { display:flex; align-items:center; gap:6px; font-size:12px; }
+.leyenda-dot { width:12px; height:12px; border-radius:3px; flex-shrink:0; }
+.ld-nuevo { background:#A5D6A7; }
+.ld-modif { background:#FFE082; }
+.ld-igual { background:#BBDEFB; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-inst">Ingeniería de Desarrollo y Gestión de Software</div>
+      <div class="header-carrera">Desarrollo Web Integral y Seguridad</div>
+    </div>
+    <div class="header-badge">Práctica 3</div>
+  </div>
+  <div class="header-main">
+    <div class="header-practica">Fase 1 — Fundamentos del sistema</div>
+    <div class="header-titulo">Primera API REST: CRUD completo de Personas</div>
+    <div class="header-meta">
+      <span>⏱ Duración: 2 horas</span>
+      <span>🛠 Node.js · Express · MySQL · Thunder Client</span>
+      <span>📦 Entregable: API REST funcional con 5 endpoints</span>
+    </div>
+  </div>
+  <div class="header-strip"></div>
+</div>
+
+<div class="content">
+
+  <div class="toc">
+    <div class="toc-title">Tabla de contenidos</div>
+    <ol>
+      <li><a href="#donde">¿Dónde estamos en el proyecto?</a></li>
+      <li><a href="#conceptos">Conceptos clave que debes conocer</a></li>
+      <li><a href="#objetivos">Objetivos de la práctica</a></li>
+      <li><a href="#endpoints">Endpoints a construir</a></li>
+      <li><a href="#estructura">Estructura actualizada del proyecto</a></li>
+      <li><a href="#desarrollo">Desarrollo paso a paso</a></li>
+      <li><a href="#actividades">Actividades</a></li>
+      <li><a href="#reflexion">Preguntas de reflexión</a></li>
+      <li><a href="#entregable">Entregable</a></li>
+      <li><a href="#rubrica">Criterios de evaluación</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. DÓNDE ESTAMOS -->
+  <div class="seccion" id="donde">
+    <div class="seccion-titulo"><span class="seccion-num">1</span> ¿Dónde estamos en el proyecto?</div>
+    <div class="contexto-card">
+      <p>En la Práctica 2 dejamos el servidor Express funcionando con su ruta de diagnóstico <code>/api/health</code> y la conexión a MySQL verificada. Esa ruta la escribimos directamente en <code>server.js</code> como una función anónima inline — simple y directo.</p>
+      <p>Ahora necesitamos construir endpoints reales que consulten la base de datos. El módulo de Personas tiene cinco operaciones. Si las escribiéramos todas en <code>server.js</code> como hicimos con el health check, ese archivo crecería sin control. Es el momento de aplicar el patrón <strong>MVC</strong> que organiza el código en capas con responsabilidades separadas.</p>
+    </div>
+    <div class="flujo">
+      <div class="flujo-item futuro"><div class="fi-num">P04–P05</div><div class="fi-nombre">Frontend (React)</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item activo"><div class="fi-num">P03 ← aquí</div><div class="fi-nombre">API REST Personas</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item listo"><div class="fi-num">P02 ✓</div><div class="fi-nombre">Servidor Express</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item listo"><div class="fi-num">P01 ✓</div><div class="fi-nombre">Base de datos</div></div>
+    </div>
+  </div>
+
+  <!-- 2. CONCEPTOS -->
+  <div class="seccion" id="conceptos">
+    <div class="seccion-titulo"><span class="seccion-num">2</span> Conceptos clave que debes conocer</div>
+
+    <!-- CONCEPTO 1: Por qué cambiamos de estilo -->
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🔄</span> De la forma inline al patrón MVC — ¿qué cambió y por qué?</div>
+      <div class="concepto-body">
+        <p>En la Práctica 2 escribiste el endpoint <code>/api/health</code> directamente en <code>server.js</code> con una función anónima inline. Eso funciona perfectamente y no tiene nada de malo para casos simples.</p>
+        <p>El problema aparece cuando el sistema crece. Imagina escribir los cinco endpoints de personas, más los cinco de usuarios, más los de proyectos y tareas — todo en el mismo archivo. El resultado sería un <code>server.js</code> de más de 400 líneas donde la configuración del servidor, las consultas SQL y la lógica de negocio están completamente mezcladas.</p>
+        <p>Compara ambos enfoques para el mismo endpoint <code>GET /api/personas</code>:</p>
+
+        <div class="versus">
+          <div class="versus-col">
+            <div class="versus-header malo">❌ Sin MVC — todo en server.js</div>
+            <div class="versus-body"><canvas id="c_sin_mvc"></canvas></div>
+          </div>
+          <div class="versus-col">
+            <div class="versus-header bueno">✅ Con MVC — separado en archivos</div>
+            <div class="versus-body"><canvas id="c_con_mvc"></canvas></div>
+          </div>
+        </div>
+
+        <p style="margin-top:10px;"><strong>El código que se ejecuta es idéntico.</strong> La diferencia es solo de organización: dónde vive cada pieza y quién es responsable de qué.</p>
+        <div class="analogia"><strong>Analogía:</strong> Es como tener todos tus documentos de trabajo, facturas, contratos y notas personales en una sola carpeta sin subcarpetas. Funciona cuando tienes 10 archivos. Con 200 se vuelve inmanejable. MVC son las subcarpetas.</div>
+      </div>
+    </div>
+
+    <!-- CONCEPTO 2: La función es la misma -->
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🔗</span> La función arrow no cambió — solo tiene nombre y vive en otro lugar</div>
+      <div class="concepto-body">
+        <p>Este es el punto más importante para no confundirse. En la Práctica 2 escribiste:</p>
+        <div class="file-label">En server.js — Práctica 2</div>
+        <div class="code-wrap"><canvas id="c_equiv_p2"></canvas></div>
+        <p style="margin-top:10px;">En esta práctica esa <strong>misma función</strong> se extrae, se le da un nombre y se exporta desde el controlador:</p>
+        <div class="file-label nuevo">En personas.controller.js — Práctica 3</div>
+        <div class="code-wrap nuevo"><canvas id="c_equiv_p3a"></canvas></div>
+        <p style="margin-top:10px;">Y en el router simplemente se pasa ese nombre como argumento, igual que antes:</p>
+        <div class="file-label nuevo">En personas.routes.js — Práctica 3</div>
+        <div class="code-wrap nuevo"><canvas id="c_equiv_p3b"></canvas></div>
+        <div class="equivalencia">
+          <div class="equivalencia-titulo">⚡ Equivalencia exacta</div>
+          <p style="font-size:13px;margin-bottom:6px;"><code>(req, res) => &#123; res.json(rows) &#125;</code> en server.js</p>
+          <div class="eq-flecha">↕ es lo mismo que ↕</div>
+          <p style="font-size:13px;margin-top:6px;"><code>export const getAll = async (req, res) => &#123; ... &#125;</code> en el controlador</p>
+          <p style="font-size:12px;color:#555;margin-top:8px;margin-bottom:0;">La única diferencia: la segunda tiene nombre (<code>getAll</code>), es <code>async</code> porque consulta MySQL, y está en su propio archivo.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONCEPTO 3: Qué hace server.js ahora -->
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🏢</span> ¿server.js ya no tiene endpoints? ¿Desaparecen?</div>
+      <div class="concepto-body">
+        <p><strong>No desaparecen.</strong> Todos los endpoints siguen siendo accesibles desde Thunder Client y desde el navegador exactamente igual. Lo que cambia es dónde está escrita la lógica, no si el endpoint existe o no.</p>
+        <p><code>server.js</code> tiene ahora tres responsabilidades claras:</p>
+        <table class="resp-tabla">
+          <thead><tr><th>Responsabilidad</th><th>Ejemplo</th><th>¿Cambia en P03?</th></tr></thead>
+          <tbody>
+            <tr><td>Configurar middlewares globales</td><td><code>app.use(cors())</code>, <code>app.use(express.json())</code></td><td>No</td></tr>
+            <tr><td>Registrar endpoints simples</td><td><code>app.get('/api/health', ...)</code> — se queda inline porque es trivial</td><td>No</td></tr>
+            <tr><td>Registrar routers de módulos</td><td><code>app.use('/api/personas', personasRoutes)</code> — delega a un archivo externo</td><td>✅ Se agrega</td></tr>
+          </tbody>
+        </table>
+        <div class="file-label modif">server.js después de P03 — las tres responsabilidades conviven</div>
+        <div class="code-wrap modif"><canvas id="c_server_rol"></canvas></div>
+        <div class="analogia"><strong>Regla práctica:</strong> Si la lógica cabe en 2-3 líneas y no pertenece a ningún módulo específico (como el health check), se queda inline en <code>server.js</code>. Si es la lógica de un módulo con varias operaciones, va en su controlador y se registra con <code>app.use()</code>.</div>
+      </div>
+    </div>
+
+    <!-- CONCEPTO 4: MVC en la práctica -->
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🏗️</span> Las tres capas de MVC aplicadas a esta API</div>
+      <div class="concepto-body">
+        <p>MVC son las siglas de Modelo, Vista y Controlador. En una API REST la "Vista" no existe como tal (no hay HTML), así que el patrón se adapta así:</p>
+        <div class="mvc-capas">
+          <div class="mvc-capa">
+            <div class="mvc-capa-header" style="background:#0D47A1;">Modelo (datos)</div>
+            <div class="mvc-capa-body"><code>db.js</code><br>Conexión a MySQL.<br>Pool de conexiones.<br>No contiene consultas — solo la conexión disponible para quien la pida.</div>
+          </div>
+          <div class="mvc-capa">
+            <div class="mvc-capa-header" style="background:#1B5E20;">Controlador (lógica)</div>
+            <div class="mvc-capa-body"><code>personas.controller.js</code><br>Funciones que ejecutan las consultas SQL, procesan los datos y construyen la respuesta JSON.</div>
+          </div>
+          <div class="mvc-capa">
+            <div class="mvc-capa-header" style="background:#4A148C;">Router (enrutamiento)</div>
+            <div class="mvc-capa-body"><code>personas.routes.js</code><br>Conecta cada URL + verbo HTTP con la función del controlador. No contiene lógica de negocio.</div>
+          </div>
+        </div>
+        <p style="margin-top:8px;">Cuando llega una petición <code>GET /api/personas</code>, el flujo es:</p>
+        <div class="flujo" style="margin-top:10px;">
+          <div class="flujo-item"><div class="fi-nombre">Thunder Client</div><div class="fi-num">envía petición</div></div>
+          <div class="flujo-sep">→</div>
+          <div class="flujo-item"><div class="fi-nombre">server.js</div><div class="fi-num">recibe y delega</div></div>
+          <div class="flujo-sep">→</div>
+          <div class="flujo-item"><div class="fi-nombre">personas.routes.js</div><div class="fi-num">identifica función</div></div>
+          <div class="flujo-sep">→</div>
+          <div class="flujo-item"><div class="fi-nombre">personas.controller.js</div><div class="fi-num">consulta MySQL</div></div>
+          <div class="flujo-sep">→</div>
+          <div class="flujo-item"><div class="fi-nombre">respuesta JSON</div><div class="fi-num">regresa al cliente</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONCEPTO 5: CRUD -->
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🔁</span> ¿Qué es CRUD?</div>
+      <div class="concepto-body">
+        <p>CRUD son las cuatro operaciones básicas sobre cualquier conjunto de datos. Cada operación se mapea a un verbo HTTP y a una sentencia SQL:</p>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;">
+          <tr style="background:#E3F2FD;">
+            <th style="padding:8px 12px;text-align:left;color:#0D47A1;">Letra</th>
+            <th style="padding:8px 12px;text-align:left;color:#0D47A1;">Operación</th>
+            <th style="padding:8px 12px;text-align:left;color:#0D47A1;">Verbo HTTP</th>
+            <th style="padding:8px 12px;text-align:left;color:#0D47A1;">SQL equivalente</th>
+          </tr>
+          <tr><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;font-weight:700;">C</td><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;">Create — crear</td><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;"><code>POST</code></td><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;"><code>INSERT</code></td></tr>
+          <tr style="background:#F8FBFF;"><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;font-weight:700;">R</td><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;">Read — leer / listar</td><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;"><code>GET</code></td><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;"><code>SELECT</code></td></tr>
+          <tr><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;font-weight:700;">U</td><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;">Update — actualizar</td><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;"><code>PUT</code></td><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;"><code>UPDATE</code></td></tr>
+          <tr style="background:#F8FBFF;"><td style="padding:7px 12px;font-weight:700;">D</td><td style="padding:7px 12px;">Delete — eliminar</td><td style="padding:7px 12px;"><code>DELETE</code></td><td style="padding:7px 12px;"><code>UPDATE activo=0</code> (soft)</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- CONCEPTO 6: req.params y req.body -->
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">📨</span> req.params y req.body — cómo llegan los datos al controlador</div>
+      <div class="concepto-body">
+        <p>Cuando la URL incluye un valor variable como <code>/api/personas/<strong>5</strong></code>, Express lo captura con <code>/:id</code> en la ruta. Dentro del controlador lo lees con <code>req.params.id</code>.</p>
+        <p>Cuando el cliente envía datos JSON en el cuerpo de la petición (los campos de una nueva persona), llegan en <code>req.body</code>. El middleware <code>express.json()</code> de la Práctica 2 es el que los convierte automáticamente en un objeto JavaScript.</p>
+        <div class="analogia"><strong>Analogía:</strong> <code>req.params</code> es el número de mesa que viene en el pedido. <code>req.body</code> es la nota con todos los platillos que quiere esa mesa.</div>
+      </div>
+    </div>
+
+    <!-- CONCEPTO 7: Placeholders -->
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🛡️</span> Placeholders <code>?</code> — prevención de SQL Injection</div>
+      <div class="concepto-body">
+        <p>Nunca concatenes valores directamente en una cadena SQL. Esto abre una vulnerabilidad llamada <strong>SQL Injection</strong>: un atacante manipula el valor para ejecutar cualquier sentencia SQL en tu base de datos.</p>
+        <div class="file-label" style="background:#FFEBEE;color:#B71C1C;border-color:#EF9A9A;">❌ Vulnerable — nunca hacer esto</div>
+        <div class="code-wrap" style="border-color:#EF9A9A;"><canvas id="c_injection_malo"></canvas></div>
+        <div class="file-label nuevo" style="margin-top:8px;">✅ Seguro — usar siempre placeholders</div>
+        <div class="code-wrap nuevo"><canvas id="c_injection_bueno"></canvas></div>
+        <p style="margin-top:6px;">La librería <code>mysql2</code> sanea automáticamente cada valor antes de enviarlo a MySQL.</p>
+      </div>
+    </div>
+
+    <!-- CONCEPTO 8: Códigos HTTP -->
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🔢</span> Códigos de estado HTTP relevantes en esta práctica</div>
+      <div class="concepto-body">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:4px;">
+          <tr style="background:#E3F2FD;">
+            <th style="padding:8px 12px;text-align:left;color:#0D47A1;">Código</th>
+            <th style="padding:8px 12px;text-align:left;color:#0D47A1;">Significado</th>
+            <th style="padding:8px 12px;text-align:left;color:#0D47A1;">Cuándo usarlo</th>
+          </tr>
+          <tr><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;font-weight:700;">200 OK</td><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;">Éxito general</td><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;">GET, PUT, DELETE exitosos</td></tr>
+          <tr style="background:#F8FBFF;"><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;font-weight:700;">201 Created</td><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;">Recurso creado</td><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;">POST exitoso (nueva persona)</td></tr>
+          <tr><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;font-weight:700;">404 Not Found</td><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;">No encontrado</td><td style="padding:7px 12px;border-bottom:1px solid #E3F2FD;">El id solicitado no existe en BD</td></tr>
+          <tr style="background:#F8FBFF;"><td style="padding:7px 12px;font-weight:700;">500 Server Error</td><td style="padding:7px 12px;">Error del servidor</td><td style="padding:7px 12px;">Fallo inesperado en la consulta SQL</td></tr>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 3. OBJETIVOS -->
+  <div class="seccion" id="objetivos">
+    <div class="seccion-titulo"><span class="seccion-num">3</span> Objetivos de la práctica</div>
+    <ul class="obj-lista">
+      <li>Comprender la transición del estilo inline de la Práctica 2 al patrón MVC con archivos separados.</li>
+      <li>Implementar el controlador de personas con cinco funciones asíncronas siguiendo MVC.</li>
+      <li>Crear el router de Express que conecta cada URL con su función controladora.</li>
+      <li>Usar consultas SQL parametrizadas con <code>?</code> para prevenir SQL Injection.</li>
+      <li>Implementar soft delete como alternativa a la eliminación física de registros.</li>
+      <li>Registrar y probar cinco endpoints REST verificando códigos de estado correctos.</li>
+    </ul>
+  </div>
+
+  <!-- 4. ENDPOINTS -->
+  <div class="seccion" id="endpoints">
+    <div class="seccion-titulo"><span class="seccion-num">4</span> Endpoints a construir</div>
+    <p>El módulo de Personas tendrá cinco endpoints. Todos se montan bajo el prefijo <code>/api/personas</code> que se registra en <code>server.js</code> con una sola línea.</p>
+    <table class="endpoints-tabla">
+      <thead><tr><th>Verbo</th><th>URL completa</th><th>Función en controlador</th><th>Descripción</th><th>Código</th></tr></thead>
+      <tbody>
+        <tr><td><span class="verb v-get">GET</span></td><td><code>/api/personas</code></td><td><code>getAll</code></td><td>Lista todas con <code>activo = 1</code></td><td>200</td></tr>
+        <tr><td><span class="verb v-get">GET</span></td><td><code>/api/personas/:id</code></td><td><code>getById</code></td><td>Obtiene una persona por id</td><td>200 / 404</td></tr>
+        <tr><td><span class="verb v-post">POST</span></td><td><code>/api/personas</code></td><td><code>create</code></td><td>Crea una nueva persona</td><td>201</td></tr>
+        <tr><td><span class="verb v-put">PUT</span></td><td><code>/api/personas/:id</code></td><td><code>update</code></td><td>Actualiza datos de una persona</td><td>200 / 404</td></tr>
+        <tr><td><span class="verb v-delete">DELETE</span></td><td><code>/api/personas/:id</code></td><td><code>softDelete</code></td><td>Marca como inactiva (<code>activo = 0</code>)</td><td>200 / 404</td></tr>
+      </tbody>
+    </table>
+    <div class="info"><strong>¿Por qué soft delete?</strong> Si eliminaras con <code>DELETE SQL</code>, MySQL lo bloquearía por las llaves foráneas (RESTRICT) porque proyectos y tareas apuntan a personas. Además perderías el historial. El soft delete resuelve ambos problemas marcando el registro como inactivo sin tocarlo.</div>
+  </div>
+
+  <!-- 5. ESTRUCTURA -->
+  <div class="seccion" id="estructura">
+    <div class="seccion-titulo"><span class="seccion-num">5</span> Estructura actualizada del proyecto</div>
+    <div class="leyenda">
+      <div class="leyenda-item"><div class="leyenda-dot ld-nuevo"></div><span>Archivo nuevo — créalo en esta práctica</span></div>
+      <div class="leyenda-item"><div class="leyenda-dot ld-modif"></div><span>Archivo a modificar — agregar 2 líneas</span></div>
+      <div class="leyenda-item"><div class="leyenda-dot ld-igual"></div><span>Sin cambios</span></div>
+    </div>
+    <div class="folder-tree">
+      <span class="d">/backend</span><br>
+      &nbsp;&nbsp;├── <span class="f-modif">server.js</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← MODIFICAR: agregar import y app.use de personas</span><br>
+      &nbsp;&nbsp;├── <span class="f">db.js</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+      &nbsp;&nbsp;├── <span class="f">.env</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+      &nbsp;&nbsp;├── <span class="f">.env.example</span> &nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+      &nbsp;&nbsp;├── <span class="f">.gitignore</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+      &nbsp;&nbsp;├── <span class="f">package.json</span> &nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+      &nbsp;&nbsp;├── <span class="d">/routes</span><br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── <span class="f-nuevo">personas.routes.js</span> &nbsp;&nbsp;<span class="cm">← NUEVO: mapeo URL → función controladora</span><br>
+      &nbsp;&nbsp;├── <span class="d">/controllers</span><br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── <span class="f-nuevo">personas.controller.js</span> &nbsp;<span class="cm">← NUEVO: lógica CRUD + consultas MySQL</span><br>
+      &nbsp;&nbsp;├── <span class="d">/middlewares</span> &nbsp;&nbsp;<span class="cm">← vacío (práctica siguiente)</span><br>
+      &nbsp;&nbsp;└── <span class="d">/config</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← vacío</span>
+    </div>
+  </div>
+
+  <!-- 6. DESARROLLO -->
+  <div class="seccion" id="desarrollo">
+    <div class="seccion-titulo"><span class="seccion-num">6</span> Desarrollo paso a paso</div>
+
+    <!-- PASO 1 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 1</span><span class="paso-titulo">Crear el controlador de personas</span></div>
+      <p>Crea <code>controllers/personas.controller.js</code>. Este archivo exporta cinco funciones con nombre — la misma estructura <code>(req, res) => &#123;&#125;</code> que usaste inline en la Práctica 2, pero ahora cada función tiene un nombre y usa <code>async/await</code> para consultar MySQL.</p>
+
+      <div class="file-label nuevo">📄 /controllers/personas.controller.js — NUEVO</div>
+      <div class="code-wrap nuevo"><canvas id="c_ctrl_1"></canvas></div>
+      <div class="file-label nuevo" style="margin-top:0;">&nbsp;</div>
+      <div class="code-wrap nuevo"><canvas id="c_ctrl_2"></canvas></div>
+      <div class="file-label nuevo" style="margin-top:0;">&nbsp;</div>
+      <div class="code-wrap nuevo"><canvas id="c_ctrl_3"></canvas></div>
+
+      <div class="profesional"><strong>¿Por qué export const en lugar de export default?</strong> Usamos exportaciones nombradas porque el controlador tiene múltiples funciones. Con exportaciones nombradas puedes importar exactamente las que necesitas: <code>import &#123; getAll, getById &#125; from '...'</code>. Con <code>export default</code> solo puedes exportar un valor por archivo.</div>
+    </div>
+
+    <!-- PASO 2 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 2</span><span class="paso-titulo">Crear las rutas de personas</span></div>
+      <p>Crea <code>routes/personas.routes.js</code>. Este archivo no contiene ninguna lógica: solo conecta cada combinación verbo+URL con su función del controlador. Nota que las rutas usan <code>'/'</code> y <code>'/:id'</code>, no <code>'/personas'</code> — el prefijo <code>/api/personas</code> lo pone <code>server.js</code>.</p>
+
+      <div class="file-label nuevo">📄 /routes/personas.routes.js — NUEVO</div>
+      <div class="code-wrap nuevo"><canvas id="c_routes"></canvas></div>
+
+      <div class="nota"><strong>¿Por qué las rutas no incluyen <code>/personas</code>?</strong> Porque el router solo conoce la parte de la URL que viene <em>después</em> del prefijo registrado en <code>server.js</code>. Esto permite cambiar el prefijo de <code>/api/personas</code> a <code>/v2/personas</code> modificando una sola línea en <code>server.js</code> sin tocar el router.</div>
+    </div>
+
+    <!-- PASO 3 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 3</span><span class="paso-titulo">Registrar las rutas en server.js</span></div>
+      <p>Abre <code>server.js</code> y agrega solo estas dos líneas. El archivo sigue siendo el mismo de la Práctica 2 — solo incorporas el import y el registro del router. El endpoint <code>/api/health</code> se queda exactamente igual, inline, como estaba.</p>
+
+      <div class="file-label modif">📄 server.js — agregar solo estas 2 líneas (el resto no cambia)</div>
+      <div class="code-wrap modif"><canvas id="c_server"></canvas></div>
+
+      <div class="info"><strong>¿Cómo funciona app.use() con un router?</strong> Cuando llega una petición a <code>/api/personas/3</code>, Express detecta que el prefijo coincide con <code>/api/personas</code>, le corta esa parte y le pasa <code>/3</code> al router. El router lo reconoce como <code>/:id</code> y llama a <code>getById</code>. El cliente nunca nota esta delegación interna.</div>
+    </div>
+
+    <!-- PASO 4 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 4</span><span class="paso-titulo">Probar todos los endpoints con Thunder Client</span></div>
+      <p>Asegúrate de que el servidor corre con <code>npm run dev</code>. Prueba cada endpoint en el orden indicado — es importante porque algunos dependen de datos creados por el anterior.</p>
+
+      <div class="subseccion-titulo">Prueba 1 — GET todos (verificar datos de Práctica 1)</div>
+      <div class="file-label">Thunder Client</div>
+      <div class="code-wrap"><canvas id="c_test1_req"></canvas></div>
+      <p style="margin-top:8px;">Respuesta esperada (200 OK):</p>
+      <div class="file-label">Respuesta JSON</div>
+      <div class="code-wrap"><canvas id="c_test1_res"></canvas></div>
+
+      <div class="subseccion-titulo" style="margin-top:20px;">Prueba 2 — POST crear nueva persona</div>
+      <p>Selecciona <strong>Body → JSON</strong> en Thunder Client y escribe este cuerpo:</p>
+      <div class="file-label">Thunder Client — Body JSON</div>
+      <div class="code-wrap"><canvas id="c_test2_body"></canvas></div>
+      <p style="margin-top:8px;">Respuesta esperada (201 Created):</p>
+      <div class="file-label">Respuesta JSON</div>
+      <div class="code-wrap"><canvas id="c_test2_res"></canvas></div>
+
+      <div class="subseccion-titulo" style="margin-top:20px;">Prueba 3 — GET por id</div>
+      <div class="file-label">Thunder Client</div>
+      <div class="code-wrap"><canvas id="c_test3_req"></canvas></div>
+      <p style="margin-top:8px;">Respuesta esperada (200 OK):</p>
+      <div class="file-label">Respuesta JSON</div>
+      <div class="code-wrap"><canvas id="c_test3_res"></canvas></div>
+
+      <div class="subseccion-titulo" style="margin-top:20px;">Prueba 4 — PUT actualizar persona</div>
+      <div class="file-label">Thunder Client — Body JSON</div>
+      <div class="code-wrap"><canvas id="c_test4_body"></canvas></div>
+      <p style="margin-top:8px;">Respuesta esperada (200 OK):</p>
+      <div class="file-label">Respuesta JSON</div>
+      <div class="code-wrap"><canvas id="c_test4_res"></canvas></div>
+
+      <div class="subseccion-titulo" style="margin-top:20px;">Prueba 5 — DELETE soft delete</div>
+      <div class="file-label">Thunder Client</div>
+      <div class="code-wrap"><canvas id="c_test5_req"></canvas></div>
+      <p style="margin-top:8px;">Respuesta esperada (200 OK):</p>
+      <div class="file-label">Respuesta JSON</div>
+      <div class="code-wrap"><canvas id="c_test5_res"></canvas></div>
+      <p style="margin-top:8px;">Vuelve a ejecutar <strong>GET /api/personas</strong> — la persona eliminada ya no aparece. Verifica en phpMyAdmin que el registro sigue existiendo con <code>activo = 0</code>.</p>
+
+      <div class="subseccion-titulo" style="margin-top:20px;">Prueba 6 — GET con id inexistente (verificar 404)</div>
+      <div class="file-label">Thunder Client</div>
+      <div class="code-wrap"><canvas id="c_test6_req"></canvas></div>
+      <p style="margin-top:8px;">Respuesta esperada (404 Not Found):</p>
+      <div class="file-label">Respuesta JSON</div>
+      <div class="code-wrap"><canvas id="c_test6_res"></canvas></div>
+
+      <div class="peligro"><strong>Error frecuente:</strong> Si obtienes <code>Cannot find module './routes/personas.routes.js'</code>, verifica que creaste los archivos dentro de las carpetas correctas (<code>/routes</code> y <code>/controllers</code>) y que los nombres coinciden exactamente, incluyendo mayúsculas.</div>
+    </div>
+
+  </div>
+
+  <!-- 7. ACTIVIDADES -->
+  <div class="seccion" id="actividades">
+    <div class="seccion-titulo"><span class="seccion-num">7</span> Actividades</div>
+    <table class="actividades">
+      <thead><tr><th>#</th><th>Actividad</th><th>Tipo</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Crear <code>/controllers/personas.controller.js</code> con las 5 funciones exportadas</td><td><span class="tipo-badge tipo-codigo">Código</span></td></tr>
+        <tr><td>2</td><td>Crear <code>/routes/personas.routes.js</code> con el Router y las 5 rutas</td><td><span class="tipo-badge tipo-codigo">Código</span></td></tr>
+        <tr><td>3</td><td>Modificar <code>server.js</code>: agregar import y <code>app.use('/api/personas', ...)</code></td><td><span class="tipo-badge tipo-codigo">Código</span></td></tr>
+        <tr><td>4</td><td>Ejecutar <code>npm run dev</code> y confirmar que no hay errores en consola</td><td><span class="tipo-badge tipo-terminal">Terminal</span></td></tr>
+        <tr><td>5</td><td>Probar GET /api/personas — verificar que devuelve las personas de P01</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+        <tr><td>6</td><td>Probar POST /api/personas creando una persona nueva</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+        <tr><td>7</td><td>Probar GET /api/personas/:id con id existente (200) y con id inexistente (404)</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+        <tr><td>8</td><td>Probar PUT /api/personas/:id actualizando al menos un campo</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+        <tr><td>9</td><td>Probar DELETE y verificar en phpMyAdmin que <code>activo</code> cambió a 0</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+        <tr><td>10</td><td>Tomar capturas de Thunder Client mostrando las 6 pruebas con sus códigos de respuesta</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 8. REFLEXIÓN -->
+  <div class="seccion" id="reflexion">
+    <div class="seccion-titulo"><span class="seccion-num">8</span> Preguntas de reflexión</div>
+    <ol class="reflexion-lista">
+      <li>En la Práctica 2 el health check se escribió inline en <code>server.js</code>. En esta práctica los endpoints de personas van en un controlador separado. ¿Cuál es el criterio para decidir cuándo usar uno u otro enfoque?</li>
+      <li>¿Por qué el endpoint <code>DELETE /api/personas/:id</code> no ejecuta un <code>DELETE</code> SQL sino un <code>UPDATE activo = 0</code>? ¿Qué pasaría si usaras un borrado físico con las llaves foráneas de las tablas proyectos y tareas?</li>
+      <li>¿Por qué usamos <code>?</code> en las consultas SQL en lugar de concatenar el valor directamente? ¿Qué ataque previene?</li>
+      <li>Si en lugar de <code>export const getAll</code> usaras <code>export default</code>, ¿cómo cambiaría la forma de importar la función en el archivo de rutas?</li>
+      <li>Cuando el servidor recibe <code>GET /api/personas/7</code>, ¿qué pasos internos sigue Express desde que recibe la petición hasta que ejecuta la función <code>getById</code>?</li>
+    </ol>
+  </div>
+
+  <!-- 9. ENTREGABLE -->
+  <div class="seccion" id="entregable">
+    <div class="seccion-titulo"><span class="seccion-num">9</span> Entregable</div>
+    <ul class="entregable-lista">
+      <li>Archivo <code>controllers/personas.controller.js</code> con las 5 funciones implementadas.</li>
+      <li>Archivo <code>routes/personas.routes.js</code> con el Router y las 5 rutas definidas.</li>
+      <li>Archivo <code>server.js</code> actualizado con el import y el registro del router de personas.</li>
+      <li>Capturas de Thunder Client mostrando las 6 pruebas con sus códigos de respuesta visibles.</li>
+      <li>Captura de phpMyAdmin mostrando la persona con <code>activo = 0</code> después del soft delete.</li>
+      <li>Respuestas a las 5 preguntas de reflexión en el reporte de práctica.</li>
+    </ul>
+  </div>
+
+  <!-- 10. RÚBRICA -->
+  <div class="seccion" id="rubrica">
+    <div class="seccion-titulo"><span class="seccion-num">10</span> Criterios de evaluación</div>
+    <table class="rubrica">
+      <thead><tr><th>Criterio</th><th>Descripción</th><th>Puntos</th></tr></thead>
+      <tbody>
+        <tr><td>Controlador MVC</td><td>Las 5 funciones implementadas correctamente con async/await y try/catch</td><td class="pts">25</td></tr>
+        <tr><td>Rutas Express</td><td>Router con los 5 verbos HTTP conectados a sus funciones del controlador</td><td class="pts">15</td></tr>
+        <tr><td>Consultas parametrizadas</td><td>Uso correcto de <code>?</code> en todas las consultas SQL (sin concatenación)</td><td class="pts">15</td></tr>
+        <tr><td>Soft delete implementado</td><td>DELETE usa UPDATE activo=0, no borrado físico</td><td class="pts">10</td></tr>
+        <tr><td>Manejo de 404 y 500</td><td>Respuestas correctas cuando el id no existe y en caso de error</td><td class="pts">10</td></tr>
+        <tr><td>Pruebas Thunder Client</td><td>Capturas de las 6 pruebas con códigos de estado visibles</td><td class="pts">15</td></tr>
+        <tr><td>Preguntas de reflexión</td><td>Respuestas claras y bien argumentadas</td><td class="pts">10</td></tr>
+        <tr class="total"><td colspan="2">Total</td><td>100</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<div class="footer">
+  Ingeniería de Desarrollo y Gestión de Software &nbsp;·&nbsp; Desarrollo Web Integral y Seguridad &nbsp;·&nbsp; Práctica 3
+</div>
+
+<script>
+const KW='#1565C0', TY='#0277BD', ST='#2E7D32', NM='#E65100',
+      FN='#6A1B9A', TB='#AD1457', CM='#9E9E9E', PL='#1a1a2e',
+      GR='#1B5E20', RD='#B71C1C';
+
+const bloques = {
+
+  /* ══ COMPARATIVA SIN MVC ══ */
+  c_sin_mvc: [
+    [[CM,'// server.js — SIN MVC']],
+    [[CM,'// Solo personas ya serían +5 funciones aquí,']],
+    [[CM,'// más usuarios, proyectos, tareas = 400 líneas mezcladas']],
+    [[FN,'app'],[PL,'.'],[FN,'get'],[PL,'('],[ST,"'/api/personas'"],[PL,', '],[KW,'async '],[PL,'('],[FN,'req'],[PL,', '],[FN,'res'],[PL,') => {']],
+    [[PL,'  '],[KW,'try '],[PL,'{']],
+    [[PL,'    '],[KW,'const '],[PL,'['],[FN,'rows'],[PL,'] = '],[KW,'await '],[FN,'pool'],[PL,'.'],[FN,'query'],[PL,'(']],
+    [[PL,'      '],[ST,"'SELECT * FROM personas WHERE activo=1'"]],
+    [[PL,'    );']],
+    [[PL,'    '],[FN,'res'],[PL,'.'],[FN,'json'],[PL,'('],[FN,'rows'],[PL,');']],
+    [[PL,'  } '],[KW,'catch'],[PL,'('],[FN,'err'],[PL,') {']],
+    [[PL,'    '],[FN,'res'],[PL,'.'],[FN,'status'],[PL,'('],[NM,'500'],[PL,').'],[FN,'json'],[PL,'({ '],[FN,'error'],[PL,': '],[FN,'err'],[PL,'.'],[FN,'message'],[PL,' });']],
+    [[PL,'  }']],
+    [[PL,'});']],
+    [[CM,'// ... 4 endpoints más de personas']],
+    [[CM,'// ... 5 endpoints de usuarios']],
+    [[CM,'// ... 5 endpoints de proyectos  ← todo aquí']],
+  ],
+
+  /* ══ COMPARATIVA CON MVC ══ */
+  c_con_mvc: [
+    [[CM,'// personas.controller.js']],
+    [[KW,'export const '],[FN,'getAll'],[PL,' = '],[KW,'async '],[PL,'('],[FN,'req'],[PL,', '],[FN,'res'],[PL,') => {']],
+    [[PL,'  '],[KW,'try '],[PL,'{']],
+    [[PL,'    '],[KW,'const '],[PL,'['],[FN,'rows'],[PL,'] = '],[KW,'await '],[FN,'pool'],[PL,'.'],[FN,'query'],[PL,'(']],
+    [[PL,'      '],[ST,"'SELECT * FROM personas WHERE activo=1'"]],
+    [[PL,'    );']],
+    [[PL,'    '],[FN,'res'],[PL,'.'],[FN,'json'],[PL,'('],[FN,'rows'],[PL,');']],
+    [[PL,'  } '],[KW,'catch'],[PL,'('],[FN,'err'],[PL,') { ... }']],
+    [[PL,'};']],
+    [[PL,'']],
+    [[CM,'// server.js — solo una línea por módulo']],
+    [[FN,'app'],[PL,'.'],[FN,'use'],[PL,'('],[ST,"'/api/personas'"],[PL,', '],[FN,'personasRoutes'],[PL,');']],
+    [[FN,'app'],[PL,'.'],[FN,'use'],[PL,'('],[ST,"'/api/usuarios'"],[PL,',  '],[FN,'usuariosRoutes'],[PL,');']],
+    [[FN,'app'],[PL,'.'],[FN,'use'],[PL,'('],[ST,"'/api/proyectos'"],[PL,', '],[FN,'proyectosRoutes'],[PL,');']],
+  ],
+
+  /* ══ EQUIVALENCIA P2 ══ */
+  c_equiv_p2: [
+    [[CM,'// Práctica 2 — función anónima inline']],
+    [[FN,'app'],[PL,'.'],[FN,'get'],[PL,'('],[ST,"'/api/health'"],[PL,',  ('],[FN,'req'],[PL,', '],[FN,'res'],[PL,') => {']],
+    [[PL,'  '],[FN,'res'],[PL,'.'],[FN,'json'],[PL,'({ '],[FN,'status'],[PL,': '],[ST,"'ok'"],[PL,' });']],
+    [[PL,'});']],
+    [[CM,'             ↑ función arrow sin nombre, vive aquí mismo']],
+  ],
+
+  c_equiv_p3a: [
+    [[CM,'// Práctica 3 — la misma función arrow, con nombre y exportada']],
+    [[KW,'export const '],[FN,'getAll'],[PL,' = '],[KW,'async '],[PL,'('],[FN,'req'],[PL,', '],[FN,'res'],[PL,') => {']],
+    [[PL,'  '],[KW,'const '],[PL,'['],[FN,'rows'],[PL,'] = '],[KW,'await '],[FN,'pool'],[PL,'.'],[FN,'query'],[PL,'('],[ST,"'SELECT * FROM personas...'"],[PL,');']],
+    [[PL,'  '],[FN,'res'],[PL,'.'],[FN,'json'],[PL,'('],[FN,'rows'],[PL,');']],
+    [[PL,'};']],
+    [[CM,'  ↑ misma estructura (req, res) => {}, pero con nombre y en archivo propio']],
+  ],
+
+  c_equiv_p3b: [
+    [[CM,'// El router la usa igual que Express usaba la función anónima']],
+    [[FN,'router'],[PL,'.'],[FN,'get'],[PL,'('],[ST,"'/'"],[PL,', '],[FN,'getAll'],[PL,');']],
+    [[CM,'               ↑ getAll es exactamente esa función arrow']],
+  ],
+
+  /* ══ ROL DE SERVER.JS ══ */
+  c_server_rol: [
+    [[CM,'// ① Middlewares globales — sin cambios desde P02']],
+    [[FN,'app'],[PL,'.'],[FN,'use'],[PL,'('],[FN,'cors'],[PL,'());']],
+    [[FN,'app'],[PL,'.'],[FN,'use'],[PL,'('],[FN,'express'],[PL,'.'],[FN,'json'],[PL,'());']],
+    [[PL,'']],
+    [[CM,'// ② Endpoint simple inline — se queda aquí (trivial, sin módulo)']],
+    [[FN,'app'],[PL,'.'],[FN,'get'],[PL,'('],[ST,"'/api/health'"],[PL,', ('],[FN,'req'],[PL,', '],[FN,'res'],[PL,') => '],[FN,'res'],[PL,'.'],[FN,'json'],[PL,'({ '],[FN,'status'],[PL,': '],[ST,"'ok'"],[PL,' }));']],
+    [[PL,'']],
+    [[CM,'// ③ Routers de módulos — delegan a archivos externos']],
+    [[FN,'app'],[PL,'.'],[FN,'use'],[PL,'('],[ST,"'/api/personas'"],[PL,', '],[FN,'personasRoutes'],[PL,');  '],[CM,'← P03']],
+    [[FN,'app'],[PL,'.'],[FN,'use'],[PL,'('],[ST,"'/api/usuarios'"],[PL,',  '],[FN,'usuariosRoutes'],[PL,');  '],[CM,'← P08']],
+    [[FN,'app'],[PL,'.'],[FN,'use'],[PL,'('],[ST,"'/api/proyectos'"],[PL,', '],[FN,'proyectosRoutes'],[PL,'); '],[CM,'← P09']],
+  ],
+
+  /* ══ SQL INJECTION ══ */
+  c_injection_malo: [
+    [[CM,'// ❌ Concatenación directa — vulnerable a SQL Injection']],
+    [[FN,'pool'],[PL,'.'],[FN,'query'],[PL,'('],[ST,'`SELECT * FROM personas WHERE id = '],[TB,'${'],[FN,'req'],[PL,'.'],[FN,'params'],[PL,'.'],[FN,'id'],[TB,'}'],[ST,'`'],[PL,');']],
+    [[CM,'// Si id = "1 OR 1=1" devuelve TODOS los registros']],
+    [[CM,'// Si id = "1; DROP TABLE personas" borra la tabla']],
+  ],
+
+  c_injection_bueno: [
+    [[CM,'// ✅ Placeholder ? — mysql2 sanea el valor automáticamente']],
+    [[FN,'pool'],[PL,'.'],[FN,'query'],[PL,'(']],
+    [[PL,'  '],[ST,"'SELECT * FROM personas WHERE id = ?'"],[PL,',']],
+    [[PL,'  ['],[FN,'req'],[PL,'.'],[FN,'params'],[PL,'.'],[FN,'id'],[PL,']  '],[CM,'// valor seguro, siempre tratado como dato']],
+    [[PL,');']],
+  ],
+
+  /* ══ CONTROLADOR parte 1 ══ */
+  c_ctrl_1: [
+    [[KW,'import '],[FN,'pool'],[KW,' from '],[ST,"'../db.js'"],[PL,';']],
+    [[PL,'']],
+    [[CM,'// GET /api/personas — lista todas las personas activas']],
+    [[KW,'export const '],[FN,'getAll'],[PL,' = '],[KW,'async '],[PL,'('],[FN,'req'],[PL,', '],[FN,'res'],[PL,') => {']],
+    [[PL,'  '],[KW,'try '],[PL,'{']],
+    [[PL,'    '],[KW,'const '],[PL,'['],[FN,'rows'],[PL,'] = '],[KW,'await '],[FN,'pool'],[PL,'.'],[FN,'query'],[PL,'(']],
+    [[PL,'      '],[ST,"'SELECT * FROM personas WHERE activo = 1 ORDER BY nombre ASC'"]],
+    [[PL,'    );']],
+    [[PL,'    '],[FN,'res'],[PL,'.'],[FN,'json'],[PL,'('],[FN,'rows'],[PL,');']],
+    [[PL,'  } '],[KW,'catch '],[PL,'('],[FN,'err'],[PL,') {']],
+    [[PL,'    '],[FN,'res'],[PL,'.'],[FN,'status'],[PL,'('],[NM,'500'],[PL,').'],[FN,'json'],[PL,'({ '],[FN,'error'],[PL,': '],[FN,'err'],[PL,'.'],[FN,'message'],[PL,' });']],
+    [[PL,'  }']],
+    [[PL,'};']],
+    [[PL,'']],
+    [[CM,'// GET /api/personas/:id — obtiene una persona por su id']],
+    [[KW,'export const '],[FN,'getById'],[PL,' = '],[KW,'async '],[PL,'('],[FN,'req'],[PL,', '],[FN,'res'],[PL,') => {']],
+    [[PL,'  '],[KW,'try '],[PL,'{']],
+    [[PL,'    '],[KW,'const '],[PL,'['],[FN,'rows'],[PL,'] = '],[KW,'await '],[FN,'pool'],[PL,'.'],[FN,'query'],[PL,'(']],
+    [[PL,'      '],[ST,"'SELECT * FROM personas WHERE id = ?'"],[PL,', ['],[FN,'req'],[PL,'.'],[FN,'params'],[PL,'.'],[FN,'id'],[PL,']']],
+    [[PL,'    );']],
+    [[PL,'    '],[KW,'if '],[PL,'('],[FN,'rows'],[PL,'.'],[FN,'length'],[PL,' === '],[NM,'0'],[PL,')']],
+    [[PL,'      '],[KW,'return '],[FN,'res'],[PL,'.'],[FN,'status'],[PL,'('],[NM,'404'],[PL,').'],[FN,'json'],[PL,'({ '],[FN,'mensaje'],[PL,': '],[ST,"'Persona no encontrada'"],[PL,' });']],
+    [[PL,'    '],[FN,'res'],[PL,'.'],[FN,'json'],[PL,'('],[FN,'rows'],[PL,'['],[NM,'0'],[PL,']);  '],[CM,'// rows[0] = objeto único, no arreglo']],
+    [[PL,'  } '],[KW,'catch '],[PL,'('],[FN,'err'],[PL,') {']],
+    [[PL,'    '],[FN,'res'],[PL,'.'],[FN,'status'],[PL,'('],[NM,'500'],[PL,').'],[FN,'json'],[PL,'({ '],[FN,'error'],[PL,': '],[FN,'err'],[PL,'.'],[FN,'message'],[PL,' });']],
+    [[PL,'  }']],
+    [[PL,'};']],
+  ],
+
+  /* ══ CONTROLADOR parte 2 ══ */
+  c_ctrl_2: [
+    [[CM,'// POST /api/personas — crea una nueva persona']],
+    [[KW,'export const '],[FN,'create'],[PL,' = '],[KW,'async '],[PL,'('],[FN,'req'],[PL,', '],[FN,'res'],[PL,') => {']],
+    [[PL,'  '],[KW,'try '],[PL,'{']],
+    [[PL,'    '],[KW,'const '],[PL,'{ '],[FN,'nombre'],[PL,', '],[FN,'correo'],[PL,', '],[FN,'telefono'],[PL,', '],[FN,'puesto'],[PL,', '],[FN,'formacion'],[PL,', '],[FN,'departamento'],[PL,' } = '],[FN,'req'],[PL,'.'],[FN,'body'],[PL,';']],
+    [[PL,'    '],[KW,'const '],[PL,'['],[FN,'result'],[PL,'] = '],[KW,'await '],[FN,'pool'],[PL,'.'],[FN,'query'],[PL,'(']],
+    [[PL,'      '],[ST,"'INSERT INTO personas (nombre, correo, telefono, puesto, formacion, departamento)'"]],
+    [[PL,'      '],[ST,"'VALUES (?, ?, ?, ?, ?, ?)'"],[PL,',']],
+    [[PL,'      ['],[FN,'nombre'],[PL,', '],[FN,'correo'],[PL,', '],[FN,'telefono'],[PL,', '],[FN,'puesto'],[PL,', '],[FN,'formacion'],[PL,', '],[FN,'departamento'],[PL,']']],
+    [[PL,'    );']],
+    [[PL,'    '],[FN,'res'],[PL,'.'],[FN,'status'],[PL,'('],[NM,'201'],[PL,').'],[FN,'json'],[PL,'({']],
+    [[PL,'      '],[FN,'mensaje'],[PL,': '],[ST,"'Persona creada correctamente'"],[PL,',']],
+    [[PL,'      '],[FN,'id'],[PL,':      '],[FN,'result'],[PL,'.'],[FN,'insertId'],[CM,'  // id generado por AUTO_INCREMENT']],
+    [[PL,'    });']],
+    [[PL,'  } '],[KW,'catch '],[PL,'('],[FN,'err'],[PL,') {']],
+    [[PL,'    '],[FN,'res'],[PL,'.'],[FN,'status'],[PL,'('],[NM,'500'],[PL,').'],[FN,'json'],[PL,'({ '],[FN,'error'],[PL,': '],[FN,'err'],[PL,'.'],[FN,'message'],[PL,' });']],
+    [[PL,'  }']],
+    [[PL,'};']],
+    [[PL,'']],
+    [[CM,'// PUT /api/personas/:id — actualiza una persona existente']],
+    [[KW,'export const '],[FN,'update'],[PL,' = '],[KW,'async '],[PL,'('],[FN,'req'],[PL,', '],[FN,'res'],[PL,') => {']],
+    [[PL,'  '],[KW,'try '],[PL,'{']],
+    [[PL,'    '],[KW,'const '],[PL,'{ '],[FN,'nombre'],[PL,', '],[FN,'correo'],[PL,', '],[FN,'telefono'],[PL,', '],[FN,'puesto'],[PL,', '],[FN,'formacion'],[PL,', '],[FN,'departamento'],[PL,' } = '],[FN,'req'],[PL,'.'],[FN,'body'],[PL,';']],
+    [[PL,'    '],[KW,'const '],[PL,'['],[FN,'result'],[PL,'] = '],[KW,'await '],[FN,'pool'],[PL,'.'],[FN,'query'],[PL,'(']],
+    [[PL,'      '],[ST,"'UPDATE personas SET nombre=?, correo=?, telefono=?, puesto=?, formacion=?, departamento=? WHERE id=?'"],[PL,',']],
+    [[PL,'      ['],[FN,'nombre'],[PL,', '],[FN,'correo'],[PL,', '],[FN,'telefono'],[PL,', '],[FN,'puesto'],[PL,', '],[FN,'formacion'],[PL,', '],[FN,'departamento'],[PL,', '],[FN,'req'],[PL,'.'],[FN,'params'],[PL,'.'],[FN,'id'],[PL,']']],
+    [[PL,'    );']],
+    [[PL,'    '],[KW,'if '],[PL,'('],[FN,'result'],[PL,'.'],[FN,'affectedRows'],[PL,' === '],[NM,'0'],[PL,')']],
+    [[PL,'      '],[KW,'return '],[FN,'res'],[PL,'.'],[FN,'status'],[PL,'('],[NM,'404'],[PL,').'],[FN,'json'],[PL,'({ '],[FN,'mensaje'],[PL,': '],[ST,"'Persona no encontrada'"],[PL,' });']],
+    [[PL,'    '],[FN,'res'],[PL,'.'],[FN,'json'],[PL,'({ '],[FN,'mensaje'],[PL,': '],[ST,"'Persona actualizada correctamente'"],[PL,' });']],
+    [[PL,'  } '],[KW,'catch '],[PL,'('],[FN,'err'],[PL,') {']],
+    [[PL,'    '],[FN,'res'],[PL,'.'],[FN,'status'],[PL,'('],[NM,'500'],[PL,').'],[FN,'json'],[PL,'({ '],[FN,'error'],[PL,': '],[FN,'err'],[PL,'.'],[FN,'message'],[PL,' });']],
+    [[PL,'  }']],
+    [[PL,'};']],
+  ],
+
+  /* ══ CONTROLADOR parte 3 ══ */
+  c_ctrl_3: [
+    [[CM,'// DELETE /api/personas/:id — soft delete (activo = 0, no borra físicamente)']],
+    [[KW,'export const '],[FN,'softDelete'],[PL,' = '],[KW,'async '],[PL,'('],[FN,'req'],[PL,', '],[FN,'res'],[PL,') => {']],
+    [[PL,'  '],[KW,'try '],[PL,'{']],
+    [[PL,'    '],[KW,'const '],[PL,'['],[FN,'result'],[PL,'] = '],[KW,'await '],[FN,'pool'],[PL,'.'],[FN,'query'],[PL,'(']],
+    [[PL,'      '],[ST,"'UPDATE personas SET activo = 0 WHERE id = ?'"],[PL,', ['],[FN,'req'],[PL,'.'],[FN,'params'],[PL,'.'],[FN,'id'],[PL,']']],
+    [[PL,'    );']],
+    [[PL,'    '],[KW,'if '],[PL,'('],[FN,'result'],[PL,'.'],[FN,'affectedRows'],[PL,' === '],[NM,'0'],[PL,')']],
+    [[PL,'      '],[KW,'return '],[FN,'res'],[PL,'.'],[FN,'status'],[PL,'('],[NM,'404'],[PL,').'],[FN,'json'],[PL,'({ '],[FN,'mensaje'],[PL,': '],[ST,"'Persona no encontrada'"],[PL,' });']],
+    [[PL,'    '],[FN,'res'],[PL,'.'],[FN,'json'],[PL,'({ '],[FN,'mensaje'],[PL,': '],[ST,"'Persona desactivada correctamente'"],[PL,' });']],
+    [[PL,'  } '],[KW,'catch '],[PL,'('],[FN,'err'],[PL,') {']],
+    [[PL,'    '],[FN,'res'],[PL,'.'],[FN,'status'],[PL,'('],[NM,'500'],[PL,').'],[FN,'json'],[PL,'({ '],[FN,'error'],[PL,': '],[FN,'err'],[PL,'.'],[FN,'message'],[PL,' });']],
+    [[PL,'  }']],
+    [[PL,'};']],
+  ],
+
+  /* ══ RUTAS ══ */
+  c_routes: [
+    [[KW,'import '],[PL,'{ '],[FN,'Router'],[PL,' } '],[KW,'from '],[ST,"'express'"],[PL,';']],
+    [[KW,'import '],[PL,'{ '],[FN,'getAll'],[PL,', '],[FN,'getById'],[PL,', '],[FN,'create'],[PL,', '],[FN,'update'],[PL,', '],[FN,'softDelete'],[PL,' }']],
+    [[PL,'  '],[KW,'from '],[ST,"'../controllers/personas.controller.js'"],[PL,';']],
+    [[PL,'']],
+    [[KW,'const '],[FN,'router'],[PL,' = '],[FN,'Router'],[PL,'();']],
+    [[PL,'']],
+    [[CM,'// "/" = "/api/personas" — el prefijo lo pone server.js']],
+    [[FN,'router'],[PL,'.'],[FN,'get'],[PL,'('],[ST,"'/'"],[PL,',       '],[FN,'getAll'],[PL,');      '],[CM,'// GET    /api/personas']],
+    [[FN,'router'],[PL,'.'],[FN,'get'],[PL,'('],[ST,"'/:id'"],[PL,',    '],[FN,'getById'],[PL,');    '],[CM,'// GET    /api/personas/:id']],
+    [[FN,'router'],[PL,'.'],[FN,'post'],[PL,'('],[ST,"'/'"],[PL,',      '],[FN,'create'],[PL,');     '],[CM,'// POST   /api/personas']],
+    [[FN,'router'],[PL,'.'],[FN,'put'],[PL,'('],[ST,"'/:id'"],[PL,',    '],[FN,'update'],[PL,');     '],[CM,'// PUT    /api/personas/:id']],
+    [[FN,'router'],[PL,'.'],[FN,'delete'],[PL,'('],[ST,"'/:id'"],[PL,', '],[FN,'softDelete'],[PL,'); '],[CM,'// DELETE /api/personas/:id']],
+    [[PL,'']],
+    [[KW,'export default '],[FN,'router'],[PL,';']],
+  ],
+
+  /* ══ SERVER.JS — 2 líneas a agregar ══ */
+  c_server: [
+    [[CM,'// ... (imports existentes de express, cors, dotenv, pool)']],
+    [[PL,'']],
+    [[CM,'// AGREGAR — import del router de personas']],
+    [[KW,'import '],[FN,'personasRoutes'],[KW,' from '],[ST,"'./routes/personas.routes.js'"],[PL,';']],
+    [[PL,'']],
+    [[CM,'// ... (app = express(), middlewares cors y json, ruta /api/health)']],
+    [[PL,'']],
+    [[CM,'// AGREGAR — registrar el router de personas']],
+    [[FN,'app'],[PL,'.'],[FN,'use'],[PL,'('],[ST,"'/api/personas'"],[PL,', '],[FN,'personasRoutes'],[PL,');']],
+    [[PL,'']],
+    [[CM,'// ... (verificarDB y app.listen sin cambios)']],
+  ],
+
+  /* ══ PRUEBAS ══ */
+  c_test1_req: [
+    [[KW,'GET  '],[ST,'http://localhost:3000/api/personas']],
+  ],
+  c_test1_res: [
+    [[PL,'[']],
+    [[PL,'  { '],[FN,'"id"'],[PL,': '],[NM,'1'],[PL,', '],[FN,'"nombre"'],[PL,': '],[ST,'"Ana García López"'],[PL,', '],[FN,'"activo"'],[PL,': '],[NM,'1'],[PL,' },']],
+    [[PL,'  { '],[FN,'"id"'],[PL,': '],[NM,'2'],[PL,', '],[FN,'"nombre"'],[PL,': '],[ST,'"Luis Martínez Ruiz"'],[PL,'  ... },']],
+    [[PL,'  ...'],[CM,'  // todas las personas con activo = 1 de la P01']],
+    [[PL,']']],
+  ],
+  c_test2_body: [
+    [[CM,'// POST http://localhost:3000/api/personas — Body → JSON']],
+    [[PL,'{']],
+    [[PL,'  '],[FN,'"nombre"'],[PL,':      '],[ST,'"Roberto Sánchez Vera"'],[PL,',']],
+    [[PL,'  '],[FN,'"correo"'],[PL,':      '],[ST,'"roberto.sanchez@empresa.com"'],[PL,',']],
+    [[PL,'  '],[FN,'"telefono"'],[PL,':    '],[ST,'"555-1234"'],[PL,',']],
+    [[PL,'  '],[FN,'"puesto"'],[PL,':      '],[ST,'"Analista"'],[PL,',']],
+    [[PL,'  '],[FN,'"formacion"'],[PL,':   '],[ST,'"Ingeniería en Sistemas"'],[PL,',']],
+    [[PL,'  '],[FN,'"departamento"'],[PL,': '],[ST,'"TI"']],
+    [[PL,'}']],
+  ],
+  c_test2_res: [
+    [[PL,'{']],
+    [[PL,'  '],[FN,'"mensaje"'],[PL,': '],[ST,'"Persona creada correctamente"'],[PL,',']],
+    [[PL,'  '],[FN,'"id"'],[PL,':      '],[NM,'6'],[CM,'  // id generado por AUTO_INCREMENT']],
+    [[PL,'}']],
+  ],
+  c_test3_req: [
+    [[KW,'GET  '],[ST,'http://localhost:3000/api/personas/6']],
+  ],
+  c_test3_res: [
+    [[PL,'{']],
+    [[PL,'  '],[FN,'"id"'],[PL,':           '],[NM,'6'],[PL,',']],
+    [[PL,'  '],[FN,'"nombre"'],[PL,':       '],[ST,'"Roberto Sánchez Vera"'],[PL,',']],
+    [[PL,'  '],[FN,'"correo"'],[PL,':       '],[ST,'"roberto.sanchez@empresa.com"'],[PL,',']],
+    [[PL,'  '],[FN,'"puesto"'],[PL,':       '],[ST,'"Analista"'],[PL,',']],
+    [[PL,'  '],[FN,'"departamento"'],[PL,': '],[ST,'"TI"'],[PL,',']],
+    [[PL,'  '],[FN,'"activo"'],[PL,':       '],[NM,'1']],
+    [[PL,'}']],
+  ],
+  c_test4_body: [
+    [[CM,'// PUT http://localhost:3000/api/personas/6  — Body JSON:']],
+    [[PL,'{']],
+    [[PL,'  '],[FN,'"nombre"'],[PL,':      '],[ST,'"Roberto Sánchez Vera"'],[PL,',']],
+    [[PL,'  '],[FN,'"correo"'],[PL,':      '],[ST,'"roberto.sanchez@empresa.com"'],[PL,',']],
+    [[PL,'  '],[FN,'"telefono"'],[PL,':    '],[ST,'"555-5678"'],[PL,',']],
+    [[PL,'  '],[FN,'"puesto"'],[PL,':      '],[ST,'"Analista Senior"'],[PL,',  '],[CM,'// campo actualizado']],
+    [[PL,'  '],[FN,'"formacion"'],[PL,':   '],[ST,'"Ingeniería en Sistemas"'],[PL,',']],
+    [[PL,'  '],[FN,'"departamento"'],[PL,': '],[ST,'"TI"']],
+    [[PL,'}']],
+  ],
+  c_test4_res: [
+    [[PL,'{ '],[FN,'"mensaje"'],[PL,': '],[ST,'"Persona actualizada correctamente"'],[PL,' }']],
+  ],
+  c_test5_req: [
+    [[KW,'DELETE  '],[ST,'http://localhost:3000/api/personas/6']],
+  ],
+  c_test5_res: [
+    [[PL,'{ '],[FN,'"mensaje"'],[PL,': '],[ST,'"Persona desactivada correctamente"'],[PL,' }']],
+  ],
+  c_test6_req: [
+    [[KW,'GET  '],[ST,'http://localhost:3000/api/personas/9999']],
+    [[CM,'// → 404 Not Found']],
+  ],
+  c_test6_res: [
+    [[PL,'{ '],[FN,'"mensaje"'],[PL,': '],[ST,'"Persona no encontrada"'],[PL,' }']],
+  ],
+};
+
+const FONT = `13px "Courier New", monospace`;
+const LINE_H = 22, PAD_X = 16, PAD_Y = 12;
+
+function drawCode(id, lines) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const tmp = document.createElement('canvas');
+  const tc = tmp.getContext('2d');
+  tc.font = FONT;
+  let maxW = 0;
+  for (const line of lines) {
+    const w = tc.measureText(line.map(s => s[1]).join('')).width;
+    if (w > maxW) maxW = w;
+  }
+  const W = Math.ceil(maxW + PAD_X * 2);
+  const H = lines.length * LINE_H + PAD_Y * 2;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+  ctx.font = FONT;
+  ctx.textBaseline = 'alphabetic';
+  lines.forEach((segs, i) => {
+    const y = PAD_Y + i * LINE_H + LINE_H * 0.75;
+    let x = PAD_X;
+    for (const [color, text] of segs) {
+      ctx.fillStyle = color;
+      ctx.fillText(text, x, y);
+      x += tc.measureText(text).width;
+    }
+  });
+}
+
+document.fonts.ready.then(() => {
+  for (const [id, lines] of Object.entries(bloques)) drawCode(id, lines);
+});
+</script>
+</body>
+</html>
