@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica 5 — CRUD completo de Personas: navegación entre pantallas</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',Arial,sans-serif; background:#fff; color:#1a1a2e; font-size:14px; line-height:1.7; }
+.header { background:#1565C0; color:#fff; }
+.header-top { background:#0D47A1; padding:18px 40px 14px; display:flex; justify-content:space-between; align-items:flex-start; }
+.header-inst { font-size:11px; opacity:0.85; letter-spacing:0.03em; text-transform:uppercase; }
+.header-carrera { font-size:13px; font-weight:600; margin-top:3px; }
+.header-badge { background:#fff; color:#0D47A1; font-weight:700; font-size:13px; padding:6px 16px; border-radius:20px; white-space:nowrap; align-self:center; }
+.header-main { padding:20px 40px 24px; }
+.header-practica { font-size:11px; opacity:0.75; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; }
+.header-titulo { font-size:26px; font-weight:700; margin-bottom:8px; }
+.header-meta { display:flex; gap:24px; font-size:12px; opacity:0.85; flex-wrap:wrap; }
+.header-strip { height:5px; background:#42A5F5; }
+.content { max-width:900px; margin:0 auto; padding:36px 40px 60px; }
+.toc { background:#E3F2FD; border-left:4px solid #1565C0; border-radius:0 8px 8px 0; padding:20px 24px; margin-bottom:36px; }
+.toc-title { font-size:13px; font-weight:700; color:#0D47A1; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px; }
+.toc ol { padding-left:18px; }
+.toc li { font-size:13px; color:#1565C0; padding:3px 0; }
+.toc li a { color:#1565C0; text-decoration:none; }
+.toc li a:hover { text-decoration:underline; }
+.seccion { margin-bottom:36px; }
+.seccion-titulo { font-size:16px; font-weight:700; color:#0D47A1; border-bottom:2px solid #BBDEFB; padding-bottom:8px; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+.seccion-num { background:#1565C0; color:#fff; font-size:12px; font-weight:700; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.subseccion-titulo { font-size:14px; font-weight:700; color:#1565C0; margin:18px 0 8px; }
+p { margin-bottom:10px; }
+.contexto-card { background:#F8FBFF; border:1px solid #BBDEFB; border-radius:10px; padding:20px 24px; margin-bottom:16px; }
+.contexto-card p:last-child { margin-bottom:0; }
+.concepto-bloque { border:1px solid #BBDEFB; border-radius:10px; margin-bottom:14px; overflow:hidden; }
+.concepto-header { background:#1565C0; color:#fff; padding:10px 16px; font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px; }
+.concepto-icon { font-size:16px; }
+.concepto-body { padding:14px 16px; font-size:13.5px; background:#F8FBFF; }
+.concepto-body p { margin-bottom:8px; }
+.concepto-body p:last-child { margin-bottom:0; }
+.analogia { background:#FFF8E1; border-left:3px solid #F59E0B; padding:10px 14px; margin-top:8px; border-radius:0 6px 6px 0; font-size:13px; }
+.analogia strong { color:#92400E; }
+.obj-lista { list-style:none; padding:0; }
+.obj-lista li { padding:6px 0 6px 24px; position:relative; font-size:13.5px; border-bottom:1px solid #F0F4FF; }
+.obj-lista li:last-child { border-bottom:none; }
+.obj-lista li::before { content:'✓'; position:absolute; left:0; color:#1565C0; font-weight:700; }
+.nota  { background:#FFF8E1; border-left:4px solid #F59E0B; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.nota strong { color:#92400E; }
+.info  { background:#E8F5E9; border-left:4px solid #43A047; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.info strong { color:#1B5E20; }
+.peligro { background:#FFEBEE; border-left:4px solid #E53935; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.peligro strong { color:#B71C1C; }
+.profesional { background:#EDE7F6; border-left:4px solid #7B1FA2; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.profesional strong { color:#4A148C; }
+.flujo { display:flex; align-items:center; margin:16px 0; flex-wrap:wrap; }
+.flujo-item { background:#E3F2FD; border:1px solid #90CAF9; border-radius:8px; padding:10px 16px; text-align:center; font-size:12px; flex:1; min-width:100px; }
+.flujo-item.activo { background:#1565C0; color:#fff; border-color:#1565C0; font-weight:700; }
+.flujo-item.futuro { background:#F5F5F5; border-color:#ddd; color:#999; }
+.flujo-item.listo  { background:#E8F5E9; border-color:#66BB6A; color:#2E7D32; }
+.flujo-item .fi-num { font-size:10px; opacity:0.7; margin-bottom:2px; }
+.flujo-item .fi-nombre { font-size:12px; font-weight:600; }
+.flujo-sep { color:#90CAF9; font-size:18px; padding:0 6px; }
+.paso { background:#fff; border:1px solid #BBDEFB; border-radius:10px; padding:20px 24px; margin-bottom:20px; }
+.paso-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.paso-num { background:#1565C0; color:#fff; font-size:13px; font-weight:700; padding:4px 12px; border-radius:14px; }
+.paso-titulo { font-size:14px; font-weight:700; color:#0D47A1; }
+.paso p { font-size:13.5px; margin-bottom:10px; }
+.file-label { display:inline-block; background:#E3F2FD; color:#0D47A1; font-family:'Courier New',monospace; font-size:12px; padding:4px 12px; border-radius:6px 6px 0 0; border:1px solid #BBDEFB; border-bottom:none; font-weight:600; margin-top:10px; }
+.file-label.nuevo { background:#E8F5E9; color:#1B5E20; border-color:#A5D6A7; }
+.file-label.modif { background:#FFF8E1; color:#92400E; border-color:#FFE082; }
+.code-wrap { border:1px solid #BBDEFB; border-radius:0 8px 8px 8px; overflow:hidden; margin-bottom:12px; background:#fff; }
+.code-wrap.nuevo { border-color:#A5D6A7; }
+.code-wrap.modif { border-color:#FFE082; }
+.code-wrap canvas { display:block; max-width:100%; }
+.folder-tree { background:#fff; border:1px solid #BBDEFB; border-radius:8px; padding:16px 20px; margin:12px 0; font-family:'Courier New',monospace; font-size:13px; line-height:2.1; }
+.folder-tree .d { color:#1565C0; font-weight:700; }
+.folder-tree .f { color:#2E7D32; }
+.folder-tree .f-nuevo { color:#2E7D32; font-weight:700; background:#E8F5E9; padding:1px 4px; border-radius:3px; }
+.folder-tree .f-modif { color:#92400E; font-weight:700; background:#FFF8E1; padding:1px 4px; border-radius:3px; }
+.folder-tree .cm { color:#9E9E9E; font-style:italic; }
+.tabla-gen { width:100%; border-collapse:collapse; font-size:13px; margin:12px 0; }
+.tabla-gen th { background:#1565C0; color:#fff; padding:9px 14px; text-align:left; font-size:12px; }
+.tabla-gen td { padding:9px 14px; border-bottom:1px solid #E3F2FD; vertical-align:top; }
+.tabla-gen tr:nth-child(even) td { background:#F8FBFF; }
+.tabla-gen code { background:#E3F2FD; color:#0D47A1; padding:1px 6px; border-radius:3px; font-size:12px; }
+.actividades { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.actividades th { background:#1565C0; color:#fff; padding:10px 14px; text-align:left; font-weight:600; font-size:12px; }
+.actividades td { padding:9px 14px; border-bottom:1px solid #E3F2FD; vertical-align:top; }
+.actividades tr:nth-child(even) td { background:#F8FBFF; }
+.actividades tr:last-child td { border-bottom:none; }
+.tipo-badge { font-size:11px; padding:3px 8px; border-radius:10px; font-weight:600; white-space:nowrap; }
+.tipo-codigo { background:#E3F2FD; color:#0D47A1; }
+.tipo-prueba { background:#E8F5E9; color:#1B5E20; }
+.reflexion-lista { list-style:none; padding:0; counter-reset:ref; }
+.reflexion-lista li { counter-increment:ref; padding:10px 14px 10px 44px; position:relative; background:#F8FBFF; border:1px solid #BBDEFB; border-radius:8px; margin-bottom:8px; font-size:13.5px; }
+.reflexion-lista li::before { content:counter(ref); position:absolute; left:12px; top:50%; transform:translateY(-50%); background:#1565C0; color:#fff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
+.rubrica { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.rubrica th { background:#0D47A1; color:#fff; padding:10px 14px; text-align:left; font-weight:600; font-size:12px; }
+.rubrica td { padding:9px 14px; border-bottom:1px solid #E3F2FD; }
+.rubrica tr:nth-child(even) td { background:#F8FBFF; }
+.rubrica .total td { background:#1565C0; color:#fff; font-weight:700; }
+.pts { font-weight:700; color:#0D47A1; }
+.entregable-lista { list-style:none; padding:0; }
+.entregable-lista li { padding:8px 14px 8px 36px; position:relative; font-size:13.5px; border-bottom:1px solid #F0F4FF; }
+.entregable-lista li:last-child { border-bottom:none; }
+.entregable-lista li::before { content:'📄'; position:absolute; left:8px; }
+.footer { background:#0D47A1; color:#fff; text-align:center; padding:14px 40px; font-size:12px; margin-top:40px; }
+code { background:#E3F2FD; color:#0D47A1; padding:1px 5px; border-radius:3px; font-size:12px; font-family:'Courier New',monospace; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-inst">Ingeniería de Desarrollo y Gestión de Software</div>
+      <div class="header-carrera">Desarrollo Web Integral y Seguridad</div>
+    </div>
+    <div class="header-badge">Práctica 5</div>
+  </div>
+  <div class="header-main">
+    <div class="header-practica">Fase 2 — Frontend base · cierre</div>
+    <div class="header-titulo">CRUD completo de Personas: navegación entre pantallas</div>
+    <div class="header-meta">
+      <span>⏱ Duración: 2 horas</span>
+      <span>🛠 React Router DOM · useNavigate · useParams</span>
+      <span>📦 Entregable: módulo de personas con 3 pantallas navegables</span>
+    </div>
+  </div>
+  <div class="header-strip"></div>
+</div>
+
+<div class="content">
+
+  <div class="toc">
+    <div class="toc-title">Tabla de contenidos</div>
+    <ol>
+      <li><a href="#donde">¿Dónde estamos en el proyecto?</a></li>
+      <li><a href="#conceptos">Conceptos clave: React Router DOM</a></li>
+      <li><a href="#objetivos">Objetivos de la práctica</a></li>
+      <li><a href="#estructura">Nueva estructura del proyecto</a></li>
+      <li><a href="#desarrollo">Desarrollo paso a paso</a></li>
+      <li><a href="#actividades">Actividades</a></li>
+      <li><a href="#reflexion">Preguntas de reflexión</a></li>
+      <li><a href="#entregable">Entregable</a></li>
+      <li><a href="#rubrica">Criterios de evaluación</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. DÓNDE ESTAMOS -->
+  <div class="seccion" id="donde">
+    <div class="seccion-titulo"><span class="seccion-num">1</span> ¿Dónde estamos en el proyecto?</div>
+
+    <div class="contexto-card">
+      <p>En la Práctica 4 logramos mostrar la tabla de personas en el navegador y el formulario de crear/editar aparecía y desaparecía <strong>en la misma pantalla</strong>. La URL siempre decía <code>localhost:5173</code> sin importar qué estabas haciendo.</p>
+      <p>En esta práctica le damos a cada operación <strong>su propia pantalla con su propia URL</strong>. A partir de aquí el sistema se comporta como cualquier aplicación web real: cada acción tiene una dirección específica en el navegador y puedes usar los botones de atrás y adelante.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0;">
+      <div style="border:2px solid #BBDEFB;border-radius:8px;overflow:hidden;">
+        <div style="background:#E3F2FD;padding:8px 14px;font-size:12px;font-weight:700;color:#0D47A1;">❶ Hasta P04 — una sola pantalla</div>
+        <div style="padding:14px;font-size:13px;line-height:2;">
+          URL siempre: <code>localhost:5173</code><br>
+          Formulario aparece/desaparece en la misma página<br>
+          No puedes usar el botón atrás del navegador
+        </div>
+      </div>
+      <div style="border:2px solid #A5D6A7;border-radius:8px;overflow:hidden;">
+        <div style="background:#E8F5E9;padding:8px 14px;font-size:12px;font-weight:700;color:#1B5E20;">❷ Con P05 — tres pantallas navegables</div>
+        <div style="padding:14px;font-size:13px;line-height:2;">
+          <code>/personas</code> → tabla con la lista<br>
+          <code>/personas/nueva</code> → formulario vacío<br>
+          <code>/personas/editar/3</code> → formulario pre-llenado
+        </div>
+      </div>
+    </div>
+
+    <div class="flujo">
+      <div class="flujo-item listo"><div class="fi-num">P01–P03</div><div class="fi-nombre">Base de datos + API</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item listo"><div class="fi-num">P04</div><div class="fi-nombre">Proyecto React base</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item activo"><div class="fi-num">P05</div><div class="fi-nombre">Navegación entre pantallas</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item futuro"><div class="fi-num">P06–P07</div><div class="fi-nombre">Autenticación JWT</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item futuro"><div class="fi-num">P08–P13</div><div class="fi-nombre">Módulos avanzados</div></div>
+    </div>
+  </div>
+
+  <!-- 2. CONCEPTOS -->
+  <div class="seccion" id="conceptos">
+    <div class="seccion-titulo"><span class="seccion-num">2</span> Conceptos clave: React Router DOM</div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🗺️</span> ¿Qué es React Router DOM y para qué sirve?</div>
+      <div class="concepto-body">
+        <p>React por sí solo no sabe nada de URLs. Cuando el usuario escribe <code>/personas/nueva</code> en la barra del navegador, React no tiene forma de saber qué mostrar. <strong>React Router DOM</strong> es la biblioteca que resuelve eso: conecta cada URL con el componente que debe mostrarse.</p>
+        <p>Lo instalas aparte con <code>npm install react-router-dom</code> porque no viene incluido en React.</p>
+        <div class="analogia"><strong>Analogía:</strong> React es el edificio con todas las habitaciones (componentes). React Router es el sistema de señalización que le dice al visitante a qué habitación ir dependiendo de la planta que pidió (la URL).</div>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🧱</span> Los 4 elementos que usarás en esta práctica</div>
+      <div class="concepto-body">
+        <table class="tabla-gen" style="margin-top:4px;">
+          <thead><tr><th>Elemento</th><th>¿Dónde se pone?</th><th>¿Qué hace?</th></tr></thead>
+          <tbody>
+            <tr><td><code>BrowserRouter</code></td><td><code>main.jsx</code></td><td>Activa el sistema de rutas en toda la app. Envuelve todo.</td></tr>
+            <tr><td><code>Routes</code> + <code>Route</code></td><td><code>App.jsx</code></td><td>Define las reglas: URL <em>X</em> → muestra componente <em>Y</em>.</td></tr>
+            <tr><td><code>Link</code></td><td>Cualquier componente</td><td>Enlace que navega sin recargar la página. Reemplaza a <code>&lt;a href&gt;</code>.</td></tr>
+            <tr><td><code>useNavigate</code></td><td>Dentro de funciones</td><td>Navega desde el código. Ej: después de guardar el formulario, ir al listado.</td></tr>
+            <tr><td><code>useParams</code></td><td>Componente de edición</td><td>Lee el <code>:id</code> de la URL. Ej: en <code>/personas/editar/3</code> extrae el <code>3</code>.</td></tr>
+          </tbody>
+        </table>
+        <div class="analogia" style="margin-top:10px;"><strong>¿Por qué Link y no &lt;a href&gt;?</strong> Un <code>&lt;a href&gt;</code> recarga toda la página — React pierde todo su estado. <code>Link</code> cambia la URL sin recargar, manteniendo la aplicación viva y el estado intacto.</div>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">📂</span> pages/ vs components/ — ¿cuál es la diferencia?</div>
+      <div class="concepto-body">
+        <p>En esta práctica crearemos una carpeta nueva llamada <code>pages/</code>. La diferencia con <code>components/</code> es de responsabilidad:</p>
+        <table class="tabla-gen" style="margin-top:6px;">
+          <thead><tr><th>Carpeta</th><th>¿Qué contiene?</th><th>Ejemplo</th></tr></thead>
+          <tbody>
+            <tr><td><code>src/pages/</code></td><td>Pantallas completas. Cada una corresponde a una URL.</td><td><code>PersonasPage.jsx</code> → <code>/personas</code></td></tr>
+            <tr><td><code>src/components/</code></td><td>Piezas reutilizables. No saben en qué URL están.</td><td><code>PersonaForm.jsx</code>, <code>Navbar.jsx</code></td></tr>
+          </tbody>
+        </table>
+        <p style="margin-top:8px;">Las páginas <em>usan</em> componentes. Los componentes no saben qué página los está usando. Esa separación hace el proyecto más fácil de mantener conforme crece.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. OBJETIVOS -->
+  <div class="seccion" id="objetivos">
+    <div class="seccion-titulo"><span class="seccion-num">3</span> Objetivos de la práctica</div>
+    <ul class="obj-lista">
+      <li>Instalar React Router DOM y activarlo en la aplicación.</li>
+      <li>Definir tres rutas: listado, crear y editar personas.</li>
+      <li>Crear la carpeta <code>src/pages/</code> y entender la diferencia con <code>components/</code>.</li>
+      <li>Usar <code>useNavigate</code> para redirigir automáticamente después de guardar o cancelar.</li>
+      <li>Usar <code>useParams</code> para leer el <code>id</code> de la URL y cargar los datos del formulario de edición.</li>
+      <li>Reutilizar <code>PersonaForm.jsx</code> de P04 en dos contextos distintos: crear y editar.</li>
+      <li>Verificar el flujo CRUD completo navegando entre las tres pantallas.</li>
+    </ul>
+  </div>
+
+  <!-- 4. ESTRUCTURA -->
+  <div class="seccion" id="estructura">
+    <div class="seccion-titulo"><span class="seccion-num">4</span> Nueva estructura del proyecto</div>
+    <p>Estos son los cambios respecto a P04. Los archivos en <span style="background:#E8F5E9;color:#1B5E20;font-family:monospace;font-size:12px;padding:1px 4px;border-radius:3px;font-weight:700;">verde</span> son nuevos y los que están en <span style="background:#FFF8E1;color:#92400E;font-family:monospace;font-size:12px;padding:1px 4px;border-radius:3px;font-weight:700;">amarillo</span> se modifican.</p>
+
+    <div class="folder-tree">
+      <span class="d">frontend/src/</span><br>
+      ├── <span class="f-modif">main.jsx</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← agregar BrowserRouter</span><br>
+      ├── <span class="f-modif">App.jsx</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← ahora define las rutas</span><br>
+      ├── <span class="d">pages/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← carpeta NUEVA que tú creas</span><br>
+      │&nbsp;&nbsp;&nbsp;├── <span class="f-nuevo">PersonasPage.jsx</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← pantalla del listado (/personas)</span><br>
+      │&nbsp;&nbsp;&nbsp;└── <span class="f-nuevo">PersonaFormPage.jsx</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← pantalla del formulario (/nueva y /editar/:id)</span><br>
+      ├── <span class="d">components/</span><br>
+      │&nbsp;&nbsp;&nbsp;├── <span class="f-modif">Navbar.jsx</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← agregar Link de navegación</span><br>
+      │&nbsp;&nbsp;&nbsp;└── <span class="f">PersonaForm.jsx</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios, se reutiliza igual</span><br>
+      └── <span class="d">api/</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;└── <span class="f">personas.api.js</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span>
+    </div>
+
+    <div class="nota">
+      <strong>¿Qué pasa con PersonasLista.jsx de P04?</strong> Su contenido se divide en dos: la tabla con la lista pasa a <code>PersonasPage.jsx</code> y el formulario ya existe en <code>PersonaForm.jsx</code>. Puedes eliminar <code>PersonasLista.jsx</code> al terminar esta práctica — ya no se usará.
+    </div>
+  </div>
+
+  <!-- 5. DESARROLLO -->
+  <div class="seccion" id="desarrollo">
+    <div class="seccion-titulo"><span class="seccion-num">5</span> Desarrollo paso a paso</div>
+
+    <!-- PASO 1 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 1</span><span class="paso-titulo">Instalar React Router DOM</span></div>
+      <p>Abre la terminal, asegúrate de estar dentro de la carpeta <code>frontend/</code> y ejecuta:</p>
+      <div class="file-label">Terminal — dentro de frontend/</div>
+      <div class="code-wrap"><canvas id="c_install"></canvas></div>
+      <p>Este comando agrega React Router DOM al <code>package.json</code> y lo descarga en <code>node_modules/</code>. Cuando termine, ya puedes usar sus componentes y hooks en el proyecto.</p>
+    </div>
+
+    <!-- PASO 2 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 2</span><span class="paso-titulo">Activar el Router en <code>main.jsx</code></span></div>
+      <p><code>BrowserRouter</code> debe envolver a toda la aplicación para que el sistema de rutas funcione. Se pone en <code>main.jsx</code> porque es el punto de entrada — así toda la jerarquía de componentes tiene acceso al sistema de navegación desde el inicio.</p>
+      <div class="file-label modif">src/main.jsx — modificar</div>
+      <div class="code-wrap modif"><canvas id="c_main"></canvas></div>
+      <div class="nota">
+        <strong>¿Por qué BrowserRouter va en main.jsx y no en App.jsx?</strong> Porque BrowserRouter necesita envolver a App.jsx. Si lo pusieras dentro de App.jsx, estaría intentando envolverse a sí mismo. En main.jsx queda fuera de App y lo envuelve correctamente.
+      </div>
+    </div>
+
+    <!-- PASO 3 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 3</span><span class="paso-titulo">Definir las rutas en <code>App.jsx</code></span></div>
+      <p>App.jsx ahora es el mapa de rutas de la aplicación. Cada <code>Route</code> conecta una URL con el componente que la muestra. Reemplaza todo el contenido de <code>App.jsx</code>:</p>
+      <div class="file-label modif">src/App.jsx — reemplazar contenido completo</div>
+      <div class="code-wrap modif"><canvas id="c_app"></canvas></div>
+      <p>Observa la ruta <code>/personas/editar/:id</code> — los dos puntos indican que <code>id</code> es un valor variable. Si el usuario va a <code>/personas/editar/3</code>, React Router captura el valor <code>3</code> y lo pone disponible en el componente a través del hook <code>useParams</code>. El mismo componente <code>PersonaFormPage</code> sirve para crear y para editar — la diferencia la da la presencia o ausencia del <code>:id</code> en la URL.</p>
+    </div>
+
+    <!-- PASO 4 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 4</span><span class="paso-titulo">Crear la carpeta <code>pages/</code> y el listado <code>PersonasPage.jsx</code></span></div>
+      <p>Dentro de <code>src/</code> crea la carpeta <code>pages/</code> manualmente (clic derecho → Nueva carpeta en VS Code). Luego crea el archivo <code>PersonasPage.jsx</code> dentro de ella.</p>
+      <p>Esta página muestra la tabla de personas. Los botones de editar y nueva persona ya no muestran un formulario en la misma pantalla — ahora <strong>navegan a otra URL</strong> usando <code>useNavigate</code>:</p>
+      <div class="file-label nuevo">src/pages/PersonasPage.jsx — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_personas_page"></canvas></div>
+      <p>El cambio clave respecto a P04: en lugar de <code>setMostrarForm(true)</code>, ahora usamos <code>navigate('/personas/nueva')</code> y <code>navigate(`/personas/editar/${p.id}`)</code>. El usuario ve una pantalla completamente diferente con su propia URL.</p>
+    </div>
+
+    <!-- PASO 5 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 5</span><span class="paso-titulo">Crear la página de formulario <code>PersonaFormPage.jsx</code></span></div>
+      <p>Esta es la pantalla que aparece tanto en <code>/personas/nueva</code> como en <code>/personas/editar/:id</code>. Un mismo componente maneja los dos casos: si hay <code>id</code> en la URL carga los datos de esa persona; si no hay <code>id</code>, muestra el formulario vacío para crear.</p>
+      <div class="file-label nuevo">src/pages/PersonaFormPage.jsx — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_form_page"></canvas></div>
+      <div class="profesional">
+        <strong>💡 Un componente, dos modos:</strong> <code>useParams</code> devuelve <code>{ id: '3' }</code> cuando la URL es <code>/personas/editar/3</code>, y devuelve <code>{ id: undefined }</code> cuando la URL es <code>/personas/nueva</code>. Con esa sola diferencia el componente sabe si debe crear o actualizar.
+      </div>
+      <div class="nota">
+        <strong>useEffect con [id] como dependencia:</strong> El arreglo <code>[id]</code> al final del <code>useEffect</code> significa "ejecuta este código cuando el componente cargue Y también cada vez que cambie el id". Esto garantiza que si el usuario navega de <code>/editar/3</code> a <code>/editar/5</code>, el formulario se recarga con los datos correctos.
+      </div>
+    </div>
+
+    <!-- PASO 6 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 6</span><span class="paso-titulo">Actualizar <code>Navbar.jsx</code> con <code>Link</code></span></div>
+      <p><code>PersonaForm.jsx</code> de P04 no necesita ningún cambio — solo verifica que exista. Sí actualiza <code>Navbar.jsx</code> para usar <code>Link</code> de React Router en lugar de texto plano:</p>
+      <div class="file-label modif">src/components/Navbar.jsx — modificar</div>
+      <div class="code-wrap modif"><canvas id="c_navbar"></canvas></div>
+      <p>Con <code>Link to="/personas"</code> el título del sistema funciona como un enlace de inicio. Si el usuario hace clic en él desde cualquier pantalla, regresa al listado sin que la página se recargue.</p>
+    </div>
+
+    <!-- PASO 7 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 7</span><span class="paso-titulo">Verificación del flujo completo</span></div>
+      <p>Con el backend corriendo en <code>localhost:3000</code>, ejecuta <code>npm run dev</code> en el frontend y prueba este flujo completo en el navegador:</p>
+      <table class="tabla-gen">
+        <thead><tr><th>Acción</th><th>URL que aparece</th><th>Qué se muestra</th></tr></thead>
+        <tbody>
+          <tr><td>Abrir la app</td><td><code>localhost:5173/personas</code></td><td>Tabla con la lista de personas</td></tr>
+          <tr><td>Clic en ➕ Nueva persona</td><td><code>localhost:5173/personas/nueva</code></td><td>Formulario vacío</td></tr>
+          <tr><td>Llenar y guardar</td><td>Redirige a <code>/personas</code></td><td>Lista con la persona nueva</td></tr>
+          <tr><td>Clic en ✏️ de una fila</td><td><code>localhost:5173/personas/editar/3</code></td><td>Formulario pre-llenado con los datos</td></tr>
+          <tr><td>Modificar y guardar</td><td>Redirige a <code>/personas</code></td><td>Lista con los datos actualizados</td></tr>
+          <tr><td>Clic en 🗑️ de una fila</td><td>Permanece en <code>/personas</code></td><td>La persona desaparece de la lista</td></tr>
+          <tr><td>Botón atrás del navegador</td><td>URL anterior</td><td>La pantalla anterior se muestra correctamente</td></tr>
+        </tbody>
+      </table>
+      <div class="info">
+        <strong>✅ Si todo funciona:</strong> la URL cambia con cada acción, los botones atrás y adelante del navegador funcionan, y nunca hay una recarga completa de la página — solo cambia el contenido.
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. ACTIVIDADES -->
+  <div class="seccion" id="actividades">
+    <div class="seccion-titulo"><span class="seccion-num">6</span> Actividades</div>
+    <table class="actividades">
+      <thead><tr><th>Núm.</th><th>Actividad</th><th>Tipo</th></tr></thead>
+      <tbody>
+        <tr><td>A1</td><td>Prueba el flujo completo: crear, editar y desactivar una persona. Toma capturas de pantalla de las tres URLs distintas mostrando la barra del navegador.</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+        <tr><td>A2</td><td>Usa el botón atrás del navegador después de guardar un formulario. ¿Qué pasa? Explica el comportamiento con tus palabras.</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+        <tr><td>A3</td><td>Agrega una página de error 404 que aparezca cuando el usuario escribe una URL que no existe. Crea <code>src/pages/NotFoundPage.jsx</code> con un mensaje claro y un botón que lleve de regreso a <code>/personas</code>. Agrégala como ruta con <code>path="*"</code> en <code>App.jsx</code>.</td><td><span class="tipo-badge tipo-codigo">Código</span></td></tr>
+        <tr><td>A4</td><td>En <code>PersonasPage.jsx</code> agrega un campo de texto encima de la tabla que filtre las personas por nombre en tiempo real conforme el usuario escribe. El filtro debe operar sobre el arreglo en estado — sin hacer una nueva petición a la API.</td><td><span class="tipo-badge tipo-codigo">Código</span></td></tr>
+        <tr><td>A5</td><td>Si el usuario escribe directamente en el navegador una URL de edición con un id que no existe, por ejemplo <code>/personas/editar/999</code>, la app debería mostrar un mensaje de error y un botón para regresar al listado. Implementa ese manejo en <code>PersonaFormPage.jsx</code>.</td><td><span class="tipo-badge tipo-codigo">Código</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 7. REFLEXIÓN -->
+  <div class="seccion" id="reflexion">
+    <div class="seccion-titulo"><span class="seccion-num">7</span> Preguntas de reflexión</div>
+    <ol class="reflexion-lista">
+      <li>¿Por qué usamos <code>Link</code> de React Router en lugar de la etiqueta <code>&lt;a href&gt;</code> de HTML? ¿Qué diferencia produce eso en la experiencia del usuario?</li>
+      <li>En <code>PersonaFormPage</code>, ¿cómo sabe el componente si debe crear una persona nueva o editar una existente? ¿Qué revisa exactamente para tomar esa decisión?</li>
+      <li>¿Por qué separamos las páginas en la carpeta <code>pages/</code> en lugar de ponerlas directamente en <code>components/</code>?</li>
+      <li><code>useNavigate</code> y <code>Link</code> sirven para navegar, pero se usan en situaciones distintas. ¿Cuándo conviene usar cada uno? Da un ejemplo concreto de esta práctica para cada caso.</li>
+      <li>¿Qué ventaja tiene que la URL cambie con cada acción del usuario? ¿Qué cosas nuevas puede hacer el usuario que antes no podía en P04?</li>
+    </ol>
+  </div>
+
+  <!-- 8. ENTREGABLE -->
+  <div class="seccion" id="entregable">
+    <div class="seccion-titulo"><span class="seccion-num">8</span> Entregable</div>
+    <ul class="entregable-lista">
+      <li>Carpeta <code>frontend/</code> comprimida en ZIP, sin incluir <code>node_modules/</code>.</li>
+      <li>Capturas de las tres pantallas mostrando la URL correcta en la barra del navegador (A1).</li>
+      <li>Explicación escrita del comportamiento del botón atrás (A2).</li>
+      <li>Código de las actividades A3, A4 y A5 implementadas dentro del proyecto.</li>
+      <li>Respuestas a las 5 preguntas de reflexión.</li>
+    </ul>
+    <div class="peligro"><strong>⚠️ No incluyas node_modules:</strong> puede pesar cientos de MB. El receptor la reconstruye con <code>npm install</code>.</div>
+  </div>
+
+  <!-- 9. RÚBRICA -->
+  <div class="seccion" id="rubrica">
+    <div class="seccion-titulo"><span class="seccion-num">9</span> Criterios de evaluación</div>
+    <table class="rubrica">
+      <thead><tr><th>Criterio</th><th>Descripción</th><th>Puntos</th></tr></thead>
+      <tbody>
+        <tr><td>React Router instalado y activo</td><td><code>BrowserRouter</code> en <code>main.jsx</code>; no hay errores de enrutamiento en consola.</td><td class="pts">10</td></tr>
+        <tr><td>Tres rutas definidas</td><td><code>/personas</code>, <code>/personas/nueva</code> y <code>/personas/editar/:id</code> muestran el componente correcto.</td><td class="pts">20</td></tr>
+        <tr><td>PersonasPage funcional</td><td>Tabla carga datos reales; botones navegan a las URLs correctas; desactivar actualiza la lista.</td><td class="pts">20</td></tr>
+        <tr><td>PersonaFormPage — modo crear</td><td>Formulario vacío en <code>/nueva</code>; al guardar crea el registro y redirige al listado.</td><td class="pts">15</td></tr>
+        <tr><td>PersonaFormPage — modo editar</td><td>Formulario pre-llenado en <code>/editar/:id</code>; al guardar actualiza y redirige.</td><td class="pts">15</td></tr>
+        <tr><td>Actividades A3, A4 y A5</td><td>Página 404, búsqueda en tiempo real y manejo de id inexistente implementados.</td><td class="pts">20</td></tr>
+      </tbody>
+      <tr class="total"><td colspan="2">Total</td><td>100</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<div class="footer">
+  Ingeniería de Desarrollo y Gestión de Software &nbsp;·&nbsp; Práctica 5 de 13 &nbsp;·&nbsp; Fase 2: Frontend base — cierre
+</div>
+
+<script>
+const KW='#7B40F2', ST='#C0392B', CM='#27AE60', FN='#16A085', PL='#1a1a2e', IM='#8E44AD';
+const FONT = '15px "Courier New", monospace';
+const LH = 24, PX = 18, PY = 14;
+
+function draw(id, lines) {
+  const cv = document.getElementById(id);
+  if (!cv) return;
+  const dpr = window.devicePixelRatio || 1;
+  const tmp = document.createElement('canvas');
+  const tc  = tmp.getContext('2d');
+  tc.font = FONT;
+  let maxW = 0;
+  lines.forEach(l => { const w = tc.measureText(l.map(s=>s[1]).join('')).width; if(w>maxW) maxW=w; });
+  const W = Math.ceil(maxW + PX*2);
+  const H = lines.length * LH + PY*2;
+  cv.width = W*dpr; cv.height = H*dpr;
+  cv.style.width = W+'px'; cv.style.height = H+'px';
+  const ctx = cv.getContext('2d');
+  ctx.scale(dpr,dpr);
+  ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,W,H);
+  ctx.font = FONT; ctx.textBaseline='alphabetic';
+  lines.forEach((segs,i) => {
+    const y = PY + i*LH + LH*0.75;
+    let x = PX;
+    segs.forEach(([color,text]) => {
+      ctx.fillStyle=color; ctx.fillText(text,x,y);
+      x += tc.measureText(text).width;
+    });
+  });
+}
+
+const B = {
+
+/* ── Paso 1 ── */
+c_install: [
+  [[CM,'# Instalar React Router DOM (desde la carpeta frontend/)']],
+  [[PL,'npm install react-router-dom']],
+],
+
+/* ── Paso 2: main.jsx ── */
+c_main: [
+  [[IM,'import'],[PL,' React    '],[IM,'from'],[PL,' '],[ST,"'react'"],[PL,';']],
+  [[IM,'import'],[PL,' ReactDOM '],[IM,'from'],[PL,' '],[ST,"'react-dom/client'"],[PL,';']],
+  [[IM,'import'],[PL,' { BrowserRouter } '],[IM,'from'],[PL,' '],[ST,"'react-router-dom'"],[PL,';'],[CM,'  ← agregar']],
+  [[IM,'import'],[PL,' '],[ST,"'bootstrap/dist/css/bootstrap.min.css'"],[PL,';']],
+  [[IM,'import'],[PL,' App '],[IM,'from'],[PL,' '],[ST,"'./App.jsx'"],[PL,';']],
+  [[PL,'']],
+  [[FN,'ReactDOM'],[PL,'.'],[FN,'createRoot'],[PL,'('],[FN,'document'],[PL,'.'],[FN,'getElementById'],[PL,'('],[ST,"'root'"],[PL,'))']],
+  [[PL,'  .'],[FN,'render'],[PL,'(']],
+  [[PL,'    <BrowserRouter>'],[CM,'  ← envuelve toda la app']],
+  [[PL,'      <App />']],
+  [[PL,'    </BrowserRouter>']],
+  [[PL,'  );']],
+],
+
+/* ── Paso 3: App.jsx ── */
+c_app: [
+  [[IM,'import'],[PL,' { Routes, Route } '],[IM,'from'],[PL,' '],[ST,"'react-router-dom'"],[PL,';']],
+  [[IM,'import'],[PL,' Navbar          '],[IM,'from'],[PL,' '],[ST,"'./components/Navbar'"],[PL,';']],
+  [[IM,'import'],[PL,' PersonasPage    '],[IM,'from'],[PL,' '],[ST,"'./pages/PersonasPage'"],[PL,';']],
+  [[IM,'import'],[PL,' PersonaFormPage '],[IM,'from'],[PL,' '],[ST,"'./pages/PersonaFormPage'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'function'],[PL,' '],[FN,'App'],[PL,'() {']],
+  [[PL,'  '],[KW,'return'],[PL,' (']],
+  [[PL,'    <>']],
+  [[PL,'      <Navbar />'],[CM,'  ← aparece en todas las pantallas']],
+  [[PL,'      <Routes>']],
+  [[CM,'        {/* Ruta raíz: redirige al listado */}']],
+  [[PL,'        <Route path='],[ST,"'/'"],[PL,'             element={<PersonasPage />} />']],
+  [[CM,'        {/* Pantalla 1: listado de personas */}']],
+  [[PL,'        <Route path='],[ST,"'/personas'"],[PL,'        element={<PersonasPage />} />']],
+  [[CM,'        {/* Pantalla 2: formulario vacío para crear */}']],
+  [[PL,'        <Route path='],[ST,"'/personas/nueva'"],[PL,'    element={<PersonaFormPage />} />']],
+  [[CM,'        {/* Pantalla 3: formulario con datos para editar */}']],
+  [[PL,'        <Route path='],[ST,"'/personas/editar/:id'"],[PL,' element={<PersonaFormPage />} />']],
+  [[PL,'      </Routes>']],
+  [[PL,'    </>']],
+  [[PL,'  );']],
+  [[PL,'}']],
+  [[PL,'']],
+  [[KW,'export default'],[PL,' App;']],
+],
+
+/* ── Paso 4: PersonasPage.jsx ── */
+c_personas_page: [
+  [[IM,'import'],[PL,' { useState, useEffect } '],[IM,'from'],[PL,' '],[ST,"'react'"],[PL,';']],
+  [[IM,'import'],[PL,' { useNavigate }         '],[IM,'from'],[PL,' '],[ST,"'react-router-dom'"],[PL,';']],
+  [[IM,'import'],[PL,' { getPersonas, eliminarPersona } '],[IM,'from'],[PL,' '],[ST,"'../api/personas.api'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'function'],[PL,' '],[FN,'PersonasPage'],[PL,'() {']],
+  [[PL,'  '],[KW,'const'],[PL,' [personas, setPersonas] = '],[FN,'useState'],[PL,'([]);']],
+  [[PL,'  '],[KW,'const'],[PL,' [cargando, setCargando] = '],[FN,'useState'],[PL,'('],[KW,'true'],[PL,');']],
+  [[PL,'  '],[KW,'const'],[PL,' [alerta,   setAlerta]   = '],[FN,'useState'],[PL,'('],[KW,'null'],[PL,');']],
+  [[PL,'  '],[KW,'const'],[PL,' navigate = '],[FN,'useNavigate'],[PL,'();'],[CM,'  ← para navegar a otras pantallas']],
+  [[PL,'']],
+  [[FN,'  useEffect'],[PL,'(() => { '],[FN,'cargarPersonas'],[PL,'(); }, []);']],
+  [[PL,'']],
+  [[KW,'  async function'],[PL,' '],[FN,'cargarPersonas'],[PL,'() {']],
+  [[PL,'    '],[KW,'try'],[PL,' {']],
+  [[PL,'      '],[FN,'setCargando'],[PL,'('],[KW,'true'],[PL,');']],
+  [[PL,'      '],[KW,'const'],[PL,' datos = '],[KW,'await'],[PL,' '],[FN,'getPersonas'],[PL,'();']],
+  [[PL,'      '],[FN,'setPersonas'],[PL,'(datos);']],
+  [[PL,'    } '],[KW,'catch'],[PL,' (err) {']],
+  [[PL,'      '],[FN,'setAlerta'],[PL,'({ tipo: '],[ST,"'danger'"],[PL,', texto: '],[ST,"'Error al cargar personas.'"],[PL,' });']],
+  [[PL,'    } '],[KW,'finally'],[PL,' { '],[FN,'setCargando'],[PL,'('],[KW,'false'],[PL,'); }']],
+  [[PL,'  }']],
+  [[PL,'']],
+  [[KW,'  async function'],[PL,' '],[FN,'handleEliminar'],[PL,'(id, nombre) {']],
+  [[PL,'    '],[KW,'if'],[PL,' (!confirm(`¿Desactivar a "${nombre}"? No se borrará, solo se marcará como inactivo.`))']],
+  [[PL,'      '],[KW,'return'],[PL,';']],
+  [[PL,'    '],[KW,'try'],[PL,' {']],
+  [[PL,'      '],[KW,'await'],[PL,' '],[FN,'eliminarPersona'],[PL,'(id);']],
+  [[PL,'      '],[FN,'setAlerta'],[PL,'({ tipo: '],[ST,"'warning'"],[PL,', texto: `"${nombre}" fue desactivado.` });']],
+  [[PL,'      '],[FN,'cargarPersonas'],[PL,'();']],
+  [[PL,'    } '],[KW,'catch'],[PL,' (err) {']],
+  [[PL,'      '],[FN,'setAlerta'],[PL,'({ tipo: '],[ST,"'danger'"],[PL,', texto: '],[ST,"'Error al desactivar.'"],[PL,' });']],
+  [[PL,'    }']],
+  [[PL,'  }']],
+  [[PL,'']],
+  [[PL,'  '],[KW,'if'],[PL,' (cargando)']],
+  [[PL,'    '],[KW,'return'],[PL,' <div className='],[ST,'"container mt-5 text-center"'],[PL,'>']],
+  [[PL,'      <div className='],[ST,'"spinner-border text-primary"'],[PL,' role='],[ST,'"status"'],[PL,'></div>']],
+  [[PL,'    </div>;']],
+  [[PL,'']],
+  [[PL,'  '],[KW,'return'],[PL,' (']],
+  [[PL,'    <div className='],[ST,'"container mt-4"'],[PL,'>']],
+  [[PL,'']],
+  [[PL,'      '],[CM,'{ /* Alerta temporal */ }']],
+  [[PL,'      {alerta && (']],
+  [[PL,'        <div className={`alert alert-${alerta.tipo} alert-dismissible`}>']],
+  [[PL,'          {alerta.texto}']],
+  [[PL,'          <button type='],[ST,'"button"'],[PL,' className='],[ST,'"btn-close"'],[PL,' onClick={() => '],[FN,'setAlerta'],[PL,'('],[KW,'null'],[PL,')}></button>']],
+  [[PL,'        </div>']],
+  [[PL,'      )}']],
+  [[PL,'']],
+  [[PL,'      '],[CM,'{ /* Encabezado con botón Nueva persona */ }']],
+  [[PL,'      <div className='],[ST,'"d-flex justify-content-between align-items-center mb-3"'],[PL,'>']],
+  [[PL,'        <div>']],
+  [[PL,'          <h5 className='],[ST,'"text-primary mb-0"'],[PL,'>Módulo de Personas</h5>']],
+  [[PL,'          <small className='],[ST,'"text-muted"'],[PL,'>{personas.length} personas activas</small>']],
+  [[PL,'        </div>']],
+  [[PL,'        <button className='],[ST,'"btn btn-primary btn-sm"'],[PL,'']],
+  [[PL,'          onClick={() => '],[FN,'navigate'],[PL,'('],[ST,"'/personas/nueva'"],[PL,')}'],[CM,'  ← navega a la pantalla de creación']],
+  [[PL,'        >']],
+  [[PL,'          ➕ Nueva persona']],
+  [[PL,'        </button>']],
+  [[PL,'      </div>']],
+  [[PL,'']],
+  [[PL,'      '],[CM,'{ /* Tabla de personas */ }']],
+  [[PL,'      {personas.length === 0 ? (']],
+  [[PL,'        <div className='],[ST,'"alert alert-info"'],[PL,'>No hay personas registradas.</div>']],
+  [[PL,'      ) : (']],
+  [[PL,'        <div className='],[ST,'"table-responsive"'],[PL,'>']],
+  [[PL,'          <table className='],[ST,'"table table-bordered table-hover align-middle"'],[PL,'>']],
+  [[PL,'            <thead className='],[ST,'"table-primary"'],[PL,'><tr>']],
+  [[PL,'              <th>#</th><th>Nombre</th><th>Correo</th>']],
+  [[PL,'              <th>Puesto</th><th>Depto.</th><th>Estado</th><th>Acciones</th>']],
+  [[PL,'            </tr></thead>']],
+  [[PL,'            <tbody>']],
+  [[PL,'              {personas.'],[FN,'map'],[PL,'((p) => (']],
+  [[PL,'                <tr key={p.id}>']],
+  [[PL,'                  <td>{p.id}</td>']],
+  [[PL,'                  <td className='],[ST,'"fw-semibold"'],[PL,'>{p.nombre}</td>']],
+  [[PL,'                  <td>{p.correo}</td>']],
+  [[PL,'                  <td>{p.puesto || '],[ST,"'—'"],[PL,'}</td>']],
+  [[PL,'                  <td>{p.departamento || '],[ST,"'—'"],[PL,'}</td>']],
+  [[PL,'                  <td>']],
+  [[PL,'                    <span className={`badge ${p.activo ? '],[ST,"'bg-success'"],[PL,' : '],[ST,"'bg-secondary'"],[PL,'}`}>']],
+  [[PL,'                      {p.activo ? '],[ST,"'Activo'"],[PL,' : '],[ST,"'Inactivo'"],[PL,'}']],
+  [[PL,'                    </span>']],
+  [[PL,'                  </td>']],
+  [[PL,'                  <td>']],
+  [[PL,'                    <button className='],[ST,'"btn btn-outline-primary btn-sm me-1"'],[PL,'']],
+  [[PL,'                      onClick={() => '],[FN,'navigate'],[PL,'(`/personas/editar/${p.id}`)}'],[CM,'  ← navega a editar']],
+  [[PL,'                    >✏️</button>']],
+  [[PL,'                    <button className='],[ST,'"btn btn-outline-danger btn-sm"'],[PL,'']],
+  [[PL,'                      onClick={() => '],[FN,'handleEliminar'],[PL,'(p.id, p.nombre)}']],
+  [[PL,'                    >🗑️</button>']],
+  [[PL,'                  </td>']],
+  [[PL,'                </tr>']],
+  [[PL,'              ))}']],
+  [[PL,'            </tbody>']],
+  [[PL,'          </table>']],
+  [[PL,'        </div>']],
+  [[PL,'      )}']],
+  [[PL,'    </div>']],
+  [[PL,'  );']],
+  [[PL,'}']],
+  [[PL,'']],
+  [[KW,'export default'],[PL,' PersonasPage;']],
+],
+
+/* ── Paso 5: PersonaFormPage.jsx ── */
+c_form_page: [
+  [[IM,'import'],[PL,' { useState, useEffect } '],[IM,'from'],[PL,' '],[ST,"'react'"],[PL,';']],
+  [[IM,'import'],[PL,' { useParams, useNavigate } '],[IM,'from'],[PL,' '],[ST,"'react-router-dom'"],[PL,';']],
+  [[IM,'import'],[PL,' { getPersonaById, crearPersona, actualizarPersona } '],[IM,'from'],[PL,' '],[ST,"'../api/personas.api'"],[PL,';']],
+  [[IM,'import'],[PL,' PersonaForm '],[IM,'from'],[PL,' '],[ST,"'../components/PersonaForm'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'function'],[PL,' '],[FN,'PersonaFormPage'],[PL,'() {']],
+  [[PL,'']],
+  [[PL,'  '],[CM,'// useParams lee los segmentos dinámicos de la URL']],
+  [[PL,'  '],[CM,'// En /personas/editar/3  →  id = "3"']],
+  [[PL,'  '],[CM,'// En /personas/nueva     →  id = undefined']],
+  [[PL,'  '],[KW,'const'],[PL,' { id } = '],[FN,'useParams'],[PL,'();']],
+  [[PL,'  '],[KW,'const'],[PL,' navigate  = '],[FN,'useNavigate'],[PL,'();']],
+  [[PL,'  '],[KW,'const'],[PL,' [persona,  setPersona]  = '],[FN,'useState'],[PL,'('],[KW,'null'],[PL,');']],
+  [[PL,'  '],[KW,'const'],[PL,' [cargando, setCargando] = '],[FN,'useState'],[PL,'('],[KW,'false'],[PL,');']],
+  [[PL,'  '],[KW,'const'],[PL,' [error,    setError]    = '],[FN,'useState'],[PL,'('],[KW,'null'],[PL,');']],
+  [[PL,'']],
+  [[PL,'  '],[CM,'// Si hay id, cargamos los datos de esa persona para pre-llenar el formulario']],
+  [[FN,'  useEffect'],[PL,'(() => {']],
+  [[PL,'    '],[KW,'if'],[PL,' (id) {']],
+  [[PL,'      '],[FN,'setCargando'],[PL,'('],[KW,'true'],[PL,');']],
+  [[PL,'      '],[FN,'getPersonaById'],[PL,'(id)']],
+  [[PL,'        .'],[FN,'then'],[PL,'(datos => '],[FN,'setPersona'],[PL,'(datos))']],
+  [[PL,'        .'],[KW,'catch'],[PL,'(() => '],[FN,'setError'],[PL,'('],[ST,"'Persona no encontrada.'"],[PL,'))']],
+  [[PL,'        .'],[FN,'finally'],[PL,'(() => '],[FN,'setCargando'],[PL,'('],[KW,'false'],[PL,'));']],
+  [[PL,'    }']],
+  [[PL,'  }, [id]);'],[CM,'  ← se re-ejecuta si el id de la URL cambia']],
+  [[PL,'']],
+  [[KW,'  async function'],[PL,' '],[FN,'handleGuardar'],[PL,'(datos) {']],
+  [[PL,'    '],[KW,'try'],[PL,' {']],
+  [[PL,'      '],[KW,'if'],[PL,' (id) {']],
+  [[PL,'        '],[KW,'await'],[PL,' '],[FN,'actualizarPersona'],[PL,'(id, datos);'],[CM,'  ← modo editar']],
+  [[PL,'      } '],[KW,'else'],[PL,' {']],
+  [[PL,'        '],[KW,'await'],[PL,' '],[FN,'crearPersona'],[PL,'(datos);'],[CM,'         ← modo crear']],
+  [[PL,'      }']],
+  [[PL,'      '],[FN,'navigate'],[PL,'('],[ST,"'/personas'"],[PL,');'],[CM,'  ← redirige al listado al terminar']],
+  [[PL,'    } '],[KW,'catch'],[PL,' (err) {']],
+  [[PL,'      '],[FN,'setError'],[PL,'('],[ST,"'Error al guardar. Intenta de nuevo.'"],[PL,');']],
+  [[PL,'    }']],
+  [[PL,'  }']],
+  [[PL,'']],
+  [[PL,'  '],[KW,'if'],[PL,' (cargando)']],
+  [[PL,'    '],[KW,'return'],[PL,' <div className='],[ST,'"container mt-5 text-center"'],[PL,'><div className='],[ST,'"spinner-border text-primary"'],[PL,'></div></div>;']],
+  [[PL,'']],
+  [[PL,'  '],[KW,'if'],[PL,' (error)']],
+  [[PL,'    '],[KW,'return'],[PL,' (']],
+  [[PL,'      <div className='],[ST,'"container mt-4"'],[PL,'>']],
+  [[PL,'        <div className='],[ST,'"alert alert-danger"'],[PL,'>{error}</div>']],
+  [[PL,'        <button className='],[ST,'"btn btn-outline-primary"'],[PL,' onClick={() => '],[FN,'navigate'],[PL,'('],[ST,"'/personas'"],[PL,')}>']],
+  [[PL,'          ← Volver al listado']],
+  [[PL,'        </button>']],
+  [[PL,'      </div>']],
+  [[PL,'    );']],
+  [[PL,'']],
+  [[PL,'  '],[KW,'return'],[PL,' (']],
+  [[PL,'    <div className='],[ST,'"container mt-4"'],[PL,' style={{ maxWidth: '],[ST,"'620px'"],[PL,' }}>']],
+  [[PL,'      <h5 className='],[ST,'"text-primary mb-3"'],[PL,'>']],
+  [[PL,'        {id ? '],[ST,"'✏️ Editar persona'"],[PL,' : '],[ST,"'➕ Nueva persona'"],[PL,'}']],
+  [[PL,'      </h5>']],
+  [[PL,'      <PersonaForm']],
+  [[PL,'        persona={persona}']],
+  [[PL,'        onGuardar={handleGuardar}']],
+  [[PL,'        onCancelar={() => '],[FN,'navigate'],[PL,'('],[ST,"'/personas'"],[PL,')}'],[CM,'  ← cancelar también regresa al listado']],
+  [[PL,'      />']],
+  [[PL,'    </div>']],
+  [[PL,'  );']],
+  [[PL,'}']],
+  [[PL,'']],
+  [[KW,'export default'],[PL,' PersonaFormPage;']],
+],
+
+/* ── Paso 6: Navbar.jsx ── */
+c_navbar: [
+  [[IM,'import'],[PL,' { Link } '],[IM,'from'],[PL,' '],[ST,"'react-router-dom'"],[PL,';'],[CM,'  ← agregar este import']],
+  [[PL,'']],
+  [[KW,'function'],[PL,' '],[FN,'Navbar'],[PL,'() {']],
+  [[PL,'  '],[KW,'return'],[PL,' (']],
+  [[PL,'    <nav className='],[ST,'"navbar navbar-dark bg-primary px-4 py-3"'],[PL,'>']],
+  [[PL,'']],
+  [[PL,'      '],[CM,'{ /* Link navega sin recargar la página */ }']],
+  [[PL,'      <Link to='],[ST,"'/personas'"],[PL,' className='],[ST,'"navbar-brand fw-bold fs-5 text-white text-decoration-none"'],[PL,'>']],
+  [[PL,'        🖥️ Sistema Administrativo']],
+  [[PL,'      </Link>']],
+  [[PL,'']],
+  [[PL,'      <span className='],[ST,'"text-white-50"'],[PL,' style={{ fontSize: '],[ST,"'13px'"],[PL,' }}>']],
+  [[PL,'        Ingeniería de Desarrollo y Gestión de Software']],
+  [[PL,'      </span>']],
+  [[PL,'']],
+  [[PL,'    </nav>']],
+  [[PL,'  );']],
+  [[PL,'}']],
+  [[PL,'']],
+  [[KW,'export default'],[PL,' Navbar;']],
+],
+
+};
+
+document.fonts.ready.then(() => {
+  for (const [id, lines] of Object.entries(B)) draw(id, lines);
+});
+</script>
+</body>
+</html>
