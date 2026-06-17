@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica 4 — Proyecto React + Vite: Frontend Base</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',Arial,sans-serif; background:#fff; color:#1a1a2e; font-size:14px; line-height:1.7; }
+.header { background:#1565C0; color:#fff; }
+.header-top { background:#0D47A1; padding:18px 40px 14px; display:flex; justify-content:space-between; align-items:flex-start; }
+.header-inst { font-size:11px; opacity:0.85; letter-spacing:0.03em; text-transform:uppercase; }
+.header-carrera { font-size:13px; font-weight:600; margin-top:3px; }
+.header-badge { background:#fff; color:#0D47A1; font-weight:700; font-size:13px; padding:6px 16px; border-radius:20px; white-space:nowrap; align-self:center; }
+.header-main { padding:20px 40px 24px; }
+.header-practica { font-size:11px; opacity:0.75; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; }
+.header-titulo { font-size:26px; font-weight:700; margin-bottom:8px; }
+.header-meta { display:flex; gap:24px; font-size:12px; opacity:0.85; flex-wrap:wrap; }
+.header-strip { height:5px; background:#42A5F5; }
+.content { max-width:900px; margin:0 auto; padding:36px 40px 60px; }
+.toc { background:#E3F2FD; border-left:4px solid #1565C0; border-radius:0 8px 8px 0; padding:20px 24px; margin-bottom:36px; }
+.toc-title { font-size:13px; font-weight:700; color:#0D47A1; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px; }
+.toc ol { padding-left:18px; }
+.toc li { font-size:13px; color:#1565C0; padding:3px 0; }
+.toc li a { color:#1565C0; text-decoration:none; }
+.toc li a:hover { text-decoration:underline; }
+.seccion { margin-bottom:36px; }
+.seccion-titulo { font-size:16px; font-weight:700; color:#0D47A1; border-bottom:2px solid #BBDEFB; padding-bottom:8px; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+.seccion-num { background:#1565C0; color:#fff; font-size:12px; font-weight:700; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.subseccion-titulo { font-size:14px; font-weight:700; color:#1565C0; margin:18px 0 8px; }
+p { margin-bottom:10px; }
+.contexto-card { background:#F8FBFF; border:1px solid #BBDEFB; border-radius:10px; padding:20px 24px; margin-bottom:16px; }
+.contexto-card p:last-child { margin-bottom:0; }
+
+/* CONCEPTOS */
+.concepto-bloque { border:1px solid #BBDEFB; border-radius:10px; margin-bottom:14px; overflow:hidden; }
+.concepto-header { background:#1565C0; color:#fff; padding:10px 16px; font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px; }
+.concepto-icon { font-size:16px; }
+.concepto-body { padding:14px 16px; font-size:13.5px; background:#F8FBFF; }
+.concepto-body p { margin-bottom:8px; }
+.concepto-body p:last-child { margin-bottom:0; }
+.analogia { background:#FFF8E1; border-left:3px solid #F59E0B; padding:10px 14px; margin-top:8px; border-radius:0 6px 6px 0; font-size:13px; }
+.analogia strong { color:#92400E; }
+
+/* COMPARATIVA fetch vs axios */
+.versus { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:14px 0; }
+.versus-col { border-radius:8px; overflow:hidden; border:1px solid #BBDEFB; }
+.versus-header { padding:8px 14px; font-size:12px; font-weight:700; text-align:center; }
+.versus-header.antes { background:#FFEBEE; color:#B71C1C; }
+.versus-header.despues { background:#E8F5E9; color:#1B5E20; }
+.versus-body { padding:0; }
+.versus-body canvas { display:block; max-width:100%; }
+
+/* CAPAS ARQUITECTURA */
+.arq-capas { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:14px 0; }
+.arq-capa { border-radius:8px; overflow:hidden; text-align:center; }
+.arq-capa-header { padding:8px 10px; font-size:12px; font-weight:700; color:#fff; }
+.arq-capa-body { padding:10px; font-size:12px; line-height:1.6; border:1px solid #BBDEFB; border-top:none; background:#F8FBFF; }
+.arq-capa-body code { background:#E3F2FD; color:#0D47A1; padding:1px 5px; border-radius:3px; font-size:11px; }
+
+/* TABLA COMPARATIVA <> vs <View> */
+.comp-tabla { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.comp-tabla th { padding:10px 14px; text-align:left; font-weight:700; font-size:12px; }
+.comp-tabla td { padding:10px 14px; border-bottom:1px solid #E3F2FD; vertical-align:top; }
+.comp-tabla tr:last-child td { border-bottom:none; }
+.comp-tabla code { background:#E3F2FD; color:#0D47A1; padding:1px 6px; border-radius:3px; font-family:'Courier New',monospace; }
+
+.obj-lista { list-style:none; padding:0; }
+.obj-lista li { padding:6px 0 6px 24px; position:relative; font-size:13.5px; border-bottom:1px solid #F0F4FF; }
+.obj-lista li:last-child { border-bottom:none; }
+.obj-lista li::before { content:'✓'; position:absolute; left:0; color:#1565C0; font-weight:700; }
+.nota { background:#FFF8E1; border-left:4px solid #F59E0B; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.nota strong { color:#92400E; }
+.info { background:#E8F5E9; border-left:4px solid #43A047; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.info strong { color:#1B5E20; }
+.peligro { background:#FFEBEE; border-left:4px solid #E53935; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.peligro strong { color:#B71C1C; }
+.profesional { background:#EDE7F6; border-left:4px solid #7B1FA2; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.profesional strong { color:#4A148C; }
+
+/* FLUJO VISUAL */
+.flujo { display:flex; align-items:center; gap:0; margin:16px 0; flex-wrap:wrap; }
+.flujo-item { background:#E3F2FD; border:1px solid #90CAF9; border-radius:8px; padding:10px 16px; text-align:center; font-size:12px; flex:1; min-width:100px; }
+.flujo-item.activo { background:#1565C0; color:#fff; border-color:#1565C0; font-weight:700; }
+.flujo-item.futuro { background:#F5F5F5; border-color:#ddd; color:#999; }
+.flujo-item.listo  { background:#E8F5E9; border-color:#66BB6A; color:#2E7D32; }
+.flujo-item .fi-num { font-size:10px; opacity:0.7; margin-bottom:2px; }
+.flujo-item .fi-nombre { font-size:12px; font-weight:600; }
+.flujo-sep { color:#90CAF9; font-size:18px; padding:0 4px; }
+
+.paso { background:#fff; border:1px solid #BBDEFB; border-radius:10px; padding:20px 24px; margin-bottom:20px; }
+.paso-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.paso-num { background:#1565C0; color:#fff; font-size:13px; font-weight:700; padding:4px 12px; border-radius:14px; }
+.paso-titulo { font-size:14px; font-weight:700; color:#0D47A1; }
+.paso p { font-size:13.5px; margin-bottom:10px; }
+.file-label { display:inline-block; background:#E3F2FD; color:#0D47A1; font-family:'Courier New',monospace; font-size:12px; padding:4px 12px; border-radius:6px 6px 0 0; border:1px solid #BBDEFB; border-bottom:none; font-weight:600; margin-top:10px; }
+.file-label.nuevo { background:#E8F5E9; color:#1B5E20; border-color:#A5D6A7; }
+.file-label.modif { background:#FFF8E1; color:#92400E; border-color:#FFE082; }
+.code-wrap { border:1px solid #BBDEFB; border-radius:0 8px 8px 8px; overflow:hidden; margin-bottom:12px; background:#fff; }
+.code-wrap.nuevo { border-color:#A5D6A7; }
+.code-wrap.modif { border-color:#FFE082; }
+.code-wrap canvas { display:block; max-width:100%; }
+
+/* FOLDER TREE */
+.folder-tree { background:#fff; border:1px solid #BBDEFB; border-radius:8px; padding:16px 20px; margin:12px 0; font-family:'Courier New',monospace; font-size:13px; line-height:2.1; }
+.folder-tree .d { color:#1565C0; font-weight:700; }
+.folder-tree .f { color:#2E7D32; }
+.folder-tree .f-nuevo { color:#2E7D32; font-weight:700; background:#E8F5E9; padding:1px 4px; border-radius:3px; }
+.folder-tree .f-modif { color:#92400E; font-weight:700; background:#FFF8E1; padding:1px 4px; border-radius:3px; }
+.folder-tree .cm { color:#9E9E9E; font-style:italic; }
+
+/* TABLA DEPENDENCIAS */
+.deps-tabla { width:100%; border-collapse:collapse; font-size:13px; margin:12px 0; }
+.deps-tabla th { background:#1565C0; color:#fff; padding:9px 14px; text-align:left; font-size:12px; }
+.deps-tabla td { padding:9px 14px; border-bottom:1px solid #E3F2FD; vertical-align:top; }
+.deps-tabla tr:nth-child(even) td { background:#F8FBFF; }
+.deps-tabla code { background:#E3F2FD; color:#0D47A1; padding:1px 6px; border-radius:3px; font-size:12px; }
+
+/* ACTIVIDADES */
+.actividades { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.actividades th { background:#1565C0; color:#fff; padding:10px 14px; text-align:left; font-weight:600; font-size:12px; }
+.actividades td { padding:9px 14px; border-bottom:1px solid #E3F2FD; vertical-align:top; }
+.actividades tr:nth-child(even) td { background:#F8FBFF; }
+.actividades tr:last-child td { border-bottom:none; }
+.tipo-badge { font-size:11px; padding:3px 8px; border-radius:10px; font-weight:600; white-space:nowrap; }
+.tipo-terminal { background:#1a1a2e; color:#A6E3A1; }
+.tipo-config   { background:#FFF8E1; color:#92400E; }
+.tipo-codigo   { background:#E3F2FD; color:#0D47A1; }
+.tipo-prueba   { background:#E8F5E9; color:#1B5E20; }
+
+.reflexion-lista { list-style:none; padding:0; counter-reset:ref; }
+.reflexion-lista li { counter-increment:ref; padding:10px 14px 10px 44px; position:relative; background:#F8FBFF; border:1px solid #BBDEFB; border-radius:8px; margin-bottom:8px; font-size:13.5px; }
+.reflexion-lista li::before { content:counter(ref); position:absolute; left:12px; top:50%; transform:translateY(-50%); background:#1565C0; color:#fff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
+.rubrica { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.rubrica th { background:#0D47A1; color:#fff; padding:10px 14px; text-align:left; font-weight:600; font-size:12px; }
+.rubrica td { padding:9px 14px; border-bottom:1px solid #E3F2FD; }
+.rubrica tr:nth-child(even) td { background:#F8FBFF; }
+.rubrica .total td { background:#1565C0; color:#fff; font-weight:700; }
+.pts { font-weight:700; color:#0D47A1; }
+.entregable-lista { list-style:none; padding:0; }
+.entregable-lista li { padding:8px 14px 8px 36px; position:relative; font-size:13.5px; border-bottom:1px solid #F0F4FF; }
+.entregable-lista li:last-child { border-bottom:none; }
+.entregable-lista li::before { content:'📄'; position:absolute; left:8px; }
+.footer { background:#0D47A1; color:#fff; text-align:center; padding:14px 40px; font-size:12px; margin-top:40px; }
+code { background:#E3F2FD; color:#0D47A1; padding:1px 5px; border-radius:3px; font-size:12px; font-family:'Courier New',monospace; }
+
+/* FLUJO DE DATOS SVG */
+.flujo-datos-wrap { background:#F8FBFF; border:1px solid #BBDEFB; border-radius:12px; padding:20px; margin:16px 0; overflow-x:auto; }
+.flujo-datos-titulo { font-size:13px; font-weight:700; color:#0D47A1; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:14px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-inst">Ingeniería de Desarrollo y Gestión de Software</div>
+      <div class="header-carrera">Desarrollo Web Integral y Seguridad</div>
+    </div>
+    <div class="header-badge">Práctica 4</div>
+  </div>
+  <div class="header-main">
+    <div class="header-practica">Fase 2 — Frontend base</div>
+    <div class="header-titulo">Proyecto React + Vite: configuración del frontend</div>
+    <div class="header-meta">
+      <span>⏱ Duración: 2 horas</span>
+      <span>🛠 React · Vite · Bootstrap · axios</span>
+      <span>📦 Entregable: proyecto frontend conectado a la API</span>
+    </div>
+  </div>
+  <div class="header-strip"></div>
+</div>
+
+<div class="content">
+
+  <div class="toc">
+    <div class="toc-title">Tabla de contenidos</div>
+    <ol>
+      <li><a href="#donde">¿Dónde estamos en el proyecto?</a></li>
+      <li><a href="#conceptos">Conceptos clave que debes conocer</a></li>
+      <li><a href="#fragmentos">¿Cuándo uso &lt;&gt; y cuándo &lt;View&gt;?</a></li>
+      <li><a href="#fetch-vs-axios">fetch vs axios: lo que hacías antes y lo que harás ahora</a></li>
+      <li><a href="#flujo">Flujo de datos: cómo se comunican frontend y backend</a></li>
+      <li><a href="#objetivos">Objetivos de la práctica</a></li>
+      <li><a href="#estructura">Estructura del proyecto frontend</a></li>
+      <li><a href="#desarrollo">Desarrollo paso a paso</a></li>
+      <li><a href="#actividades">Actividades</a></li>
+      <li><a href="#reflexion">Preguntas de reflexión</a></li>
+      <li><a href="#entregable">Entregable</a></li>
+      <li><a href="#rubrica">Criterios de evaluación</a></li>
+    </ol>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- 1. DÓNDE ESTAMOS                                       -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="seccion" id="donde">
+    <div class="seccion-titulo"><span class="seccion-num">1</span> ¿Dónde estamos en el proyecto?</div>
+
+    <div class="contexto-card">
+      <p>En las prácticas anteriores construimos la base del sistema desde abajo hacia arriba: primero la base de datos con sus cuatro tablas (<strong>P01</strong>), luego el servidor backend con Node.js y Express (<strong>P02</strong>), y finalmente la API REST completa con todos los endpoints CRUD para el módulo de personas (<strong>P03</strong>).</p>
+      <p>Ahora llegó el turno del <strong>frontend</strong>: la interfaz visual que verá el usuario en el navegador. En esta práctica crearemos el proyecto React con Vite, lo configuraremos con Bootstrap y axios, y estableceremos la comunicación con nuestra API.</p>
+    </div>
+
+    <div class="flujo">
+      <div class="flujo-item listo"><div class="fi-num">P01</div><div class="fi-nombre">Base de datos</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item listo"><div class="fi-num">P02–P03</div><div class="fi-nombre">Backend + API</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item activo"><div class="fi-num">P04–P05</div><div class="fi-nombre">Frontend React</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item futuro"><div class="fi-num">P06–P07</div><div class="fi-nombre">Autenticación</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item futuro"><div class="fi-num">P08–P13</div><div class="fi-nombre">Módulos avanzados</div></div>
+    </div>
+
+    <div class="info">
+      <strong>✅ Lo que ya tienes funcionando:</strong> El backend corre en <code>http://localhost:3000</code> y responde a todos los endpoints de <code>/api/personas</code>. Esta práctica se construye sobre esa base.
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- 2. CONCEPTOS                                           -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="seccion" id="conceptos">
+    <div class="seccion-titulo"><span class="seccion-num">2</span> Conceptos clave que debes conocer</div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">⚛️</span> ¿Qué es React?</div>
+      <div class="concepto-body">
+        <p>React es una <strong>biblioteca de JavaScript</strong> para construir interfaces de usuario. Su idea central es dividir la interfaz en <strong>componentes</strong>: piezas reutilizables que encapsulan su propio HTML, lógica y estado. Cuando los datos cambian, React actualiza automáticamente solo las partes de la pantalla que lo necesitan, sin recargar la página completa.</p>
+        <div class="analogia"><strong>Analogía:</strong> Imagina que tu interfaz es un periódico. La forma tradicional sería reimprimir todo el periódico cada vez que cambia una noticia. React es como tener cada sección (portada, deportes, cultura) como una pieza independiente: si cambia deportes, solo se reimprime esa sección.</div>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">⚡</span> ¿Qué es Vite?</div>
+      <div class="concepto-body">
+        <p>Vite es la <strong>herramienta que convierte tu código React en algo que el navegador puede ejecutar</strong>. Cuando escribes un componente en un archivo <code>.jsx</code>, el navegador no lo entiende directamente — necesita un proceso de transformación. Ese es el trabajo de Vite.</p>
+        <p>Además de transformar el código, Vite ofrece un <strong>servidor de desarrollo en vivo</strong>: cada vez que guardas un archivo, la página se actualiza automáticamente en el navegador sin que tengas que recargarla.</p>
+        <div class="analogia"><strong>Analogía:</strong> Vite es como el horno en una panadería. Tú escribes la receta y pones los ingredientes (código fuente). El horno los transforma en algo que se puede consumir (archivos que el navegador entiende). Sin el horno, la receta sola no sirve.</div>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🧩</span> ¿Qué es un componente y por qué creamos la carpeta <code>components/</code>?</div>
+      <div class="concepto-body">
+        <p>Un componente es una <strong>función de JavaScript que devuelve JSX</strong> (una mezcla de JavaScript y HTML). Los componentes son la unidad básica de React: todo lo que ves en la pantalla es un componente.</p>
+        <p>Creamos la carpeta <code>src/components/</code> para <strong>organizar el proyecto de la misma manera que el backend usa <code>controllers/</code> y <code>routes/</code></strong>. No es un requisito técnico de React, pero sí una convención profesional que separa responsabilidades:</p>
+        <table class="comp-tabla" style="margin-top:10px;">
+          <thead><tr style="background:#E3F2FD;"><th style="color:#0D47A1;">Backend (P02–P03)</th><th style="color:#0D47A1;">Frontend (P04)</th><th style="color:#0D47A1;">¿Para qué?</th></tr></thead>
+          <tbody>
+            <tr><td><code>controllers/</code></td><td><code>components/</code></td><td>Lógica y presentación por módulo</td></tr>
+            <tr><td><code>routes/</code></td><td><code>api/</code></td><td>Define cómo llega/sale la información</td></tr>
+            <tr><td><code>server.js</code></td><td><code>App.jsx</code></td><td>Punto de entrada que ensambla todo</td></tr>
+          </tbody>
+        </table>
+        <p style="margin-top:8px;">Así como en el backend no escribimos todo en <code>server.js</code>, en React no escribiremos todo en <code>App.jsx</code>. Cada componente tiene su propio archivo con una responsabilidad clara.</p>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🎣</span> ¿Qué son los Hooks de React?</div>
+      <div class="concepto-body">
+        <p>Los Hooks son funciones especiales de React que permiten a los componentes <strong>recordar información</strong> (estado) y <strong>ejecutar acciones automáticas</strong> (efectos). Los dos más importantes para esta práctica:</p>
+        <p><strong>useState</strong> — guarda y actualiza datos dentro de un componente. Cuando el estado cambia, React vuelve a pintar el componente con los nuevos datos.</p>
+        <p><strong>useEffect</strong> — ejecuta código cuando el componente aparece en pantalla. Se usa para cargar datos desde la API al momento en que el usuario abre la página.</p>
+        <div class="analogia"><strong>Analogía:</strong> <code>useState</code> es la memoria del componente (recuerda cuántas personas hay en la lista). <code>useEffect</code> es la acción que se dispara al abrir la página (ve a buscar las personas a la API automáticamente).</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- 3. <> vs <View>                                        -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="seccion" id="fragmentos">
+    <div class="seccion-titulo"><span class="seccion-num">3</span> ¿Cuándo uso <code>&lt;&gt;</code> y cuándo <code>&lt;View&gt;</code>?</div>
+
+    <p>Esta es una pregunta muy común al empezar con React. La respuesta depende de <strong>en qué plataforma estás trabajando</strong>.</p>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🌐</span> <code>&lt;&gt;&lt;/&gt;</code> — Fragmento de React (para aplicaciones web)</div>
+      <div class="concepto-body">
+        <p>En React para la web, un componente <strong>debe devolver un solo elemento raíz</strong>. Pero muchas veces quieres devolver varios elementos sin agregar un <code>&lt;div&gt;</code> innecesario que ensucie el HTML.</p>
+        <p>El fragmento vacío <code>&lt;&gt;&lt;/&gt;</code> es la solución: agrupa varios elementos sin crear ningún nodo real en el HTML del navegador. También puedes escribirlo como <code>&lt;React.Fragment&gt;&lt;/React.Fragment&gt;</code>, pero la forma corta es la más usada.</p>
+        <div class="analogia"><strong>¿Cuándo lo usas?</strong> Siempre que necesites devolver dos o más elementos en un componente web sin añadir un contenedor real. En este proyecto lo usarás en <code>App.jsx</code> para envolver <code>&lt;Navbar /&gt;</code> y <code>&lt;PersonasLista /&gt;</code> juntos.</div>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">📱</span> <code>&lt;View&gt;&lt;/View&gt;</code> — Solo existe en React Native (para aplicaciones móviles)</div>
+      <div class="concepto-body">
+        <p><code>&lt;View&gt;</code> <strong>no existe en React para web</strong>. Es un componente exclusivo de <strong>React Native</strong>, que es una versión diferente de React pensada para construir aplicaciones móviles (iOS y Android).</p>
+        <p>En React Native no existen etiquetas HTML como <code>&lt;div&gt;</code>, <code>&lt;p&gt;</code> o <code>&lt;table&gt;</code>. En su lugar se usan componentes nativos como <code>&lt;View&gt;</code> (equivalente a <code>&lt;div&gt;</code>), <code>&lt;Text&gt;</code> (equivalente a <code>&lt;p&gt;</code>) y <code>&lt;ScrollView&gt;</code>.</p>
+        <div class="analogia"><strong>¿Cuándo lo usas?</strong> Solo cuando estés construyendo una aplicación móvil con React Native (como la app GuayabaApp del proyecto de árbol de UTM). <strong>Nunca en un proyecto web como este.</strong></div>
+      </div>
+    </div>
+
+    <table class="comp-tabla" style="border:1px solid #BBDEFB; border-radius:8px; overflow:hidden;">
+      <thead><tr style="background:#0D47A1; color:#fff;">
+        <th style="padding:10px 14px;">Elemento</th>
+        <th style="padding:10px 14px;">Plataforma</th>
+        <th style="padding:10px 14px;">¿Para qué sirve?</th>
+        <th style="padding:10px 14px;">¿Se renderiza en el DOM?</th>
+      </tr></thead>
+      <tbody>
+        <tr style="background:#E8F5E9;">
+          <td style="padding:10px 14px;"><code>&lt;&gt;&lt;/&gt;</code></td>
+          <td style="padding:10px 14px;"><strong>React Web</strong> ✅</td>
+          <td style="padding:10px 14px;">Agrupa elementos sin contenedor extra</td>
+          <td style="padding:10px 14px;">No — desaparece en el HTML final</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 14px;"><code>&lt;div&gt;&lt;/div&gt;</code></td>
+          <td style="padding:10px 14px;"><strong>React Web</strong> ✅</td>
+          <td style="padding:10px 14px;">Contenedor genérico con bloque visual</td>
+          <td style="padding:10px 14px;">Sí — aparece en el HTML como <code>&lt;div&gt;</code></td>
+        </tr>
+        <tr style="background:#FFF8E1;">
+          <td style="padding:10px 14px;"><code>&lt;View&gt;&lt;/View&gt;</code></td>
+          <td style="padding:10px 14px;"><strong>React Native</strong> 📱</td>
+          <td style="padding:10px 14px;">Contenedor para móvil (como <code>&lt;div&gt;</code> pero nativo)</td>
+          <td style="padding:10px 14px;">No aplica — se convierte en vista nativa iOS/Android</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="nota">
+      <strong>Regla práctica para este proyecto:</strong> Usa <code>&lt;&gt;&lt;/&gt;</code> cuando necesites agrupar sin <code>&lt;div&gt;</code>. Usa <code>&lt;div&gt;</code> cuando sí necesites el contenedor (para estilos, layout, etc.). <code>&lt;View&gt;</code> nunca lo usarás aquí.
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- 4. FETCH VS AXIOS                                      -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="seccion" id="fetch-vs-axios">
+    <div class="seccion-titulo"><span class="seccion-num">4</span> <code>fetch</code> vs <code>axios</code>: lo que hacías antes y lo que harás ahora</div>
+
+    <p>Es posible que hayas usado <code>fetch</code> en alguna materia anterior para pedir datos a un servidor. En este proyecto usaremos <code>axios</code>. Aquí se muestra exactamente la misma operación escrita de las dos formas para que identifiques las diferencias:</p>
+
+    <div class="subseccion-titulo">Caso 1 — Obtener la lista de personas</div>
+    <div class="versus">
+      <div class="versus-col">
+        <div class="versus-header antes">❌ Con fetch (lo que hacías antes)</div>
+        <div class="versus-body"><canvas id="c_fetch_get"></canvas></div>
+      </div>
+      <div class="versus-col">
+        <div class="versus-header despues">✅ Con axios (lo que harás ahora)</div>
+        <div class="versus-body"><canvas id="c_axios_get"></canvas></div>
+      </div>
+    </div>
+
+    <div class="subseccion-titulo">Caso 2 — Crear una persona nueva (POST con cuerpo JSON)</div>
+    <div class="versus">
+      <div class="versus-col">
+        <div class="versus-header antes">❌ Con fetch</div>
+        <div class="versus-body"><canvas id="c_fetch_post"></canvas></div>
+      </div>
+      <div class="versus-col">
+        <div class="versus-header despues">✅ Con axios</div>
+        <div class="versus-body"><canvas id="c_axios_post"></canvas></div>
+      </div>
+    </div>
+
+    <div class="subseccion-titulo">¿Por qué axios es mejor para este proyecto?</div>
+    <table class="deps-tabla">
+      <thead><tr><th>Característica</th><th>fetch (nativo)</th><th>axios (librería)</th></tr></thead>
+      <tbody>
+        <tr><td>Transformación de JSON</td><td>Manual: debes llamar <code>.json()</code> siempre</td><td>Automática: ya viene como objeto JS</td></tr>
+        <tr><td>Enviar JSON en POST/PUT</td><td>Debes serializar y agregar headers manualmente</td><td>Automático: pasas el objeto y listo</td></tr>
+        <tr><td>Errores HTTP (404, 500)</td><td>No lanza error — debes revisar <code>res.ok</code></td><td>Lanza error automáticamente con el código</td></tr>
+        <tr><td>Interceptores (JWT en P06)</td><td>No tiene — necesitas código extra</td><td>Tiene interceptores: agrega el token en un solo lugar</td></tr>
+        <tr><td>Código resultante</td><td>Más largo y repetitivo</td><td>Más corto y legible</td></tr>
+      </tbody>
+    </table>
+
+    <div class="profesional">
+      <strong>💡 Nota importante:</strong> axios no viene con el navegador — hay que instalarlo con <code>npm install axios</code>. fetch sí viene incluido en todos los navegadores modernos sin instalar nada. Usamos axios porque en las prácticas P06–P07 agregaremos autenticación con JWT, y los interceptores de axios harán esa parte mucho más sencilla.
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- 5. FLUJO DE DATOS                                      -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="seccion" id="flujo">
+    <div class="seccion-titulo"><span class="seccion-num">5</span> Flujo de datos: cómo se comunican frontend y backend</div>
+
+    <p>El siguiente diagrama muestra paso a paso qué ocurre desde que el usuario abre la página hasta que ve los datos en la tabla. Cada número corresponde a un paso del recorrido de la información.</p>
+
+    <div class="flujo-datos-wrap">
+      <div class="flujo-datos-titulo">📡 Flujo completo: GET /api/personas</div>
+      <svg viewBox="0 0 820 420" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:820px;display:block;margin:0 auto;">
+        <!-- Fondo capas -->
+        <!-- Capa BROWSER -->
+        <rect x="10" y="10" width="230" height="400" rx="10" fill="#F3E5F5" stroke="#CE93D8" stroke-width="1.5"/>
+        <text x="125" y="32" text-anchor="middle" font-family="Segoe UI,Arial" font-size="11" font-weight="700" fill="#6A1B9A">NAVEGADOR</text>
+        <text x="125" y="46" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10" fill="#9C27B0">localhost:5173</text>
+
+        <!-- Capa BACKEND -->
+        <rect x="300" y="10" width="220" height="400" rx="10" fill="#E3F2FD" stroke="#90CAF9" stroke-width="1.5"/>
+        <text x="410" y="32" text-anchor="middle" font-family="Segoe UI,Arial" font-size="11" font-weight="700" fill="#0D47A1">BACKEND</text>
+        <text x="410" y="46" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10" fill="#1565C0">localhost:3000</text>
+
+        <!-- Capa BD -->
+        <rect x="580" y="10" width="230" height="400" rx="10" fill="#E8F5E9" stroke="#A5D6A7" stroke-width="1.5"/>
+        <text x="695" y="32" text-anchor="middle" font-family="Segoe UI,Arial" font-size="11" font-weight="700" fill="#1B5E20">BASE DE DATOS</text>
+        <text x="695" y="46" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10" fill="#2E7D32">MySQL · phpMyAdmin</text>
+
+        <!-- ── Cajas BROWSER ── -->
+        <!-- 1. Usuario abre la página -->
+        <rect x="25" y="65" width="200" height="44" rx="7" fill="#E1BEE7" stroke="#AB47BC" stroke-width="1"/>
+        <text x="125" y="83" text-anchor="middle" font-family="Segoe UI,Arial" font-size="11" font-weight="700" fill="#4A148C">① Usuario abre</text>
+        <text x="125" y="98" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10" fill="#6A1B9A">localhost:5173</text>
+
+        <!-- 2. React monta PersonasLista -->
+        <rect x="25" y="135" width="200" height="55" rx="7" fill="#E1BEE7" stroke="#AB47BC" stroke-width="1"/>
+        <text x="125" y="153" text-anchor="middle" font-family="Segoe UI,Arial" font-size="11" font-weight="700" fill="#4A148C">② React monta componente</text>
+        <text x="125" y="168" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10" fill="#6A1B9A">PersonasLista.jsx</text>
+        <text x="125" y="181" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10" fill="#9C27B0">useEffect( ) se dispara</text>
+
+        <!-- 3. axios hace GET -->
+        <rect x="25" y="218" width="200" height="55" rx="7" fill="#E1BEE7" stroke="#AB47BC" stroke-width="1"/>
+        <text x="125" y="236" text-anchor="middle" font-family="Segoe UI,Arial" font-size="11" font-weight="700" fill="#4A148C">③ axios envía petición</text>
+        <text x="125" y="251" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10" fill="#6A1B9A" font-style="italic">GET /api/personas</text>
+        <text x="125" y="264" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10" fill="#9C27B0">personas.api.js → axios.get()</text>
+
+        <!-- 8. React actualiza la UI -->
+        <rect x="25" y="305" width="200" height="55" rx="7" fill="#CE93D8" stroke="#8E24AA" stroke-width="1.5"/>
+        <text x="125" y="323" text-anchor="middle" font-family="Segoe UI,Arial" font-size="11" font-weight="700" fill="#fff">⑧ React pinta la tabla</text>
+        <text x="125" y="338" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10" fill="#F3E5F5">setPersonas(datos)</text>
+        <text x="125" y="351" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10" fill="#F3E5F5">El usuario ve los datos ✅</text>
+
+        <!-- ── Cajas BACKEND ── -->
+        <!-- 4. Express recibe la petición -->
+        <rect x="315" y="65" width="190" height="55" rx="7" fill="#BBDEFB" stroke="#1565C0" stroke-width="1"/>
+        <text x="410" y="83" text-anchor="middle" font-family="Segoe UI,Arial" font-size="11" font-weight="700" fill="#0D47A1">④ Express recibe</text>
+        <text x="410" y="98" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10" fill="#1565C0">server.js → router</text>
+        <text x="410" y="111" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10" fill="#1565C0">personas.routes.js</text>
+
+        <!-- 5. Controlador ejecuta -->
+        <rect x="315" y="150" width="190" height="55" rx="7" fill="#BBDEFB" stroke="#1565C0" stroke-width="1"/>
+        <text x="410" y="168" text-anchor="middle" font-family="Segoe UI,Arial" font-size="11" font-weight="700" fill="#0D47A1">⑤ Controlador ejecuta</text>
+        <text x="410" y="183" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10" fill="#1565C0">personas.controller.js</text>
+        <text x="410" y="196" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10" fill="#1565C0">función getAll()</text>
+
+        <!-- 7. Express responde JSON -->
+        <rect x="315" y="240" width="190" height="55" rx="7" fill="#90CAF9" stroke="#1565C0" stroke-width="1.5"/>
+        <text x="410" y="258" text-anchor="middle" font-family="Segoe UI,Arial" font-size="11" font-weight="700" fill="#0D47A1">⑦ Express responde</text>
+        <text x="410" y="273" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10" fill="#0D47A1">res.json(rows)</text>
+        <text x="410" y="286" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10" fill="#0D47A1">HTTP 200 + arreglo JSON</text>
+
+        <!-- ── Cajas BD ── -->
+        <!-- 6. MySQL ejecuta SELECT -->
+        <rect x="595" y="160" width="200" height="65" rx="7" fill="#C8E6C9" stroke="#388E3C" stroke-width="1"/>
+        <text x="695" y="180" text-anchor="middle" font-family="Segoe UI,Arial" font-size="11" font-weight="700" fill="#1B5E20">⑥ MySQL ejecuta</text>
+        <text x="695" y="196" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10" fill="#2E7D32" font-style="italic">SELECT * FROM personas</text>
+        <text x="695" y="211" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10" fill="#2E7D32">WHERE activo = 1</text>
+        <text x="695" y="224" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10" fill="#2E7D32">Devuelve filas ✓</text>
+
+        <!-- ── FLECHAS ── -->
+        <!-- ① → ② -->
+        <line x1="125" y1="109" x2="125" y2="133" stroke="#AB47BC" stroke-width="1.5" marker-end="url(#arr-purple)"/>
+        <!-- ② → ③ -->
+        <line x1="125" y1="190" x2="125" y2="216" stroke="#AB47BC" stroke-width="1.5" marker-end="url(#arr-purple)"/>
+        <!-- ③ → ④  petición cruzando al backend -->
+        <line x1="225" y1="245" x2="313" y2="92" stroke="#1565C0" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-blue)"/>
+        <text x="265" y="168" text-anchor="middle" font-family="Segoe UI,Arial" font-size="9" fill="#1565C0" transform="rotate(-28,265,168)">HTTP GET</text>
+        <!-- ④ → ⑤ -->
+        <line x1="410" y1="120" x2="410" y2="148" stroke="#1565C0" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+        <!-- ⑤ → ⑥ consulta a BD -->
+        <line x1="505" y1="177" x2="593" y2="190" stroke="#388E3C" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-green)"/>
+        <text x="548" y="177" text-anchor="middle" font-family="Segoe UI,Arial" font-size="9" fill="#2E7D32">SQL query</text>
+        <!-- ⑥ → ⑦ resultado de BD -->
+        <line x1="593" y1="210" x2="505" y2="250" stroke="#388E3C" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-blue)"/>
+        <text x="558" y="240" text-anchor="middle" font-family="Segoe UI,Arial" font-size="9" fill="#2E7D32">rows[ ]</text>
+        <!-- ⑦ → ⑧  respuesta JSON de vuelta al browser -->
+        <line x1="313" y1="267" x2="225" y2="330" stroke="#7B1FA2" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-purple2)"/>
+        <text x="263" y="295" text-anchor="middle" font-family="Segoe UI,Arial" font-size="9" fill="#7B1FA2" transform="rotate(25,263,295)">JSON response</text>
+
+        <!-- Definiciones de marcadores -->
+        <defs>
+          <marker id="arr-purple" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#AB47BC"/>
+          </marker>
+          <marker id="arr-blue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#1565C0"/>
+          </marker>
+          <marker id="arr-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#388E3C"/>
+          </marker>
+          <marker id="arr-purple2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#7B1FA2"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+
+    <div class="subseccion-titulo">Descripción paso a paso</div>
+    <table class="actividades">
+      <thead><tr><th style="width:36px;">#</th><th>¿Qué ocurre?</th><th>¿En qué archivo?</th></tr></thead>
+      <tbody>
+        <tr><td style="font-weight:700;color:#6A1B9A;">①</td><td>El usuario abre <code>localhost:5173</code>. Vite sirve el HTML y carga React.</td><td><code>index.html</code> + <code>main.jsx</code></td></tr>
+        <tr><td style="font-weight:700;color:#6A1B9A;">②</td><td>React monta el componente <code>PersonasLista</code>. <code>useEffect</code> se dispara automáticamente porque el componente acaba de aparecer en pantalla.</td><td><code>PersonasLista.jsx</code></td></tr>
+        <tr><td style="font-weight:700;color:#6A1B9A;">③</td><td>Se llama a <code>getPersonas()</code>, que usa axios para enviar una petición HTTP GET a <code>/api/personas</code>. El proxy de Vite la redirige a <code>localhost:3000</code>.</td><td><code>personas.api.js</code></td></tr>
+        <tr><td style="font-weight:700;color:#1565C0;">④</td><td>Express recibe la petición en el servidor backend. La compara con las rutas registradas y encuentra que <code>GET /api/personas</code> corresponde a la función <code>getAll</code>.</td><td><code>server.js</code> → <code>personas.routes.js</code></td></tr>
+        <tr><td style="font-weight:700;color:#1565C0;">⑤</td><td>El controlador ejecuta la función <code>getAll</code> usando <code>async/await</code> para consultar la base de datos.</td><td><code>personas.controller.js</code></td></tr>
+        <tr><td style="font-weight:700;color:#2E7D32;">⑥</td><td>MySQL ejecuta la consulta <code>SELECT * FROM personas WHERE activo = 1</code> y devuelve las filas encontradas al controlador.</td><td>Base de datos MySQL</td></tr>
+        <tr><td style="font-weight:700;color:#1565C0;">⑦</td><td>El controlador recibe las filas y responde con <code>res.json(rows)</code>. Express envía de vuelta al frontend un arreglo JSON con código HTTP 200.</td><td><code>personas.controller.js</code></td></tr>
+        <tr><td style="font-weight:700;color:#6A1B9A;">⑧</td><td>axios recibe la respuesta. La función <code>setPersonas(datos)</code> actualiza el estado del componente. React detecta el cambio y vuelve a renderizar la tabla con los datos reales. El usuario los ve.</td><td><code>PersonasLista.jsx</code></td></tr>
+      </tbody>
+    </table>
+
+    <div class="info">
+      <strong>Resumen del flujo:</strong> Usuario abre página → React monta componente → axios pide datos → Express los busca en MySQL → MySQL devuelve filas → Express responde JSON → axios lo recibe → React pinta la tabla.
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- 6. OBJETIVOS                                           -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="seccion" id="objetivos">
+    <div class="seccion-titulo"><span class="seccion-num">6</span> Objetivos de la práctica</div>
+    <ul class="obj-lista">
+      <li>Crear un proyecto React con Vite usando la terminal y entender qué genera cada archivo.</li>
+      <li>Instalar y configurar Bootstrap y axios en el proyecto.</li>
+      <li>Explicar y configurar <code>vite.config.js</code> para resolver el problema de CORS durante el desarrollo.</li>
+      <li>Crear y organizar carpetas <code>src/components/</code> y <code>src/api/</code> siguiendo el mismo principio de separación de responsabilidades del backend.</li>
+      <li>Utilizar los hooks <code>useState</code> y <code>useEffect</code> para cargar datos desde la API.</li>
+      <li>Distinguir cuándo usar <code>&lt;&gt;</code> (fragmento) vs <code>&lt;div&gt;</code> vs <code>&lt;View&gt;</code>.</li>
+      <li>Consumir el endpoint <code>GET /api/personas</code> con axios y mostrar los datos en una tabla Bootstrap.</li>
+    </ul>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- 7. ESTRUCTURA                                          -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="seccion" id="estructura">
+    <div class="seccion-titulo"><span class="seccion-num">7</span> Estructura del proyecto frontend</div>
+    <p>Al finalizar esta práctica el proyecto frontend tendrá esta estructura. Los archivos en <span style="background:#E8F5E9;color:#1B5E20;font-family:monospace;font-size:12px;padding:1px 4px;border-radius:3px;font-weight:700;">verde negrita</span> son los que tú crearás o modificarás.</p>
+
+    <div class="folder-tree">
+      <span class="d">sistema-admin/</span><br>
+      &nbsp;&nbsp;<span class="d">backend/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← proyecto de P02–P03 (sin cambios)</span><br>
+      &nbsp;&nbsp;<span class="d">frontend/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← proyecto nuevo que creas en esta práctica</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="f-modif">vite.config.js</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← IMPORTANTE: configura el proxy para evitar CORS</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="f">index.html</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← generado por Vite (no modificar)</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="f">package.json</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← dependencias del proyecto</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="d">src/</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="f-modif">main.jsx</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← agregar import de Bootstrap aquí</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="f-modif">App.jsx</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← componente raíz, reemplazar contenido</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="d">api/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← carpeta nueva: funciones de llamadas HTTP</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="f-nuevo">personas.api.js</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← getPersonas(), crearPersona(), etc.</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="d">components/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← carpeta nueva: componentes de la interfaz</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="f-nuevo">Navbar.jsx</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← barra de navegación del sistema</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="f-nuevo">PersonasLista.jsx</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← tabla con listado de personas</span>
+    </div>
+
+    <div class="profesional">
+      <strong>💡 ¿Por qué creamos <code>components/</code> y <code>api/</code>?</strong> Siguiendo el mismo principio que el backend: separar responsabilidades. <code>api/</code> contiene solo las funciones que hablan con el servidor. <code>components/</code> contiene solo la presentación visual. <code>App.jsx</code> los ensambla. Así, si mañana cambia la URL de la API, solo modificas <code>api/personas.api.js</code>, no cada componente que usa los datos.
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- 8. DESARROLLO PASO A PASO                             -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="seccion" id="desarrollo">
+    <div class="seccion-titulo"><span class="seccion-num">8</span> Desarrollo paso a paso</div>
+
+    <!-- PASO 1 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 1</span><span class="paso-titulo">Crear el proyecto React con Vite</span></div>
+
+      <p><strong>⚠️ Importante antes de empezar:</strong> NO crees la carpeta <code>frontend/</code> manualmente. El siguiente comando la crea solo. Si la creas antes, tendrás conflicto.</p>
+
+      <p>Abre una terminal y asegúrate de estar dentro de la carpeta <code>sistema-admin/</code>. Puedes verificarlo con <code>pwd</code> — debe terminar en <code>sistema-admin</code>. Luego ejecuta:</p>
+
+      <div class="file-label">Terminal — desde dentro de sistema-admin/</div>
+      <div class="code-wrap"><canvas id="c_crear"></canvas></div>
+
+      <p>Este comando hace tres cosas seguidas: descarga Vite, te hace preguntas sobre el proyecto y <strong>crea la carpeta <code>frontend/</code> con todos los archivos base adentro</strong>. Cuando Vite te pregunte, responde así:</p>
+
+      <div style="background:#F8FBFF;border:1px solid #BBDEFB;border-radius:8px;padding:16px 20px;margin:12px 0;font-size:13.5px;line-height:2.4;">
+        <div><span style="color:#888;font-family:monospace;font-size:13px;">Project name: </span><strong style="color:#1565C0;font-family:monospace;">frontend</strong> <span style="color:#888;font-size:12px;">← este nombre es el que se usa como nombre de la carpeta</span></div>
+        <div><span style="color:#888;font-family:monospace;font-size:13px;">Select a framework: </span><strong style="color:#1565C0;font-family:monospace;">React</strong></div>
+        <div><span style="color:#888;font-family:monospace;font-size:13px;">Select a variant: </span><strong style="color:#1565C0;font-family:monospace;">JavaScript</strong> <span style="color:#888;font-size:12px;">← NO elegir TypeScript</span></div>
+      </div>
+
+      <p>Cuando termine verás en la terminal algo como <code>Done. Now run:</code> con instrucciones. En ese momento ya existe la carpeta <code>frontend/</code> dentro de <code>sistema-admin/</code>. Ahora entra a ella e instala las dependencias:</p>
+
+      <div class="file-label">Terminal — entrar a la nueva carpeta e instalar</div>
+      <div class="code-wrap"><canvas id="c_cd"></canvas></div>
+
+      <p>El comando <code>npm install</code> lee el <code>package.json</code> que Vite generó y descarga todas las dependencias base de React dentro de la carpeta <code>node_modules/</code>. Puede tardar uno o dos minutos.</p>
+
+      <p>Una vez instalado, arranca el servidor de desarrollo:</p>
+
+      <div class="file-label">Terminal</div>
+      <div class="code-wrap"><canvas id="c_devrun"></canvas></div>
+
+      <div class="info"><strong>✅ Verificación:</strong> Abre <code>http://localhost:5173</code> en el navegador. Verás la página de bienvenida animada de Vite con el logo de React. Si la ves, la carpeta <code>frontend/</code> fue creada correctamente y el proyecto base está funcionando. Detén el servidor con <strong>Ctrl + C</strong> antes de continuar al paso 2.</div>
+
+      <div class="nota">
+        <strong>¿Qué archivos creó Vite dentro de frontend/?</strong> Entre los más importantes: <code>index.html</code> (la página raíz), <code>src/main.jsx</code> (punto de entrada de React), <code>src/App.jsx</code> (componente raíz de demostración) y <code>vite.config.js</code> (configuración). En los pasos siguientes modificaremos algunos de ellos.
+      </div>
+    </div>
+
+    <!-- PASO 2 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 2</span><span class="paso-titulo">Instalar Bootstrap y axios</span></div>
+      <p>Detén el servidor (Ctrl+C) e instala las dependencias adicionales:</p>
+      <div class="file-label">Terminal — dentro de frontend/</div>
+      <div class="code-wrap"><canvas id="c_deps"></canvas></div>
+      <p>Ahora importa Bootstrap en <code>main.jsx</code> para que sus estilos estén disponibles en toda la app:</p>
+      <div class="file-label modif">src/main.jsx — agregar la línea marcada con ←</div>
+      <div class="code-wrap modif"><canvas id="c_main"></canvas></div>
+      <div class="nota"><strong>¿Por qué en main.jsx?</strong> Es el punto de entrada de toda la aplicación, se ejecuta una sola vez al cargar. Importar Bootstrap aquí garantiza que sus estilos estén disponibles en todos los componentes sin tener que importarlo en cada uno.</div>
+    </div>
+
+    <!-- PASO 3 — vite.config.js y CORS -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 3</span><span class="paso-titulo">Entender <code>vite.config.js</code> — y por qué <strong>no</strong> necesitas configurar nada extra</span></div>
+
+      <p>Cuando Vite genera el proyecto, ya crea un archivo <code>vite.config.js</code>. Ábrelo y verás esto:</p>
+
+      <div class="file-label">vite.config.js — generado por Vite (no modificar)</div>
+      <div class="code-wrap"><canvas id="c_vite"></canvas></div>
+
+      <p><strong>¿Qué hace?</strong> Solo le dice a Vite que el proyecto usa React. Nada más. Las dos líneas clave son:</p>
+
+      <div style="background:#F8FBFF;border:1px solid #BBDEFB;border-radius:8px;padding:16px 20px;margin:12px 0;">
+        <div style="margin-bottom:10px;font-size:13.5px;"><code>import react from '@vitejs/plugin-react'</code> — importa el plugin que permite usar JSX.</div>
+        <div style="font-size:13.5px;"><code>plugins: [react()]</code> — activa ese plugin. Sin esta línea Vite no reconocería los archivos <code>.jsx</code>.</div>
+      </div>
+
+      <p><strong>¿Necesitas modificar algo aquí?</strong> <strong>No. Déjalo exactamente como está.</strong></p>
+
+      <div class="subseccion-titulo">¿Y el problema de los puertos? ¿No da error CORS?</div>
+
+      <p>Tu frontend corre en el puerto <code>5173</code> y tu backend en el <code>3000</code>. El navegador ve eso como dos orígenes distintos y normalmente bloquea las peticiones entre ellos — eso se llama el problema de <strong>CORS</strong>.</p>
+
+      <p>Pero <strong>ya lo resolviste en la Práctica 2</strong>, cuando escribiste estas dos líneas en <code>server.js</code>:</p>
+
+      <div class="file-label">backend/server.js — ya escrito desde P02</div>
+      <div class="code-wrap"><canvas id="c_cors"></canvas></div>
+
+      <p>Esas dos líneas le dicen a Express: <em>"acepta peticiones que vengan de cualquier dominio o puerto"</em>. Eso es exactamente lo que React necesita para poder hablarle a tu API sin que el navegador lo bloquee.</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0;">
+        <div style="border:2px solid #FFCDD2;border-radius:8px;overflow:hidden;">
+          <div style="background:#FFEBEE;padding:8px 14px;font-size:12px;font-weight:700;color:#B71C1C;">❌ Sin <code>cors()</code> en Express</div>
+          <div style="padding:14px;font-size:13px;line-height:2.1;">
+            React (<code>:5173</code>) pide datos a Express (<code>:3000</code>)<br>
+            Navegador detecta puertos distintos → <strong style="color:#C62828;">BLOQUEADO</strong><br>
+            axios recibe: <code style="color:#C62828;">Network Error</code>
+          </div>
+        </div>
+        <div style="border:2px solid #C8E6C9;border-radius:8px;overflow:hidden;">
+          <div style="background:#E8F5E9;padding:8px 14px;font-size:12px;font-weight:700;color:#1B5E20;">✅ Con <code>app.use(cors())</code> — ya lo tienes desde P02</div>
+          <div style="padding:14px;font-size:13px;line-height:2.1;">
+            React (<code>:5173</code>) pide datos a Express (<code>:3000</code>)<br>
+            Express responde: <em>"acepto este origen"</em> ✓<br>
+            axios recibe los datos sin problema
+          </div>
+        </div>
+      </div>
+
+      <div class="info">
+        <strong>✅ Resumen del paso:</strong> <code>vite.config.js</code> no necesita ningún cambio. El problema de CORS ya está resuelto desde P02 con <code>import cors from 'cors'</code> y <code>app.use(cors())</code> en el backend. Puedes pasar directamente al siguiente paso.
+      </div>
+    </div>
+
+    <!-- PASO 4 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 4</span><span class="paso-titulo">Crear el módulo de llamadas a la API (<code>src/api/personas.api.js</code>)</span></div>
+      <p>Crea la carpeta <code>src/api/</code> y dentro el archivo <code>personas.api.js</code>. Este archivo centraliza todas las funciones que se comunican con el backend usando axios:</p>
+      <div class="file-label nuevo">src/api/personas.api.js — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_api"></canvas></div>
+      <p>Este módulo exporta las <strong>5 funciones CRUD</strong> que corresponden uno a uno con los 5 endpoints que construiste en P03. Los componentes solo llaman a estas funciones sin conocer cómo funciona axios internamente. Si en el futuro cambias la librería HTTP o la URL base, solo modificas este archivo.</p>
+      <table class="deps-tabla" style="margin-top:8px;">
+        <thead><tr><th>Función</th><th>Método axios</th><th>Endpoint en el backend</th></tr></thead>
+        <tbody>
+          <tr><td><code>getPersonas()</code></td><td><code>axios.get</code></td><td>GET /api/personas</td></tr>
+          <tr><td><code>getPersonaById(id)</code></td><td><code>axios.get</code></td><td>GET /api/personas/:id</td></tr>
+          <tr><td><code>crearPersona(datos)</code></td><td><code>axios.post</code></td><td>POST /api/personas</td></tr>
+          <tr><td><code>actualizarPersona(id, datos)</code></td><td><code>axios.put</code></td><td>PUT /api/personas/:id</td></tr>
+          <tr><td><code>eliminarPersona(id)</code></td><td><code>axios.delete</code></td><td>DELETE /api/personas/:id</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PASO 5 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 5</span><span class="paso-titulo">Crear el componente Navbar (<code>src/components/Navbar.jsx</code>)</span></div>
+      <p>Crea la carpeta <code>src/components/</code> y dentro el archivo <code>Navbar.jsx</code>:</p>
+      <div class="file-label nuevo">src/components/Navbar.jsx — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_navbar"></canvas></div>
+      <div class="nota"><strong>JSX vs HTML:</strong> En JSX usamos <code>className</code> en lugar de <code>class</code> porque <code>class</code> es una palabra reservada de JavaScript. Es uno de los pocos cambios de sintaxis entre HTML y JSX.</div>
+    </div>
+
+    <!-- PASO 6 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 6</span><span class="paso-titulo">Crear el componente PersonasLista (<code>src/components/PersonasLista.jsx</code>)</span></div>
+      <p>Este componente carga datos desde la API con <code>useEffect</code> y los muestra en una tabla Bootstrap. Observa la diferencia con lo que harías sin hooks:</p>
+      <div class="file-label nuevo">src/components/PersonasLista.jsx — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_lista"></canvas></div>
+      <ul class="obj-lista" style="margin-top:12px;">
+        <li><code>useState([])</code> — estado inicial vacío para el arreglo de personas.</li>
+        <li><code>useState(true)</code> — estado de carga en <code>true</code>: muestra el spinner mientras llega la respuesta.</li>
+        <li><code>useEffect(() =&gt; { ... }, [])</code> — el <code>[]</code> vacío indica que solo se ejecuta una vez, al montar el componente (equivalente a "al abrir la página").</li>
+        <li>Si la petición falla (backend apagado), se muestra un mensaje de error en lugar de una pantalla en blanco.</li>
+      </ul>
+    </div>
+
+    <!-- PASO 7 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 7</span><span class="paso-titulo">Actualizar <code>App.jsx</code> para integrar los componentes</span></div>
+      <p>Reemplaza el contenido generado por Vite. Nota el uso de <code>&lt;&gt;&lt;/&gt;</code> para envolver dos componentes sin añadir un <code>&lt;div&gt;</code> extra:</p>
+      <div class="file-label modif">src/App.jsx — reemplazar contenido completo</div>
+      <div class="code-wrap modif"><canvas id="c_app"></canvas></div>
+      <div class="info"><strong>✅ Verificación final:</strong> Arranca el backend (<code>npm run dev</code> en <code>backend/</code>) y luego el frontend (<code>npm run dev</code> en <code>frontend/</code>). Abre <code>http://localhost:5173</code>. Deberías ver la tabla con personas reales de tu base de datos.</div>
+    </div>
+
+    <!-- PASO 8 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 8</span><span class="paso-titulo">Limpiar los archivos de demo de Vite</span></div>
+      <p>Vite genera archivos de ejemplo que ya no necesitamos y que pueden interferir con Bootstrap:</p>
+      <ul class="obj-lista">
+        <li>Vacía o elimina <code>src/App.css</code> (si aún lo importas en App.jsx, elimina también ese import).</li>
+        <li>Puedes borrar <code>src/assets/react.svg</code> — es el logo animado de demo.</li>
+        <li>Deja <code>index.css</code> vacío o con solo un reset básico de tu preferencia.</li>
+      </ul>
+    </div>
+
+    <!-- PASO 9 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 9</span><span class="paso-titulo">Crear el formulario <code>PersonaForm.jsx</code> y conectar crear, editar y eliminar</span></div>
+
+      <p>Hasta el paso anterior la tabla solo muestra datos. En este paso agregamos el formulario para <strong>crear personas nuevas</strong>, los botones para <strong>editar</strong> y <strong>eliminar</strong> en cada fila, y la lógica que los conecta con la API.</p>
+
+      <p>Primero crea el componente del formulario. Es una pieza reutilizable: en P04 lo usarás en la misma pantalla y en P05 lo usarás en páginas separadas con React Router. Por eso vive en <code>components/</code> y no sabe nada de rutas.</p>
+
+      <div class="file-label nuevo">src/components/PersonaForm.jsx — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_persona_form"></canvas></div>
+
+      <p>Este componente recibe tres props:</p>
+      <table class="deps-tabla">
+        <thead><tr><th>Prop</th><th>¿Qué es?</th><th>¿Cuándo lleva valor?</th></tr></thead>
+        <tbody>
+          <tr><td><code>persona</code></td><td>Objeto con los datos de la persona a editar</td><td>Solo cuando se edita. Para crear llega <code>null</code> y el formulario queda vacío.</td></tr>
+          <tr><td><code>onGuardar</code></td><td>Función que se llama al enviar el formulario</td><td>Siempre. El padre decide si crea o actualiza.</td></tr>
+          <tr><td><code>onCancelar</code></td><td>Función que se llama al presionar Cancelar</td><td>Siempre. Oculta el formulario.</td></tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top:14px;">Ahora actualiza <code>PersonasLista.jsx</code> para que use el formulario e incluya los botones de editar y eliminar en cada fila:</p>
+
+      <div class="file-label modif">src/components/PersonasLista.jsx — reemplazar contenido completo</div>
+      <div class="code-wrap modif"><canvas id="c_lista_completa"></canvas></div>
+
+      <p>Lo que hace este componente completo:</p>
+      <ul class="obj-lista">
+        <li><strong>Listar:</strong> carga las personas con <code>getPersonas()</code> al montar.</li>
+        <li><strong>Crear:</strong> botón "Nueva persona" muestra el formulario vacío. Al guardar llama a <code>crearPersona()</code> y recarga la lista.</li>
+        <li><strong>Editar:</strong> botón ✏️ en cada fila guarda la persona seleccionada en estado y muestra el formulario pre-llenado. Al guardar llama a <code>actualizarPersona()</code>.</li>
+        <li><strong>Eliminar:</strong> botón 🗑️ pide confirmación y llama a <code>eliminarPersona()</code>, que hace un soft delete (marca <code>activo = 0</code>).</li>
+        <li><strong>Alertas:</strong> mensajes temporales de éxito o error que desaparecen solos a los 3 segundos.</li>
+      </ul>
+
+      <div class="info">
+        <strong>✅ Verificación:</strong> Recarga <code>localhost:5173</code>. Debes ver la tabla con un botón "➕ Nueva persona" arriba. Al hacer clic aparece el formulario en la misma pantalla. Puedes crear, editar con ✏️ y desactivar con 🗑️ — todo sin salir de la página.
+      </div>
+
+      <div class="profesional">
+        <strong>💡 ¿Por qué el formulario aparece en la misma pantalla y no en otra página?</strong> Porque en P04 aún no tenemos React Router. La navegación entre páginas llega en P05. Por ahora el formulario aparece y desaparece sobre la misma vista usando el estado <code>mostrarForm</code>. En P05 cada operación tendrá su propia URL.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- 9. ACTIVIDADES                                         -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="seccion" id="actividades">
+    <div class="seccion-titulo"><span class="seccion-num">9</span> Actividades</div>
+    <table class="actividades">
+      <thead><tr><th>Núm.</th><th>Actividad</th><th>Tipo</th></tr></thead>
+      <tbody>
+        <tr><td>A1</td><td>Verifica que la tabla muestra datos reales desde la API. Toma una captura de pantalla.</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+        <tr><td>A2</td><td>Crea una persona nueva usando el formulario. Verifica en phpMyAdmin que el registro aparece en la tabla <code>personas</code>. Toma captura de la app y de phpMyAdmin.</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+        <tr><td>A3</td><td>Edita una persona existente usando el botón ✏️. Cambia el puesto y guarda. Verifica que el cambio se refleja en la tabla inmediatamente.</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+        <tr><td>A4</td><td>Desactiva una persona con el botón 🗑️. Verifica en phpMyAdmin que el campo <code>activo</code> cambió a <code>0</code> pero el registro sigue existiendo.</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+        <tr><td>A5</td><td>Detén el backend intencionalmente y recarga el frontend. ¿Qué mensaje ve el usuario? Toma captura. Luego vuelve a iniciar el backend.</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+        <tr><td>A6</td><td>Abre DevTools (F12) → Network → recarga la página. Localiza la petición a <code>/api/personas</code>. Verifica que el status es 200 y revisa el JSON de respuesta. Toma captura.</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- 10. REFLEXIÓN                                          -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="seccion" id="reflexion">
+    <div class="seccion-titulo"><span class="seccion-num">10</span> Preguntas de reflexión</div>
+    <ol class="reflexion-lista">
+      <li>¿Qué diferencia existe entre usar <code>fetch</code> y <code>axios</code>? Menciona al menos dos ventajas concretas de axios para este proyecto.</li>
+      <li>¿Por qué el proxy de <code>vite.config.js</code> es necesario durante el desarrollo? ¿Qué error obtendrías si no lo configuraras?</li>
+      <li>¿Cuál es la diferencia entre <code>&lt;&gt;&lt;/&gt;</code> y <code>&lt;div&gt;&lt;/div&gt;</code>? ¿Cuándo conviene usar cada uno?</li>
+      <li>¿Por qué <code>useEffect</code> tiene <code>[]</code> como segundo argumento? ¿Qué pasaría si lo omites o si colocas <code>[personas]</code>?</li>
+      <li>En este proyecto el backend tiene <code>controllers/</code> y <code>routes/</code>. El frontend tiene <code>components/</code> y <code>api/</code>. ¿Cuál es la equivalencia entre estas carpetas y qué principio comparten?</li>
+    </ol>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- 11. ENTREGABLE                                         -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="seccion" id="entregable">
+    <div class="seccion-titulo"><span class="seccion-num">11</span> Entregable</div>
+    <ul class="entregable-lista">
+      <li>Carpeta <code>frontend/</code> comprimida en ZIP (sin <code>node_modules/</code>).</li>
+      <li>Captura de la tabla con datos reales cargados desde la API (A1).</li>
+      <li>Captura de la persona creada en la app y en phpMyAdmin (A2).</li>
+      <li>Captura de la persona editada con los cambios reflejados en la tabla (A3).</li>
+      <li>Captura del registro desactivado en phpMyAdmin con <code>activo = 0</code> (A4).</li>
+      <li>Captura del mensaje de error cuando el backend está apagado (A5).</li>
+      <li>Captura de DevTools mostrando la petición GET con status 200 (A6).</li>
+    </ul>
+    <div class="peligro"><strong>⚠️ No incluyas node_modules:</strong> Puede pesar cientos de MB. El receptor la reconstruye con <code>npm install</code>.</div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- 12. RÚBRICA                                            -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="seccion" id="rubrica">
+    <div class="seccion-titulo"><span class="seccion-num">12</span> Criterios de evaluación</div>
+    <table class="rubrica">
+      <thead><tr><th>Criterio</th><th>Descripción</th><th>Puntos</th></tr></thead>
+      <tbody>
+        <tr><td>Creación del proyecto</td><td>Proyecto React + Vite arranca sin errores. Carpeta <code>frontend/</code> generada por Vite correctamente.</td><td class="pts">10</td></tr>
+        <tr><td>Bootstrap + axios instalados</td><td>Bootstrap visible en la interfaz. axios importado y funcional en <code>personas.api.js</code>.</td><td class="pts">10</td></tr>
+        <tr><td>Listado de personas</td><td>La tabla muestra personas reales desde la API. Verificado en DevTools con status 200.</td><td class="pts">15</td></tr>
+        <tr><td>Crear persona</td><td>El formulario aparece al hacer clic en "Nueva persona". Al guardar, el registro se crea en la BD y aparece en la tabla.</td><td class="pts">20</td></tr>
+        <tr><td>Editar persona</td><td>El botón ✏️ abre el formulario pre-llenado. Al guardar, los cambios se reflejan inmediatamente en la tabla.</td><td class="pts">20</td></tr>
+        <tr><td>Eliminar persona (soft delete)</td><td>El botón 🗑️ pide confirmación y desactiva la persona. En phpMyAdmin el campo <code>activo</code> es 0 pero el registro existe.</td><td class="pts">15</td></tr>
+        <tr><td>Actividades A1–A6</td><td>Capturas de las 6 actividades con evidencia de cada operación funcionando.</td><td class="pts">10</td></tr>
+      </tbody>
+      <tr class="total"><td colspan="2">Total</td><td>100</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<div class="footer">
+  Ingeniería de Desarrollo y Gestión de Software &nbsp;·&nbsp; Práctica 4 de 13 &nbsp;·&nbsp; Fase 2: Frontend base
+</div>
+
+<script>
+/* ── PALETA ── */
+const KW='#7B40F2', ST='#C0392B', CM='#27AE60', FN='#16A085',
+      PL='#1a1a2e', NM='#E67E22', IM='#8E44AD', OP='#2980B9';
+
+/* tamaño de fuente mayor para mejor legibilidad */
+const FONT = '15px "Courier New", monospace';
+const LINE_H = 24, PAD_X = 18, PAD_Y = 14;
+
+function drawCode(id, lines) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const tmp = document.createElement('canvas');
+  const tc  = tmp.getContext('2d');
+  tc.font = FONT;
+  let maxW = 0;
+  for (const line of lines) {
+    const w = tc.measureText(line.map(s => s[1]).join('')).width;
+    if (w > maxW) maxW = w;
+  }
+  const W = Math.ceil(maxW + PAD_X * 2);
+  const H = lines.length * LINE_H + PAD_Y * 2;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+  ctx.font = FONT;
+  ctx.textBaseline = 'alphabetic';
+  lines.forEach((segs, i) => {
+    const y = PAD_Y + i * LINE_H + LINE_H * 0.75;
+    let x = PAD_X;
+    for (const [color, text] of segs) {
+      ctx.fillStyle = color;
+      ctx.fillText(text, x, y);
+      x += tc.measureText(text).width;
+    }
+  });
+}
+
+const bloques = {
+
+  /* ── Paso 1 ── */
+  c_crear: [
+    [[CM,'# Crear el proyecto React con Vite']],
+    [[PL,'npm create vite@latest']],
+  ],
+  c_cd: [
+    [[PL,'cd frontend']],
+    [[PL,'npm install']],
+  ],
+
+  c_devrun: [
+    [[PL,'npm run dev']],
+  ],
+
+  /* ── Paso 2 ── */
+  c_deps: [
+    [[PL,'npm install bootstrap axios']],
+  ],
+  c_main: [
+    [[IM,'import'],[PL,' React    '],[IM,'from'],[PL,' '],[ST,"'react'"],[PL,';']],
+    [[IM,'import'],[PL,' ReactDOM '],[IM,'from'],[PL,' '],[ST,"'react-dom/client'"],[PL,';']],
+    [[IM,'import'],[PL,' '],[ST,"'bootstrap/dist/css/bootstrap.min.css'"],[PL,';'],[CM,'  ← agregar esta línea']],
+    [[IM,'import'],[PL,' App      '],[IM,'from'],[PL,' '],[ST,"'./App.jsx'"],[PL,';']],
+    [[PL,'']],
+    [[FN,'ReactDOM'],[PL,'.'],[FN,'createRoot'],[PL,'('],[FN,'document'],[PL,'.'],[FN,'getElementById'],[PL,'('],[ST,"'root'"],[PL,'))'],[PL,'.render(<App />);']],
+  ],
+
+  /* ── Paso 3: vite.config.js — tal como lo genera Vite, sin cambios ── */
+  c_vite: [
+    [[IM,'import'],[PL,' { defineConfig } '],[IM,'from'],[PL,' '],[ST,"'vite'"],[PL,';']],
+    [[IM,'import'],[PL,' react           '],[IM,'from'],[PL,' '],[ST,"'@vitejs/plugin-react'"],[PL,';']],
+    [[PL,'']],
+    [[IM,'export default'],[PL,' '],[FN,'defineConfig'],[PL,'({']],
+    [[PL,'  plugins: ['],[FN,'react'],[PL,'()],']],
+    [[PL,'});']],
+  ],
+
+  /* ── Paso 3: las dos líneas de cors en server.js (ya escritas en P02) ── */
+  c_cors: [
+    [[IM,'import'],[PL,' cors '],[IM,'from'],[PL,' '],[ST,"'cors'"],[PL,';'],[CM,'  // instalado en P02 con: npm install cors']],
+    [[PL,'']],
+    [[CM,'// Esta línea le dice a Express: acepta peticiones de cualquier origen']],
+    [[FN,'app'],[PL,'.'],[FN,'use'],[PL,'('],[FN,'cors'],[PL,'());']],
+  ],
+
+  /* ── Paso 4: api ── */
+  c_api: [
+    [[IM,'import'],[PL,' axios '],[IM,'from'],[PL,' '],[ST,"'axios'"],[PL,';']],
+    [[PL,'']],
+    [[CM,'// GET — obtiene todas las personas activas']],
+    [[KW,'export const'],[PL,' '],[FN,'getPersonas'],[PL,' = '],[KW,'async'],[PL,' () => {']],
+    [[PL,'  '],[KW,'const'],[PL,' res = '],[KW,'await'],[PL,' axios.'],[FN,'get'],[PL,'('],[ST,"'/api/personas'"],[PL,');']],
+    [[PL,'  '],[KW,'return'],[PL,' res.data;']],
+    [[PL,'};']],
+    [[PL,'']],
+    [[CM,'// GET — obtiene una persona por id']],
+    [[KW,'export const'],[PL,' '],[FN,'getPersonaById'],[PL,' = '],[KW,'async'],[PL,' (id) => {']],
+    [[PL,'  '],[KW,'const'],[PL,' res = '],[KW,'await'],[PL,' axios.'],[FN,'get'],[PL,'('],[ST,'`/api/personas/${id}`'],[PL,');']],
+    [[PL,'  '],[KW,'return'],[PL,' res.data;']],
+    [[PL,'};']],
+    [[PL,'']],
+    [[CM,'// POST — crea una nueva persona']],
+    [[KW,'export const'],[PL,' '],[FN,'crearPersona'],[PL,' = '],[KW,'async'],[PL,' (datos) => {']],
+    [[PL,'  '],[KW,'const'],[PL,' res = '],[KW,'await'],[PL,' axios.'],[FN,'post'],[PL,'('],[ST,"'/api/personas'"],[PL,', datos);']],
+    [[PL,'  '],[KW,'return'],[PL,' res.data;  '],[CM,'// axios serializa el objeto a JSON automáticamente']],
+    [[PL,'};']],
+    [[PL,'']],
+    [[CM,'// PUT — actualiza una persona existente']],
+    [[KW,'export const'],[PL,' '],[FN,'actualizarPersona'],[PL,' = '],[KW,'async'],[PL,' (id, datos) => {']],
+    [[PL,'  '],[KW,'const'],[PL,' res = '],[KW,'await'],[PL,' axios.'],[FN,'put'],[PL,'('],[ST,'`/api/personas/${id}`'],[PL,', datos);']],
+    [[PL,'  '],[KW,'return'],[PL,' res.data;']],
+    [[PL,'};']],
+    [[PL,'']],
+    [[CM,'// DELETE — soft delete (marca activo = 0, no borra físicamente)']],
+    [[KW,'export const'],[PL,' '],[FN,'eliminarPersona'],[PL,' = '],[KW,'async'],[PL,' (id) => {']],
+    [[PL,'  '],[KW,'const'],[PL,' res = '],[KW,'await'],[PL,' axios.'],[FN,'delete'],[PL,'('],[ST,'`/api/personas/${id}`'],[PL,');']],
+    [[PL,'  '],[KW,'return'],[PL,' res.data;']],
+    [[PL,'};']],
+  ],
+
+  /* ── Paso 9a: PersonaForm.jsx ── */
+  c_persona_form: [
+    [[IM,'import'],[PL,' { useState, useEffect } '],[IM,'from'],[PL,' '],[ST,"'react'"],[PL,';']],
+    [[PL,'']],
+    [[CM,'// Recibe 3 props:']],
+    [[CM,'//   persona   → objeto con datos (para editar) o null (para crear)']],
+    [[CM,'//   onGuardar → función que recibe los datos del form al enviar']],
+    [[CM,'//   onCancelar → función para cerrar el formulario sin guardar']],
+    [[KW,'function'],[PL,' '],[FN,'PersonaForm'],[PL,'({ persona, onGuardar, onCancelar }) {']],
+    [[PL,'']],
+    [[PL,'  '],[KW,'const'],[PL,' vacio = { nombre: '],[ST,"''"],[PL,', correo: '],[ST,"''"],[PL,', telefono: '],[ST,"''"],[PL,',']],
+    [[PL,'                  puesto: '],[ST,"''"],[PL,', formacion: '],[ST,"''"],[PL,', departamento: '],[ST,"''"],[PL,' };']],
+    [[PL,'']],
+    [[PL,'  '],[KW,'const'],[PL,' [form, setForm] = '],[FN,'useState'],[PL,'(vacio);']],
+    [[PL,'']],
+    [[CM,'  // Cuando llega una persona para editar, pre-llenamos el formulario']],
+    [[FN,'  useEffect'],[PL,'(() => {']],
+    [[PL,'    '],[KW,'if'],[PL,' (persona) {']],
+    [[PL,'      '],[FN,'setForm'],[PL,'({']],
+    [[PL,'        nombre:       persona.nombre       || '],[ST,"''"],[PL,',']],
+    [[PL,'        correo:       persona.correo       || '],[ST,"''"],[PL,',']],
+    [[PL,'        telefono:     persona.telefono     || '],[ST,"''"],[PL,',']],
+    [[PL,'        puesto:       persona.puesto       || '],[ST,"''"],[PL,',']],
+    [[PL,'        formacion:    persona.formacion    || '],[ST,"''"],[PL,',']],
+    [[PL,'        departamento: persona.departamento || '],[ST,"''"],[PL,',']],
+    [[PL,'      });']],
+    [[PL,'    } '],[KW,'else'],[PL,' {']],
+    [[PL,'      '],[FN,'setForm'],[PL,'(vacio);'],[CM,'  ← formulario vacío para crear']],
+    [[PL,'    }']],
+    [[PL,'  }, [persona]);']],
+    [[PL,'']],
+    [[KW,'  const'],[PL,' handleChange = (e) => '],[FN,'setForm'],[PL,'({ ...form, [e.target.name]: e.target.value });']],
+    [[PL,'  '],[KW,'const'],[PL,' handleSubmit = (e) => { e.preventDefault(); '],[FN,'onGuardar'],[PL,'(form); };']],
+    [[PL,'']],
+    [[PL,'  '],[KW,'return'],[PL,' (']],
+    [[PL,'    <div className='],[ST,'"card border-primary mb-4"'],[PL,'>']],
+    [[PL,'      <div className='],[ST,'"card-header bg-primary text-white fw-bold"'],[PL,'>']],
+    [[PL,'        {persona ? '],[ST,"'✏️ Editar persona'"],[PL,' : '],[ST,"'➕ Nueva persona'"],[PL,'}']],
+    [[PL,'      </div>']],
+    [[PL,'      <div className='],[ST,'"card-body"'],[PL,'>']],
+    [[PL,'        <form onSubmit={handleSubmit}>']],
+    [[PL,'          <div className='],[ST,'"row g-3"'],[PL,'>']],
+    [[PL,'            <div className='],[ST,'"col-md-6"'],[PL,'>']],
+    [[PL,'              <label className='],[ST,'"form-label fw-semibold"'],[PL,'>Nombre *</label>']],
+    [[PL,'              <input className='],[ST,'"form-control"'],[PL,' name='],[ST,'"nombre"'],[PL,' value={form.nombre}']],
+    [[PL,'                onChange={handleChange} required placeholder='],[ST,'"Nombre completo"'],[PL,' />']],
+    [[PL,'            </div>']],
+    [[PL,'            <div className='],[ST,'"col-md-6"'],[PL,'>']],
+    [[PL,'              <label className='],[ST,'"form-label fw-semibold"'],[PL,'>Correo *</label>']],
+    [[PL,'              <input className='],[ST,'"form-control"'],[PL,' type='],[ST,'"email"'],[PL,' name='],[ST,'"correo"'],[PL,' value={form.correo}']],
+    [[PL,'                onChange={handleChange} required placeholder='],[ST,'"correo@empresa.com"'],[PL,' />']],
+    [[PL,'            </div>']],
+    [[PL,'            <div className='],[ST,'"col-md-4"'],[PL,'>']],
+    [[PL,'              <label className='],[ST,'"form-label fw-semibold"'],[PL,'>Teléfono</label>']],
+    [[PL,'              <input className='],[ST,'"form-control"'],[PL,' name='],[ST,'"telefono"'],[PL,' value={form.telefono}']],
+    [[PL,'                onChange={handleChange} placeholder='],[ST,'"555-0000"'],[PL,' />']],
+    [[PL,'            </div>']],
+    [[PL,'            <div className='],[ST,'"col-md-4"'],[PL,'>']],
+    [[PL,'              <label className='],[ST,'"form-label fw-semibold"'],[PL,'>Puesto</label>']],
+    [[PL,'              <input className='],[ST,'"form-control"'],[PL,' name='],[ST,'"puesto"'],[PL,' value={form.puesto}']],
+    [[PL,'                onChange={handleChange} placeholder='],[ST,'"Desarrollador..."'],[PL,' />']],
+    [[PL,'            </div>']],
+    [[PL,'            <div className='],[ST,'"col-md-4"'],[PL,'>']],
+    [[PL,'              <label className='],[ST,'"form-label fw-semibold"'],[PL,'>Departamento</label>']],
+    [[PL,'              <input className='],[ST,'"form-control"'],[PL,' name='],[ST,'"departamento"'],[PL,' value={form.departamento}']],
+    [[PL,'                onChange={handleChange} placeholder='],[ST,'"TI, Finanzas..."'],[PL,' />']],
+    [[PL,'            </div>']],
+    [[PL,'            <div className='],[ST,'"col-md-12"'],[PL,'>']],
+    [[PL,'              <label className='],[ST,'"form-label fw-semibold"'],[PL,'>Formación académica</label>']],
+    [[PL,'              <input className='],[ST,'"form-control"'],[PL,' name='],[ST,'"formacion"'],[PL,' value={form.formacion}']],
+    [[PL,'                onChange={handleChange} placeholder='],[ST,'"Ingeniería en Sistemas..."'],[PL,' />']],
+    [[PL,'            </div>']],
+    [[PL,'          </div>']],
+    [[PL,'          <div className='],[ST,'"d-flex gap-2 mt-3"'],[PL,'>']],
+    [[PL,'            <button type='],[ST,'"submit"'],[PL,' className='],[ST,'"btn btn-primary"'],[PL,'>']],
+    [[PL,'              {persona ? '],[ST,"'Guardar cambios'"],[PL,' : '],[ST,"'Crear persona'"],[PL,'}']],
+    [[PL,'            </button>']],
+    [[PL,'            <button type='],[ST,'"button"'],[PL,' className='],[ST,'"btn btn-outline-secondary"'],[PL,' onClick={onCancelar}>']],
+    [[PL,'              Cancelar']],
+    [[PL,'            </button>']],
+    [[PL,'          </div>']],
+    [[PL,'        </form>']],
+    [[PL,'      </div>']],
+    [[PL,'    </div>']],
+    [[PL,'  );']],
+    [[PL,'}']],
+    [[PL,'']],
+    [[KW,'export default'],[PL,' PersonaForm;']],
+  ],
+
+  /* ── Paso 9b: PersonasLista.jsx completa con CRUD ── */
+  c_lista_completa: [
+    [[IM,'import'],[PL,' { useState, useEffect } '],[IM,'from'],[PL,' '],[ST,"'react'"],[PL,';']],
+    [[IM,'import'],[PL,' { getPersonas, crearPersona, actualizarPersona, eliminarPersona }']],
+    [[PL,'  '],[IM,'from'],[PL,' '],[ST,"'../api/personas.api'"],[PL,';']],
+    [[IM,'import'],[PL,' PersonaForm '],[IM,'from'],[PL,' '],[ST,"'./PersonaForm'"],[PL,';']],
+    [[PL,'']],
+    [[KW,'function'],[PL,' '],[FN,'PersonasLista'],[PL,'() {']],
+    [[PL,'  '],[KW,'const'],[PL,' [personas,      setPersonas]      = '],[FN,'useState'],[PL,'([]);']],
+    [[PL,'  '],[KW,'const'],[PL,' [cargando,      setCargando]      = '],[FN,'useState'],[PL,'('],[KW,'true'],[PL,');']],
+    [[PL,'  '],[KW,'const'],[PL,' [error,         setError]         = '],[FN,'useState'],[PL,'('],[KW,'null'],[PL,');']],
+    [[PL,'  '],[KW,'const'],[PL,' [alerta,        setAlerta]        = '],[FN,'useState'],[PL,'('],[KW,'null'],[PL,');']],
+    [[PL,'  '],[KW,'const'],[PL,' [mostrarForm,   setMostrarForm]   = '],[FN,'useState'],[PL,'('],[KW,'false'],[PL,');']],
+    [[PL,'  '],[KW,'const'],[PL,' [personaEditar, setPersonaEditar] = '],[FN,'useState'],[PL,'('],[KW,'null'],[PL,');']],
+    [[PL,'']],
+    [[FN,'  useEffect'],[PL,'(() => { '],[FN,'cargarPersonas'],[PL,'(); }, []);']],
+    [[PL,'']],
+    [[CM,'  // ── Cargar lista ─────────────────────────────────────────']],
+    [[KW,'  async function'],[PL,' '],[FN,'cargarPersonas'],[PL,'() {']],
+    [[PL,'    '],[KW,'try'],[PL,' { '],[FN,'setCargando'],[PL,'('],[KW,'true'],[PL,'); '],[KW,'const'],[PL,' d = '],[KW,'await'],[PL,' '],[FN,'getPersonas'],[PL,'(); '],[FN,'setPersonas'],[PL,'(d); }']],
+    [[PL,'    '],[KW,'catch'],[PL,' { '],[FN,'setError'],[PL,'('],[ST,"'No se pudo conectar con la API.'"],[PL,'); }']],
+    [[PL,'    '],[KW,'finally'],[PL,' { '],[FN,'setCargando'],[PL,'('],[KW,'false'],[PL,'); }']],
+    [[PL,'  }']],
+    [[PL,'']],
+    [[CM,'  // ── Alerta temporal (desaparece en 3 segundos) ───────────']],
+    [[KW,'  function'],[PL,' '],[FN,'mostrarAlerta'],[PL,'(tipo, texto) {']],
+    [[PL,'    '],[FN,'setAlerta'],[PL,'({ tipo, texto });']],
+    [[PL,'    '],[FN,'setTimeout'],[PL,'(() => '],[FN,'setAlerta'],[PL,'('],[KW,'null'],[PL,'), 3000);']],
+    [[PL,'  }']],
+    [[PL,'']],
+    [[CM,'  // ── Crear ────────────────────────────────────────────────']],
+    [[KW,'  async function'],[PL,' '],[FN,'handleCrear'],[PL,'(datos) {']],
+    [[PL,'    '],[KW,'try'],[PL,' {']],
+    [[PL,'      '],[KW,'await'],[PL,' '],[FN,'crearPersona'],[PL,'(datos);']],
+    [[PL,'      '],[FN,'mostrarAlerta'],[PL,'('],[ST,"'success'"],[PL,', '],[ST,"'Persona creada correctamente.'"],[PL,');']],
+    [[PL,'      '],[FN,'setMostrarForm'],[PL,'('],[KW,'false'],[PL,');']],
+    [[PL,'      '],[FN,'cargarPersonas'],[PL,'();']],
+    [[PL,'    } '],[KW,'catch'],[PL,' { '],[FN,'mostrarAlerta'],[PL,'('],[ST,"'danger'"],[PL,', '],[ST,"'Error al crear.'"],[PL,'); }']],
+    [[PL,'  }']],
+    [[PL,'']],
+    [[CM,'  // ── Editar: mostrar formulario pre-llenado ───────────────']],
+    [[KW,'  function'],[PL,' '],[FN,'handleEditarClick'],[PL,'(persona) {']],
+    [[PL,'    '],[FN,'setPersonaEditar'],[PL,'(persona);'],[CM,'  ← guarda la persona seleccionada']],
+    [[PL,'    '],[FN,'setMostrarForm'],[PL,'('],[KW,'true'],[PL,');'],[CM,'  ← muestra el formulario']],
+    [[PL,'    window.'],[FN,'scrollTo'],[PL,'({ top: 0, behavior: '],[ST,"'smooth'"],[PL,' });']],
+    [[PL,'  }']],
+    [[PL,'']],
+    [[CM,'  // ── Actualizar ───────────────────────────────────────────']],
+    [[KW,'  async function'],[PL,' '],[FN,'handleActualizar'],[PL,'(datos) {']],
+    [[PL,'    '],[KW,'try'],[PL,' {']],
+    [[PL,'      '],[KW,'await'],[PL,' '],[FN,'actualizarPersona'],[PL,'(personaEditar.id, datos);']],
+    [[PL,'      '],[FN,'mostrarAlerta'],[PL,'('],[ST,"'success'"],[PL,', '],[ST,"'Persona actualizada correctamente.'"],[PL,');']],
+    [[PL,'      '],[FN,'setMostrarForm'],[PL,'('],[KW,'false'],[PL,');']],
+    [[PL,'      '],[FN,'setPersonaEditar'],[PL,'('],[KW,'null'],[PL,');']],
+    [[PL,'      '],[FN,'cargarPersonas'],[PL,'();']],
+    [[PL,'    } '],[KW,'catch'],[PL,' { '],[FN,'mostrarAlerta'],[PL,'('],[ST,"'danger'"],[PL,', '],[ST,"'Error al actualizar.'"],[PL,'); }']],
+    [[PL,'  }']],
+    [[PL,'']],
+    [[CM,'  // ── Eliminar (soft delete) ───────────────────────────────']],
+    [[KW,'  async function'],[PL,' '],[FN,'handleEliminar'],[PL,'(id, nombre) {']],
+    [[PL,'    '],[KW,'if'],[PL,' (!confirm(`¿Desactivar a "${nombre}"?`)) '],[KW,'return'],[PL,';']],
+    [[PL,'    '],[KW,'try'],[PL,' {']],
+    [[PL,'      '],[KW,'await'],[PL,' '],[FN,'eliminarPersona'],[PL,'(id);']],
+    [[PL,'      '],[FN,'mostrarAlerta'],[PL,'('],[ST,"'warning'"],[PL,', `"${nombre}" fue desactivado.`);']],
+    [[PL,'      '],[FN,'cargarPersonas'],[PL,'();']],
+    [[PL,'    } '],[KW,'catch'],[PL,' { '],[FN,'mostrarAlerta'],[PL,'('],[ST,"'danger'"],[PL,', '],[ST,"'Error al desactivar.'"],[PL,'); }']],
+    [[PL,'  }']],
+    [[PL,'']],
+    [[CM,'  // ── Estados de carga y error ─────────────────────────────']],
+    [[PL,'  '],[KW,'if'],[PL,' (cargando) '],[KW,'return'],[PL,' <div className='],[ST,'"container mt-5 text-center"'],[PL,'><div className='],[ST,'"spinner-border text-primary"'],[PL,'></div></div>;']],
+    [[PL,'  '],[KW,'if'],[PL,' (error)    '],[KW,'return'],[PL,' <div className='],[ST,'"container mt-4"'],[PL,'><div className='],[ST,'"alert alert-danger"'],[PL,'>{error}</div></div>;']],
+    [[PL,'']],
+    [[CM,'  // ── Render principal ─────────────────────────────────────']],
+    [[PL,'  '],[KW,'return'],[PL,' (']],
+    [[PL,'    <div className='],[ST,'"container mt-4"'],[PL,'>']],
+    [[PL,'']],
+    [[PL,'      '],[CM,'{ /* Alerta temporal */ }']],
+    [[PL,'      {alerta && <div className={`alert alert-${alerta.tipo} alert-dismissible`}>']],
+    [[PL,'        {alerta.texto}']],
+    [[PL,'        <button type='],[ST,'"button"'],[PL,' className='],[ST,'"btn-close"'],[PL,' onClick={() => '],[FN,'setAlerta'],[PL,'('],[KW,'null'],[PL,')}></button>']],
+    [[PL,'      </div>}']],
+    [[PL,'']],
+    [[PL,'      '],[CM,'{ /* Formulario: aparece al crear o editar */ }']],
+    [[PL,'      {mostrarForm && (']],
+    [[PL,'        <PersonaForm']],
+    [[PL,'          persona={personaEditar}'],[CM,'  ← null = crear / objeto = editar']],
+    [[PL,'          onGuardar={personaEditar ? handleActualizar : handleCrear}']],
+    [[PL,'          onCancelar={() => { '],[FN,'setMostrarForm'],[PL,'('],[KW,'false'],[PL,'); '],[FN,'setPersonaEditar'],[PL,'('],[KW,'null'],[PL,'); }}']],
+    [[PL,'        />']],
+    [[PL,'      )}']],
+    [[PL,'']],
+    [[PL,'      '],[CM,'{ /* Encabezado y botón Nueva persona */ }']],
+    [[PL,'      <div className='],[ST,'"d-flex justify-content-between align-items-center mb-3"'],[PL,'>']],
+    [[PL,'        <div>']],
+    [[PL,'          <h5 className='],[ST,'"text-primary mb-0"'],[PL,'>Módulo de Personas</h5>']],
+    [[PL,'          <small className='],[ST,'"text-muted"'],[PL,'>{personas.length} personas activas</small>']],
+    [[PL,'        </div>']],
+    [[PL,'        {!mostrarForm && (']],
+    [[PL,'          <button className='],[ST,'"btn btn-primary btn-sm"'],[PL,'']],
+    [[PL,'            onClick={() => { '],[FN,'setPersonaEditar'],[PL,'('],[KW,'null'],[PL,'); '],[FN,'setMostrarForm'],[PL,'('],[KW,'true'],[PL,'); }}']],
+    [[PL,'          >➕ Nueva persona</button>']],
+    [[PL,'        )}']],
+    [[PL,'      </div>']],
+    [[PL,'']],
+    [[PL,'      '],[CM,'{ /* Tabla */ }']],
+    [[PL,'      <div className='],[ST,'"table-responsive"'],[PL,'>']],
+    [[PL,'        <table className='],[ST,'"table table-bordered table-hover align-middle"'],[PL,'>']],
+    [[PL,'          <thead className='],[ST,'"table-primary"'],[PL,'><tr>']],
+    [[PL,'            <th>#</th><th>Nombre</th><th>Correo</th>']],
+    [[PL,'            <th>Puesto</th><th>Depto.</th><th>Estado</th><th>Acciones</th>']],
+    [[PL,'          </tr></thead>']],
+    [[PL,'          <tbody>']],
+    [[PL,'            {personas.'],[FN,'map'],[PL,'((p) => (']],
+    [[PL,'              <tr key={p.id}>']],
+    [[PL,'                <td>{p.id}</td>']],
+    [[PL,'                <td className='],[ST,'"fw-semibold"'],[PL,'>{p.nombre}</td>']],
+    [[PL,'                <td>{p.correo}</td>']],
+    [[PL,'                <td>{p.puesto      || '],[ST,"'—'"],[PL,'}</td>']],
+    [[PL,'                <td>{p.departamento || '],[ST,"'—'"],[PL,'}</td>']],
+    [[PL,'                <td>']],
+    [[PL,'                  <span className={`badge ${p.activo ? '],[ST,"'bg-success'"],[PL,' : '],[ST,"'bg-secondary'"],[PL,'}`}>']],
+    [[PL,'                    {p.activo ? '],[ST,"'Activo'"],[PL,' : '],[ST,"'Inactivo'"],[PL,'}']],
+    [[PL,'                  </span>']],
+    [[PL,'                </td>']],
+    [[PL,'                <td>']],
+    [[PL,'                  <button className='],[ST,'"btn btn-outline-primary btn-sm me-1"'],[PL,'']],
+    [[PL,'                    onClick={() => '],[FN,'handleEditarClick'],[PL,'(p)} title='],[ST,'"Editar"'],[PL,'>✏️</button>']],
+    [[PL,'                  <button className='],[ST,'"btn btn-outline-danger btn-sm"'],[PL,'']],
+    [[PL,'                    onClick={() => '],[FN,'handleEliminar'],[PL,'(p.id, p.nombre)} title='],[ST,'"Desactivar"'],[PL,'>🗑️</button>']],
+    [[PL,'                </td>']],
+    [[PL,'              </tr>']],
+    [[PL,'            ))}']],
+    [[PL,'          </tbody>']],
+    [[PL,'        </table>']],
+    [[PL,'      </div>']],
+    [[PL,'    </div>']],
+    [[PL,'  );']],
+    [[PL,'}']],
+    [[PL,'']],
+    [[KW,'export default'],[PL,' PersonasLista;']],
+  ],
+  c_navbar: [
+    [[KW,'function'],[PL,' '],[FN,'Navbar'],[PL,'() {']],
+    [[PL,'  '],[KW,'return'],[PL,' (']],
+    [[PL,'    <nav className='],[ST,'"navbar navbar-dark bg-primary px-4"'],[PL,'>']],
+    [[PL,'      <span className='],[ST,'"navbar-brand fw-bold"'],[PL,'>']],
+    [[PL,'        🖥️ Sistema Administrativo']],
+    [[PL,'      </span>']],
+    [[PL,'      <span className='],[ST,'"text-white-50"'],[PL,' style={{ fontSize: '],[ST,"'13px'"],[PL,' }}>']],
+    [[PL,'        Ingeniería de Desarrollo y Gestión de Software']],
+    [[PL,'      </span>']],
+    [[PL,'    </nav>']],
+    [[PL,'  );']],
+    [[PL,'}']],
+    [[PL,'']],
+    [[KW,'export default'],[PL,' Navbar;']],
+  ],
+
+  /* ── Paso 6: PersonasLista ── */
+  c_lista: [
+    [[IM,'import'],[PL,' { useState, useEffect } '],[IM,'from'],[PL,' '],[ST,"'react'"],[PL,';']],
+    [[IM,'import'],[PL,' { getPersonas }         '],[IM,'from'],[PL,' '],[ST,"'../api/personas.api'"],[PL,';']],
+    [[PL,'']],
+    [[KW,'function'],[PL,' '],[FN,'PersonasLista'],[PL,'() {']],
+    [[PL,'  '],[CM,'// Estado: arreglo de personas (empieza vacío)']],
+    [[PL,'  '],[KW,'const'],[PL,' [personas, setPersonas] = '],[FN,'useState'],[PL,'([]);']],
+    [[PL,'  '],[CM,'// Estado: ¿estamos cargando? (empieza en true → muestra spinner)']],
+    [[PL,'  '],[KW,'const'],[PL,' [cargando, setCargando] = '],[FN,'useState'],[PL,'('],[KW,'true'],[PL,');']],
+    [[PL,'  '],[CM,'// Estado: mensaje de error (null = sin error)']],
+    [[PL,'  '],[KW,'const'],[PL,' [error,    setError]    = '],[FN,'useState'],[PL,'('],[KW,'null'],[PL,');']],
+    [[PL,'']],
+    [[PL,'  '],[CM,'// [] = ejecutar solo una vez, al montar el componente']],
+    [[FN,'  useEffect'],[PL,'(() => { '],[FN,'cargarPersonas'],[PL,'(); }, []);']],
+    [[PL,'']],
+    [[KW,'  async function'],[PL,' '],[FN,'cargarPersonas'],[PL,'() {']],
+    [[PL,'    '],[KW,'try'],[PL,' {']],
+    [[PL,'      '],[KW,'const'],[PL,' datos = '],[KW,'await'],[PL,' '],[FN,'getPersonas'],[PL,'();']],
+    [[PL,'      '],[FN,'setPersonas'],[PL,'(datos);']],
+    [[PL,'    } '],[KW,'catch'],[PL,' (err) {']],
+    [[PL,'      '],[FN,'setError'],[PL,'('],[ST,"'No se pudo conectar con la API.'"],[PL,');']],
+    [[PL,'    } '],[KW,'finally'],[PL,' {']],
+    [[PL,'      '],[FN,'setCargando'],[PL,'('],[KW,'false'],[PL,');']],
+    [[PL,'    }']],
+    [[PL,'  }']],
+    [[PL,'']],
+    [[PL,'  '],[KW,'if'],[PL,' (cargando) '],[KW,'return'],[PL,' <div className='],[ST,'"text-center py-5"'],[PL,'><div className='],[ST,'"spinner-border text-primary"'],[PL,'></div></div>;']],
+    [[PL,'  '],[KW,'if'],[PL,' (error)    '],[KW,'return'],[PL,' <div className='],[ST,'"alert alert-danger m-4"'],[PL,'>{error}</div>;']],
+    [[PL,'']],
+    [[PL,'  '],[KW,'return'],[PL,' (']],
+    [[PL,'    <div className='],[ST,'"container mt-4"'],[PL,'>']],
+    [[PL,'      <h5 className='],[ST,'"text-primary mb-3"'],[PL,'>Módulo de Personas</h5>']],
+    [[PL,'      <table className='],[ST,'"table table-bordered table-hover"'],[PL,'>']],
+    [[PL,'        <thead className='],[ST,'"table-primary"'],[PL,'><tr>']],
+    [[PL,'          <th>#</th><th>Nombre</th><th>Correo</th><th>Puesto</th><th>Estado</th>']],
+    [[PL,'        </tr></thead>']],
+    [[PL,'        <tbody>']],
+    [[PL,'          {personas.'],[FN,'map'],[PL,'((p) => (']],
+    [[PL,'            <tr key={p.id}>']],
+    [[PL,'              <td>{p.id}</td>']],
+    [[PL,'              <td>{p.nombre}</td>']],
+    [[PL,'              <td>{p.correo}</td>']],
+    [[PL,'              <td>{p.puesto}</td>']],
+    [[PL,'              <td><span className={`badge ${p.activo ? '],[ST,"'bg-success'"],[PL,' : '],[ST,"'bg-secondary'"],[PL,'}`}>']],
+    [[PL,'                {p.activo ? '],[ST,"'Activo'"],[PL,' : '],[ST,"'Inactivo'"],[PL,'}']],
+    [[PL,'              </span></td>']],
+    [[PL,'            </tr>']],
+    [[PL,'          ))}']],
+    [[PL,'        </tbody>']],
+    [[PL,'      </table>']],
+    [[PL,'    </div>']],
+    [[PL,'  );']],
+    [[PL,'}']],
+    [[PL,'']],
+    [[KW,'export default'],[PL,' PersonasLista;']],
+  ],
+
+  /* ── Paso 7: App.jsx ── */
+  c_app: [
+    [[IM,'import'],[PL,' Navbar        '],[IM,'from'],[PL,' '],[ST,"'./components/Navbar'"],[PL,';']],
+    [[IM,'import'],[PL,' PersonasLista '],[IM,'from'],[PL,' '],[ST,"'./components/PersonasLista'"],[PL,';']],
+    [[PL,'']],
+    [[KW,'function'],[PL,' '],[FN,'App'],[PL,'() {']],
+    [[PL,'  '],[KW,'return'],[PL,' (']],
+    [[PL,'    '],[CM,'// <> agrupa los dos componentes sin añadir un <div> al HTML']],
+    [[PL,'    <>']],
+    [[PL,'      <Navbar />']],
+    [[PL,'      <PersonasLista />']],
+    [[PL,'    </>']],
+    [[PL,'  );']],
+    [[PL,'}']],
+    [[PL,'']],
+    [[KW,'export default'],[PL,' App;']],
+  ],
+
+  /* ── fetch GET vs axios GET ── */
+  c_fetch_get: [
+    [[CM,'// Con fetch — necesitas dos pasos:']],
+    [[KW,'async function'],[PL,' '],[FN,'getPersonas'],[PL,'() {']],
+    [[PL,'  '],[KW,'const'],[PL,' res  = '],[KW,'await'],[PL,' '],[FN,'fetch'],[PL,'('],[ST,"'/api/personas'"],[PL,');']],
+    [[PL,'  '],[CM,'// ① debes llamar .json() manualmente']],
+    [[PL,'  '],[KW,'const'],[PL,' data = '],[KW,'await'],[PL,' res.'],[FN,'json'],[PL,'();']],
+    [[PL,'  '],[CM,'// ② los errores 404/500 NO se lanzan solos']],
+    [[PL,'  '],[KW,'if'],[PL,' (!res.'],[FN,'ok'],[PL,') '],[KW,'throw new'],[PL,' Error(res.status);']],
+    [[PL,'  '],[KW,'return'],[PL,' data;']],
+    [[PL,'}']],
+  ],
+  c_axios_get: [
+    [[CM,'// Con axios — una sola línea:']],
+    [[KW,'async function'],[PL,' '],[FN,'getPersonas'],[PL,'() {']],
+    [[PL,'  '],[KW,'const'],[PL,' res = '],[KW,'await'],[PL,' axios.'],[FN,'get'],[PL,'('],[ST,"'/api/personas'"],[PL,');']],
+    [[PL,'  '],[CM,'// response.data ya es el objeto JS']],
+    [[PL,'  '],[CM,'// los errores 404/500 se lanzan automáticamente']],
+    [[PL,'  '],[KW,'return'],[PL,' res.data;']],
+    [[PL,'}']],
+  ],
+
+  c_fetch_post: [
+    [[CM,'// Con fetch — debes hacer todo manualmente:']],
+    [[KW,'async function'],[PL,' '],[FN,'crearPersona'],[PL,'(datos) {']],
+    [[PL,'  '],[KW,'const'],[PL,' res = '],[KW,'await'],[PL,' '],[FN,'fetch'],[PL,'('],[ST,"'/api/personas'"],[PL,', {']],
+    [[PL,'    method: '],[ST,"'POST'"],[PL,',']],
+    [[PL,'    headers: { '],[ST,"'Content-Type'"],[PL,': '],[ST,"'application/json'"],[PL,' },']],
+    [[PL,'    body: JSON.'],[FN,'stringify'],[PL,'(datos)  '],[CM,'← serializar']],
+    [[PL,'  });']],
+    [[PL,'  '],[KW,'const'],[PL,' data = '],[KW,'await'],[PL,' res.'],[FN,'json'],[PL,'();  '],[CM,'← parsear']],
+    [[PL,'  '],[KW,'return'],[PL,' data;']],
+    [[PL,'}']],
+  ],
+  c_axios_post: [
+    [[CM,'// Con axios — pasas el objeto directamente:']],
+    [[KW,'async function'],[PL,' '],[FN,'crearPersona'],[PL,'(datos) {']],
+    [[PL,'  '],[KW,'const'],[PL,' res = '],[KW,'await'],[PL,' axios.'],[FN,'post'],[PL,'(']],
+    [[PL,'    '],[ST,"'/api/personas'"],[PL,',']],
+    [[PL,'    datos  '],[CM,'← axios serializa y agrega Content-Type solo']],
+    [[PL,'  );']],
+    [[PL,'  '],[KW,'return'],[PL,' res.data;']],
+    [[PL,'}']],
+  ],
+};
+
+document.fonts.ready.then(() => {
+  for (const [id, lines] of Object.entries(bloques)) drawCode(id, lines);
+});
+</script>
+</body>
+</html>
