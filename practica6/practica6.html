@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica 6 — Autenticación con JWT y bcrypt en el backend</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',Arial,sans-serif; background:#fff; color:#1a1a2e; font-size:14px; line-height:1.7; }
+.header { background:#1565C0; color:#fff; }
+.header-top { background:#0D47A1; padding:18px 40px 14px; display:flex; justify-content:space-between; align-items:flex-start; }
+.header-inst { font-size:11px; opacity:0.85; letter-spacing:0.03em; text-transform:uppercase; }
+.header-carrera { font-size:13px; font-weight:600; margin-top:3px; }
+.header-badge { background:#fff; color:#0D47A1; font-weight:700; font-size:13px; padding:6px 16px; border-radius:20px; white-space:nowrap; align-self:center; }
+.header-main { padding:20px 40px 24px; }
+.header-practica { font-size:11px; opacity:0.75; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; }
+.header-titulo { font-size:26px; font-weight:700; margin-bottom:8px; }
+.header-meta { display:flex; gap:24px; font-size:12px; opacity:0.85; flex-wrap:wrap; }
+.header-strip { height:5px; background:#42A5F5; }
+.content { max-width:900px; margin:0 auto; padding:36px 40px 60px; }
+.toc { background:#E3F2FD; border-left:4px solid #1565C0; border-radius:0 8px 8px 0; padding:20px 24px; margin-bottom:36px; }
+.toc-title { font-size:13px; font-weight:700; color:#0D47A1; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px; }
+.toc ol { padding-left:18px; }
+.toc li { font-size:13px; color:#1565C0; padding:3px 0; }
+.toc li a { color:#1565C0; text-decoration:none; }
+.toc li a:hover { text-decoration:underline; }
+.seccion { margin-bottom:36px; }
+.seccion-titulo { font-size:16px; font-weight:700; color:#0D47A1; border-bottom:2px solid #BBDEFB; padding-bottom:8px; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+.seccion-num { background:#1565C0; color:#fff; font-size:12px; font-weight:700; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.subseccion-titulo { font-size:14px; font-weight:700; color:#1565C0; margin:18px 0 8px; }
+p { margin-bottom:10px; }
+.contexto-card { background:#F8FBFF; border:1px solid #BBDEFB; border-radius:10px; padding:20px 24px; margin-bottom:16px; }
+.contexto-card p:last-child { margin-bottom:0; }
+.concepto-bloque { border:1px solid #BBDEFB; border-radius:10px; margin-bottom:14px; overflow:hidden; }
+.concepto-header { background:#1565C0; color:#fff; padding:10px 16px; font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px; }
+.concepto-icon { font-size:16px; }
+.concepto-body { padding:14px 16px; font-size:13.5px; background:#F8FBFF; }
+.concepto-body p { margin-bottom:8px; }
+.concepto-body p:last-child { margin-bottom:0; }
+.analogia { background:#FFF8E1; border-left:3px solid #F59E0B; padding:10px 14px; margin-top:8px; border-radius:0 6px 6px 0; font-size:13px; }
+.analogia strong { color:#92400E; }
+.obj-lista { list-style:none; padding:0; }
+.obj-lista li { padding:6px 0 6px 24px; position:relative; font-size:13.5px; border-bottom:1px solid #F0F4FF; }
+.obj-lista li:last-child { border-bottom:none; }
+.obj-lista li::before { content:'✓'; position:absolute; left:0; color:#1565C0; font-weight:700; }
+.nota     { background:#FFF8E1; border-left:4px solid #F59E0B; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.nota strong { color:#92400E; }
+.info     { background:#E8F5E9; border-left:4px solid #43A047; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.info strong { color:#1B5E20; }
+.peligro  { background:#FFEBEE; border-left:4px solid #E53935; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.peligro strong { color:#B71C1C; }
+.profesional { background:#EDE7F6; border-left:4px solid #7B1FA2; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.profesional strong { color:#4A148C; }
+.seguridad { background:#FFF3E0; border-left:4px solid #E65100; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.seguridad strong { color:#E65100; }
+.flujo { display:flex; align-items:center; margin:16px 0; flex-wrap:wrap; }
+.flujo-item { background:#E3F2FD; border:1px solid #90CAF9; border-radius:8px; padding:10px 16px; text-align:center; font-size:12px; flex:1; min-width:100px; }
+.flujo-item.activo { background:#1565C0; color:#fff; border-color:#1565C0; font-weight:700; }
+.flujo-item.futuro { background:#F5F5F5; border-color:#ddd; color:#999; }
+.flujo-item.listo  { background:#E8F5E9; border-color:#66BB6A; color:#2E7D32; }
+.flujo-item .fi-num { font-size:10px; opacity:0.7; margin-bottom:2px; }
+.flujo-item .fi-nombre { font-size:12px; font-weight:600; }
+.flujo-sep { color:#90CAF9; font-size:18px; padding:0 6px; }
+.paso { background:#fff; border:1px solid #BBDEFB; border-radius:10px; padding:20px 24px; margin-bottom:20px; }
+.paso-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.paso-num { background:#1565C0; color:#fff; font-size:13px; font-weight:700; padding:4px 12px; border-radius:14px; }
+.paso-titulo { font-size:14px; font-weight:700; color:#0D47A1; }
+.paso p { font-size:13.5px; margin-bottom:10px; }
+.file-label { display:inline-block; background:#E3F2FD; color:#0D47A1; font-family:'Courier New',monospace; font-size:12px; padding:4px 12px; border-radius:6px 6px 0 0; border:1px solid #BBDEFB; border-bottom:none; font-weight:600; margin-top:10px; }
+.file-label.nuevo { background:#E8F5E9; color:#1B5E20; border-color:#A5D6A7; }
+.file-label.modif { background:#FFF8E1; color:#92400E; border-color:#FFE082; }
+.code-wrap { border:1px solid #BBDEFB; border-radius:0 8px 8px 8px; overflow:hidden; margin-bottom:12px; background:#fff; }
+.code-wrap.nuevo { border-color:#A5D6A7; }
+.code-wrap.modif { border-color:#FFE082; }
+.code-wrap canvas { display:block; max-width:100%; }
+.folder-tree { background:#fff; border:1px solid #BBDEFB; border-radius:8px; padding:16px 20px; margin:12px 0; font-family:'Courier New',monospace; font-size:13px; line-height:2.1; }
+.folder-tree .d { color:#1565C0; font-weight:700; }
+.folder-tree .f { color:#2E7D32; }
+.folder-tree .f-nuevo { color:#2E7D32; font-weight:700; background:#E8F5E9; padding:1px 4px; border-radius:3px; }
+.folder-tree .f-modif { color:#92400E; font-weight:700; background:#FFF8E1; padding:1px 4px; border-radius:3px; }
+.folder-tree .cm { color:#9E9E9E; font-style:italic; }
+.tabla-gen { width:100%; border-collapse:collapse; font-size:13px; margin:12px 0; }
+.tabla-gen th { background:#1565C0; color:#fff; padding:9px 14px; text-align:left; font-size:12px; }
+.tabla-gen td { padding:9px 14px; border-bottom:1px solid #E3F2FD; vertical-align:top; }
+.tabla-gen tr:nth-child(even) td { background:#F8FBFF; }
+.tabla-gen code { background:#E3F2FD; color:#0D47A1; padding:1px 6px; border-radius:3px; font-size:12px; }
+.actividades { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.actividades th { background:#1565C0; color:#fff; padding:10px 14px; text-align:left; font-weight:600; font-size:12px; }
+.actividades td { padding:9px 14px; border-bottom:1px solid #E3F2FD; vertical-align:top; }
+.actividades tr:nth-child(even) td { background:#F8FBFF; }
+.actividades tr:last-child td { border-bottom:none; }
+.tipo-badge { font-size:11px; padding:3px 8px; border-radius:10px; font-weight:600; white-space:nowrap; }
+.tipo-codigo  { background:#E3F2FD; color:#0D47A1; }
+.tipo-prueba  { background:#E8F5E9; color:#1B5E20; }
+.tipo-thunder { background:#FFF3E0; color:#E65100; }
+.reflexion-lista { list-style:none; padding:0; counter-reset:ref; }
+.reflexion-lista li { counter-increment:ref; padding:10px 14px 10px 44px; position:relative; background:#F8FBFF; border:1px solid #BBDEFB; border-radius:8px; margin-bottom:8px; font-size:13.5px; }
+.reflexion-lista li::before { content:counter(ref); position:absolute; left:12px; top:50%; transform:translateY(-50%); background:#1565C0; color:#fff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
+.rubrica { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.rubrica th { background:#0D47A1; color:#fff; padding:10px 14px; text-align:left; font-weight:600; font-size:12px; }
+.rubrica td { padding:9px 14px; border-bottom:1px solid #E3F2FD; }
+.rubrica tr:nth-child(even) td { background:#F8FBFF; }
+.rubrica .total td { background:#1565C0; color:#fff; font-weight:700; }
+.pts { font-weight:700; color:#0D47A1; }
+.entregable-lista { list-style:none; padding:0; }
+.entregable-lista li { padding:8px 14px 8px 36px; position:relative; font-size:13.5px; border-bottom:1px solid #F0F4FF; }
+.entregable-lista li:last-child { border-bottom:none; }
+.entregable-lista li::before { content:'📄'; position:absolute; left:8px; }
+.footer { background:#0D47A1; color:#fff; text-align:center; padding:14px 40px; font-size:12px; margin-top:40px; }
+code { background:#E3F2FD; color:#0D47A1; padding:1px 5px; border-radius:3px; font-size:12px; font-family:'Courier New',monospace; }
+/* JWT partes */
+.jwt-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin:12px 0; }
+.jwt-parte { border-radius:8px; overflow:hidden; }
+.jwt-header { padding:8px 12px; font-size:12px; font-weight:700; color:#fff; text-align:center; }
+.jwt-body { padding:10px 12px; font-size:12px; line-height:1.7; border:1px solid #BBDEFB; border-top:none; background:#F8FBFF; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-inst">Ingeniería de Desarrollo y Gestión de Software</div>
+      <div class="header-carrera">Desarrollo Web Integral y Seguridad</div>
+    </div>
+    <div class="header-badge">Práctica 6</div>
+  </div>
+  <div class="header-main">
+    <div class="header-practica">Fase 3 — Autenticación · inicio</div>
+    <div class="header-titulo">Autenticación con JWT y bcrypt en el backend</div>
+    <div class="header-meta">
+      <span>⏱ Duración: 2 horas</span>
+      <span>🔐 JWT · bcrypt · middleware · Thunder Client</span>
+      <span>📦 Entregable: registro, login y rutas protegidas</span>
+    </div>
+  </div>
+  <div class="header-strip"></div>
+</div>
+
+<div class="content">
+
+  <div class="toc">
+    <div class="toc-title">Tabla de contenidos</div>
+    <ol>
+      <li><a href="#donde">¿Dónde estamos en el proyecto?</a></li>
+      <li><a href="#conceptos">Conceptos clave: JWT, bcrypt y autenticación</a></li>
+      <li><a href="#objetivos">Objetivos de la práctica</a></li>
+      <li><a href="#estructura">Nueva estructura del backend</a></li>
+      <li><a href="#desarrollo">Desarrollo paso a paso</a></li>
+      <li><a href="#actividades">Actividades</a></li>
+      <li><a href="#reflexion">Preguntas de reflexión</a></li>
+      <li><a href="#entregable">Entregable</a></li>
+      <li><a href="#rubrica">Criterios de evaluación</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. DÓNDE ESTAMOS -->
+  <div class="seccion" id="donde">
+    <div class="seccion-titulo"><span class="seccion-num">1</span> ¿Dónde estamos en el proyecto?</div>
+
+    <div class="contexto-card">
+      <p>En las prácticas anteriores construimos el sistema completo de personas: base de datos, API REST, y frontend con CRUD y navegación entre pantallas. Sin embargo, hay un problema crítico: <strong>cualquier persona que conozca la URL de tu API puede leer, crear, editar o eliminar registros sin ningún control de acceso</strong>.</p>
+      <p>En esta práctica comenzamos la <strong>Fase 3 de seguridad</strong>. Agregaremos al backend un sistema de autenticación con <strong>JWT</strong> y <strong>bcrypt</strong>. Al terminar, solo los usuarios con una sesión válida podrán acceder a los endpoints de la API.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0;">
+      <div style="border:2px solid #FFCDD2;border-radius:8px;overflow:hidden;">
+        <div style="background:#FFEBEE;padding:8px 14px;font-size:12px;font-weight:700;color:#B71C1C;">❌ Hasta P05 — sin seguridad</div>
+        <div style="padding:14px;font-size:13px;line-height:2;">
+          Cualquiera puede llamar a <code>/api/personas</code><br>
+          No se verifica quién hace la petición<br>
+          Los datos están expuestos sin control
+        </div>
+      </div>
+      <div style="border:2px solid #A5D6A7;border-radius:8px;overflow:hidden;">
+        <div style="background:#E8F5E9;padding:8px 14px;font-size:12px;font-weight:700;color:#1B5E20;">✅ Con P06 — rutas protegidas con JWT</div>
+        <div style="padding:14px;font-size:13px;line-height:2;">
+          Solo usuarios autenticados acceden a la API<br>
+          Contraseñas cifradas con bcrypt en la BD<br>
+          Token JWT verifica la identidad en cada petición
+        </div>
+      </div>
+    </div>
+
+    <div class="flujo">
+      <div class="flujo-item listo"><div class="fi-num">P01–P03</div><div class="fi-nombre">Base de datos + API</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item listo"><div class="fi-num">P04–P05</div><div class="fi-nombre">Frontend + CRUD</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item activo"><div class="fi-num">P06</div><div class="fi-nombre">JWT + bcrypt backend</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item futuro"><div class="fi-num">P07</div><div class="fi-nombre">AuthContext + PrivateRoute</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item futuro"><div class="fi-num">P08–P13</div><div class="fi-nombre">Módulos avanzados</div></div>
+    </div>
+
+    <div class="seguridad">
+      <strong>🔐 Esta práctica pertenece a las dos materias:</strong> implementarás JWT y bcrypt (Seguridad en el Desarrollo) sobre Node.js y Express (Desarrollo Web Profesional). Es el punto de convergencia del proyecto integrador.
+    </div>
+  </div>
+
+  <!-- 2. CONCEPTOS -->
+  <div class="seccion" id="conceptos">
+    <div class="seccion-titulo"><span class="seccion-num">2</span> Conceptos clave: JWT, bcrypt y autenticación</div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🔐</span> ¿Qué es la autenticación y por qué la necesitamos?</div>
+      <div class="concepto-body">
+        <p><strong>Autenticación</strong> es el proceso de verificar que alguien es quien dice ser. En una aplicación web significa: el usuario presenta sus credenciales (usuario y contraseña), el servidor las verifica, y si son correctas le entrega un <strong>pase de acceso</strong> para usar el sistema.</p>
+        <p>Sin autenticación, cualquier persona que conozca la URL de tu API puede manipular todos los datos. Con autenticación, el servidor valida la identidad en cada petición antes de responder.</p>
+        <div class="analogia"><strong>Analogía:</strong> Es como entrar a un edificio con guardia. Sin guardia cualquiera entra. Con guardia debes mostrar tu credencial — si es válida te dejan pasar. La credencial en este proyecto es el token JWT.</div>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🎫</span> ¿Qué es JWT (JSON Web Token)?</div>
+      <div class="concepto-body">
+        <p>JWT es un estándar para transmitir información de forma segura. Cuando el usuario inicia sesión correctamente, el servidor genera un token JWT y se lo envía. A partir de ese momento el frontend incluye ese token en cada petición para demostrar que está autenticado.</p>
+        <p>Un token JWT tiene <strong>tres partes separadas por puntos</strong>:</p>
+        <div class="jwt-grid">
+          <div class="jwt-parte">
+            <div class="jwt-header" style="background:#1565C0;">HEADER</div>
+            <div class="jwt-body">Algoritmo de firma y tipo de token.<br><code>{ alg: "HS256", typ: "JWT" }</code></div>
+          </div>
+          <div class="jwt-parte">
+            <div class="jwt-header" style="background:#E65100;">PAYLOAD</div>
+            <div class="jwt-body">Datos del usuario: id, rol. <strong>No datos sensibles.</strong><br><code>{ id: 1, rol: "admin" }</code></div>
+          </div>
+          <div class="jwt-parte">
+            <div class="jwt-header" style="background:#2E7D32;">SIGNATURE</div>
+            <div class="jwt-body">Firma digital que garantiza que nadie modificó el token. Solo el servidor puede verificarla.</div>
+          </div>
+        </div>
+        <div class="analogia" style="margin-top:10px;"><strong>Analogía:</strong> Un JWT es como un boleto de avión con código QR. Tiene tus datos (nombre, vuelo), un sello de autenticidad (la firma) y una fecha de expiración. El aeropuerto lo escanea en cada punto de control — si es válido pasas, si fue alterado o venció te detienen.</div>
+        <div class="nota" style="margin-top:10px;">
+          <strong>Importante:</strong> el payload del JWT no está cifrado — cualquiera puede decodificarlo. Lo que garantiza la seguridad es la <strong>firma</strong>: si alguien modifica el payload, la firma deja de ser válida y el servidor lo rechaza. Nunca pongas contraseñas u otros datos sensibles en el payload.
+        </div>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🔒</span> ¿Qué es bcrypt y por qué no guardamos contraseñas en texto plano?</div>
+      <div class="concepto-body">
+        <p>Nunca debes guardar una contraseña tal como el usuario la escribe. Si alguien accede a tu base de datos, tendría todas las contraseñas expuestas. <strong>bcrypt</strong> convierte una contraseña en un texto completamente irreconocible llamado <strong>hash</strong>.</p>
+        <p>El proceso es <strong>unidireccional</strong>: puedes convertir una contraseña en hash, pero no puedes hacer el camino inverso. Para verificar si una contraseña es correcta, se vuelve a hashear y se compara con el hash guardado.</p>
+        <div class="analogia"><strong>Analogía:</strong> Es como pasar carne por una picadora. Puedes hacer carne molida desde un filete, pero no puedes reconstruir el filete desde la carne molida. bcrypt hace lo mismo con las contraseñas.</div>
+        <table class="tabla-gen" style="margin-top:10px;">
+          <thead><tr><th>¿Qué guardamos en la BD?</th><th>Ejemplo</th><th>¿Seguro si la BD se filtra?</th></tr></thead>
+          <tbody>
+            <tr><td>Contraseña en texto plano ❌</td><td><code>mi_password123</code></td><td>No — cualquiera puede leerla directamente</td></tr>
+            <tr><td>Hash con bcrypt ✅</td><td><code>$2b$10$xK8mN3vQ...</code></td><td>Sí — es computacionalmente imposible revertirlo</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🛡️</span> ¿Qué es un middleware de autenticación?</div>
+      <div class="concepto-body">
+        <p>Un <strong>middleware</strong> en Express es una función que se ejecuta entre que llega la petición y que el controlador la procesa. El middleware de autenticación intercepta cada petición, extrae el token JWT del header, lo verifica, y solo si es válido permite que la petición llegue al controlador.</p>
+        <p>Si el token no existe, está expirado o fue alterado, el middleware responde directamente con <code>401 Unauthorized</code> y la petición nunca llega al controlador.</p>
+        <div class="analogia"><strong>Analogía:</strong> El middleware es el guardia en la puerta. Cada vez que alguien quiere entrar al controlador (la oficina), el guardia revisa su credencial (token). Si es válida lo deja pasar. Si no, lo detiene en la puerta — la oficina ni se entera de que alguien intentó entrar.</div>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🔄</span> Flujo completo de autenticación en este proyecto</div>
+      <div class="concepto-body">
+        <table class="tabla-gen">
+          <thead><tr><th>Paso</th><th>¿Qué ocurre?</th><th>Tecnología</th></tr></thead>
+          <tbody>
+            <tr><td><strong>1. Registro</strong></td><td>El usuario envía usuario + contraseña. El servidor hashea la contraseña con bcrypt y guarda el registro en la BD.</td><td>bcrypt · MySQL</td></tr>
+            <tr><td><strong>2. Login</strong></td><td>El usuario envía credenciales. El servidor las verifica con bcrypt. Si son correctas, genera un JWT y lo devuelve.</td><td>bcrypt · JWT</td></tr>
+            <tr><td><strong>3. Petición protegida</strong></td><td>El frontend incluye el JWT en el header <code>Authorization: Bearer token</code>. El middleware lo verifica. Si es válido, la petición llega al controlador.</td><td>JWT · middleware</td></tr>
+            <tr><td><strong>4. Token expirado</strong></td><td>El servidor responde <code>401</code>. En P07 el frontend redirigirá automáticamente al login.</td><td>JWT · React Router</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. OBJETIVOS -->
+  <div class="seccion" id="objetivos">
+    <div class="seccion-titulo"><span class="seccion-num">3</span> Objetivos de la práctica</div>
+    <ul class="obj-lista">
+      <li>Instalar <code>jsonwebtoken</code> y <code>bcrypt</code> en el backend.</li>
+      <li>Configurar la variable <code>JWT_SECRET</code> en el archivo <code>.env</code>.</li>
+      <li>Crear el endpoint <code>POST /api/auth/registro</code> que hashea la contraseña con bcrypt y guarda el usuario en la BD.</li>
+      <li>Crear el endpoint <code>POST /api/auth/login</code> que verifica credenciales y devuelve un JWT.</li>
+      <li>Crear el middleware <code>verificarToken</code> que protege rutas validando el JWT en cada petición.</li>
+      <li>Proteger los endpoints de personas con el middleware — solo usuarios autenticados podrán usarlos.</li>
+      <li>Probar todos los endpoints con Thunder Client verificando los casos de éxito y de error.</li>
+    </ul>
+  </div>
+
+  <!-- 4. ESTRUCTURA -->
+  <div class="seccion" id="estructura">
+    <div class="seccion-titulo"><span class="seccion-num">4</span> Nueva estructura del backend</div>
+
+    <p>Estos son los cambios respecto a P03. Los archivos en <span style="background:#E8F5E9;color:#1B5E20;font-family:monospace;font-size:12px;padding:1px 4px;border-radius:3px;font-weight:700;">verde</span> son nuevos y los que están en <span style="background:#FFF8E1;color:#92400E;font-family:monospace;font-size:12px;padding:1px 4px;border-radius:3px;font-weight:700;">amarillo</span> se modifican.</p>
+
+    <div class="folder-tree">
+      <span class="d">backend/</span><br>
+      ├── <span class="f-modif">.env</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← agregar JWT_SECRET</span><br>
+      ├── <span class="f-modif">server.js</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← registrar rutas auth + aplicar middleware</span><br>
+      ├── db.js&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+      ├── <span class="d">middlewares/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← carpeta NUEVA — créala manualmente</span><br>
+      │&nbsp;&nbsp;&nbsp;└── <span class="f-nuevo">auth.middleware.js</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← verifica el JWT en cada petición protegida</span><br>
+      ├── <span class="d">controllers/</span><br>
+      │&nbsp;&nbsp;&nbsp;├── personas.controller.js&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+      │&nbsp;&nbsp;&nbsp;└── <span class="f-nuevo">auth.controller.js</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← lógica de registro y login</span><br>
+      └── <span class="d">routes/</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;├── personas.routes.js&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios (la protección se aplica en server.js)</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;└── <span class="f-nuevo">auth.routes.js</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← rutas públicas: /registro y /login</span>
+    </div>
+
+    <div class="nota">
+      <strong>La tabla usuarios ya existe desde P01:</strong> La creaste con el archivo <code>database.sql</code>. Tiene las columnas <code>persona_id</code>, <code>usuario</code>, <code>password_hash</code> y <code>rol</code>. En esta práctica la usaremos por primera vez desde el backend.
+    </div>
+  </div>
+
+  <!-- 5. DESARROLLO -->
+  <div class="seccion" id="desarrollo">
+    <div class="seccion-titulo"><span class="seccion-num">5</span> Desarrollo paso a paso</div>
+
+    <!-- PASO 1 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 1</span><span class="paso-titulo">Instalar las dependencias de seguridad</span></div>
+      <p>Abre la terminal, entra a la carpeta <code>backend/</code> y ejecuta:</p>
+      <div class="file-label">Terminal — dentro de backend/</div>
+      <div class="code-wrap"><canvas id="c_install"></canvas></div>
+      <table class="tabla-gen" style="margin-top:12px;">
+        <thead><tr><th>Paquete</th><th>¿Para qué sirve en este proyecto?</th></tr></thead>
+        <tbody>
+          <tr><td><code>jsonwebtoken</code></td><td>Genera el token JWT al hacer login y lo verifica en cada petición protegida.</td></tr>
+          <tr><td><code>bcrypt</code></td><td>Hashea la contraseña al registrar y la compara al hacer login. Nunca se guarda la contraseña original.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PASO 2 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 2</span><span class="paso-titulo">Agregar <code>JWT_SECRET</code> al archivo <code>.env</code></span></div>
+      <p>El <code>JWT_SECRET</code> es la clave privada con la que el servidor firma y verifica los tokens. Abre tu archivo <code>.env</code> y agrega la variable al final:</p>
+      <div class="file-label modif">.env — agregar la última línea</div>
+      <div class="code-wrap modif"><canvas id="c_env"></canvas></div>
+      <div class="peligro">
+        <strong>⚠️ El JWT_SECRET nunca debe ser público.</strong> Si alguien lo conoce puede generar tokens válidos falsificados y acceder al sistema como cualquier usuario. Nunca lo subas a GitHub ni lo compartas. En producción se usa una cadena completamente aleatoria de al menos 32 caracteres.
+      </div>
+    </div>
+
+    <!-- PASO 3 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 3</span><span class="paso-titulo">Crear el controlador de autenticación <code>auth.controller.js</code></span></div>
+      <p>Crea el archivo dentro de la carpeta <code>controllers/</code>. Contiene la lógica de las dos operaciones: registro (hashear contraseña y guardar usuario) y login (verificar credenciales y devolver token).</p>
+      <div class="file-label nuevo">controllers/auth.controller.js — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_auth_ctrl"></canvas></div>
+      <p>Analiza lo que hace cada función:</p>
+      <ul class="obj-lista">
+        <li><strong>registro</strong> — recibe <code>persona_id</code>, <code>usuario</code>, <code>password</code> y <code>rol</code>. Hashea la contraseña con <code>bcrypt.hash()</code> usando 10 rondas de procesamiento y la guarda en la columna <code>password_hash</code>. La contraseña original nunca toca la base de datos.</li>
+        <li><strong>login</strong> — busca al usuario por nombre. Si no existe responde 401. Si existe, usa <code>bcrypt.compare()</code> para comparar la contraseña enviada con el hash almacenado. Si coinciden, genera un JWT con <code>jwt.sign()</code> válido por 8 horas y lo devuelve.</li>
+      </ul>
+      <div class="profesional">
+        <strong>💡 ¿Qué son las "10 rondas" de bcrypt?</strong> Indica cuántas veces bcrypt procesa internamente la contraseña antes de generar el hash. Más rondas = más seguro pero más lento. 10 es el estándar: tarda unos 100ms, suficiente para frenar ataques automatizados pero imperceptible para el usuario.
+      </div>
+    </div>
+
+    <!-- PASO 4 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 4</span><span class="paso-titulo">Crear las rutas de autenticación <code>auth.routes.js</code></span></div>
+      <div class="file-label nuevo">routes/auth.routes.js — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_auth_routes"></canvas></div>
+      <p>Estas dos rutas son <strong>públicas</strong> — no requieren token porque son precisamente las que permiten obtenerlo. Todos los demás endpoints del sistema sí requerirán token a partir del Paso 6.</p>
+    </div>
+
+    <!-- PASO 5 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 5</span><span class="paso-titulo">Crear el middleware <code>auth.middleware.js</code></span></div>
+      <p>Crea primero la carpeta <code>middlewares/</code> dentro de <code>backend/</code> (clic derecho → Nueva carpeta en VS Code). Luego crea el archivo dentro de ella. Este es el guardia que intercepta todas las peticiones a rutas protegidas:</p>
+      <div class="file-label nuevo">middlewares/auth.middleware.js — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_middleware"></canvas></div>
+      <p>El flujo del middleware paso a paso:</p>
+      <ul class="obj-lista">
+        <li>Lee el header <code>Authorization</code> de la petición. El frontend lo envía como <code>Bearer eyJhbG...</code></li>
+        <li>Si no hay header, responde <code>401</code> — "no enviaste token".</li>
+        <li>Extrae el token separando por espacio y tomando la segunda parte (quita la palabra "Bearer").</li>
+        <li>Usa <code>jwt.verify()</code> con el mismo <code>JWT_SECRET</code> para verificar la firma del token.</li>
+        <li>Si el token es válido, guarda el payload en <code>req.usuario</code> y llama a <code>next()</code> para que la petición llegue al controlador.</li>
+        <li>Si el token es inválido o expiró, responde <code>401</code> — "token no válido".</li>
+      </ul>
+      <div class="profesional">
+        <strong>💡 ¿Qué es <code>req.usuario</code>?</strong> Al agregar datos al objeto <code>req</code> en el middleware, esos datos quedan disponibles en el controlador. Así el controlador sabe quién hizo la petición (su id y rol) sin necesidad de volver a leer el token. En P07 lo usaremos para mostrar el nombre del usuario logueado en el Navbar.
+      </div>
+    </div>
+
+    <!-- PASO 6 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 6</span><span class="paso-titulo">Actualizar <code>server.js</code> — registrar rutas y proteger endpoints</span></div>
+      <p>Este es el único archivo existente que se modifica. Agrega las importaciones nuevas y registra las rutas con y sin middleware:</p>
+      <div class="file-label modif">server.js — reemplazar contenido completo</div>
+      <div class="code-wrap modif"><canvas id="c_server"></canvas></div>
+      <div class="nota">
+        <strong>El orden importa:</strong> Las rutas <code>/api/auth</code> se registran <em>sin</em> middleware (son públicas — el usuario aún no tiene token). Las rutas <code>/api/personas</code> se registran <em>con</em> <code>verificarToken</code> como segundo argumento — Express lo ejecuta antes de llegar al router de personas.
+      </div>
+    </div>
+
+    <!-- PASO 7 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 7</span><span class="paso-titulo">Probar todo con Thunder Client — 5 pruebas obligatorias</span></div>
+      <p>Asegúrate de que el backend está corriendo con <code>npm run dev</code>. Realiza las siguientes pruebas en orden:</p>
+
+      <div class="subseccion-titulo">Prueba 1 — Registrar un usuario nuevo</div>
+      <p>Crea un usuario vinculado a una persona existente en tu BD. Usa el <code>persona_id</code> 1 que ya viene con los datos de prueba:</p>
+      <div class="file-label">Thunder Client — POST http://localhost:3000/api/auth/registro — Body JSON</div>
+      <div class="code-wrap"><canvas id="c_t_registro"></canvas></div>
+      <div class="info"><strong>✅ Respuesta esperada:</strong> código <code>201</code> con el mensaje "Usuario registrado correctamente". Verifica en phpMyAdmin que la columna <code>password_hash</code> contiene el hash de bcrypt — empieza con <code>$2b$10$</code> — no la contraseña en texto plano.</div>
+
+      <div class="subseccion-titulo" style="margin-top:20px;">Prueba 2 — Login con credenciales correctas</div>
+      <div class="file-label">Thunder Client — POST http://localhost:3000/api/auth/login — Body JSON</div>
+      <div class="code-wrap"><canvas id="c_t_login"></canvas></div>
+      <div class="info"><strong>✅ Respuesta esperada:</strong> código <code>200</code> con un objeto que incluye el campo <code>token</code>. <strong>Copia ese token completo</strong> — lo usarás en las siguientes pruebas. El token empieza con <code>eyJ</code>.</div>
+
+      <div class="subseccion-titulo" style="margin-top:20px;">Prueba 3 — Acceder a ruta protegida CON token válido</div>
+      <p>En Thunder Client, en la pestaña <strong>Auth</strong> → selecciona <strong>Bearer Token</strong> → pega el token copiado del login:</p>
+      <div class="file-label">Thunder Client — GET http://localhost:3000/api/personas — Auth: Bearer Token</div>
+      <div class="code-wrap"><canvas id="c_t_con_token"></canvas></div>
+      <div class="info"><strong>✅ Respuesta esperada:</strong> código <code>200</code> con el arreglo de personas. El middleware verificó el token correctamente y permitió el acceso.</div>
+
+      <div class="subseccion-titulo" style="margin-top:20px;">Prueba 4 — Acceder SIN token (debe ser rechazado)</div>
+      <p>Haz la misma petición GET a <code>/api/personas</code> pero <strong>sin incluir ningún token</strong> en el header Auth:</p>
+      <div class="info"><strong>✅ Respuesta esperada:</strong> código <code>401</code> con el mensaje "Token no proporcionado". Esto confirma que la ruta está protegida correctamente y rechaza accesos sin autenticación.</div>
+
+      <div class="subseccion-titulo" style="margin-top:20px;">Prueba 5 — Token inválido (debe ser rechazado)</div>
+      <p>Envía la petición GET con un token modificado a mano — cambia un carácter en medio del token real y envíalo:</p>
+      <div class="info"><strong>✅ Respuesta esperada:</strong> código <code>401</code> con el mensaje "Token no válido o expirado". El middleware detectó que la firma del token no coincide con el <code>JWT_SECRET</code>.</div>
+    </div>
+  </div>
+
+  <!-- 6. ACTIVIDADES -->
+  <div class="seccion" id="actividades">
+    <div class="seccion-titulo"><span class="seccion-num">6</span> Actividades</div>
+    <table class="actividades">
+      <thead><tr><th>Núm.</th><th>Actividad</th><th>Tipo</th></tr></thead>
+      <tbody>
+        <tr><td>A1</td><td>Realiza las 5 pruebas del Paso 7 con Thunder Client. Toma captura de pantalla de cada una mostrando el código de respuesta HTTP y el cuerpo de la respuesta.</td><td><span class="tipo-badge tipo-thunder">Thunder Client</span></td></tr>
+        <tr><td>A2</td><td>Verifica en phpMyAdmin que en la tabla <code>usuarios</code> la contraseña está guardada como hash de bcrypt (empieza con <code>$2b$</code>) y no en texto plano. Toma captura.</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+        <tr><td>A3</td><td>Intenta hacer login con una contraseña incorrecta. ¿Qué código HTTP y mensaje responde el servidor? Toma captura y explica con tus palabras por qué ese es el comportamiento correcto desde el punto de vista de seguridad.</td><td><span class="tipo-badge tipo-thunder">Thunder Client</span></td></tr>
+        <tr><td>A4</td><td>Pega tu token JWT en <a href="https://jwt.io" target="_blank">jwt.io</a>. Identifica las tres partes (header, payload, signature) y escribe qué contiene cada una. ¿Puedes ver tu <code>JWT_SECRET</code> ahí? ¿Por qué sí o por qué no?</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+        <tr><td>A5</td><td>Modifica el controlador de login para que el token expire en <strong>1 hora</strong> en lugar de 8 horas. Vuelve a hacer login, copia el nuevo token y decodifícalo en jwt.io. ¿Cambió el valor del campo <code>exp</code> en el payload? ¿Qué representa ese número?</td><td><span class="tipo-badge tipo-codigo">Código</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 7. REFLEXIÓN -->
+  <div class="seccion" id="reflexion">
+    <div class="seccion-titulo"><span class="seccion-num">7</span> Preguntas de reflexión</div>
+    <ol class="reflexion-lista">
+      <li>¿Por qué no guardamos la contraseña en texto plano en la base de datos? ¿Qué riesgo concreto evitamos al usar bcrypt?</li>
+      <li>El payload del token JWT se puede decodificar en jwt.io sin conocer el <code>JWT_SECRET</code>. ¿Qué lo hace seguro entonces? ¿Qué parte del token protege la integridad de los datos?</li>
+      <li>¿Por qué las rutas <code>/api/auth/registro</code> y <code>/api/auth/login</code> son públicas mientras que <code>/api/personas</code> requiere token?</li>
+      <li>¿Qué pasaría si el <code>JWT_SECRET</code> fuera filtrado o robado? ¿Qué podría hacer un atacante con esa información?</li>
+      <li>El middleware guarda los datos del usuario en <code>req.usuario</code>. ¿Para qué podría ser útil eso dentro de un controlador? Da un ejemplo concreto con el sistema que están construyendo.</li>
+    </ol>
+  </div>
+
+  <!-- 8. ENTREGABLE -->
+  <div class="seccion" id="entregable">
+    <div class="seccion-titulo"><span class="seccion-num">8</span> Entregable</div>
+    <ul class="entregable-lista">
+      <li>Carpeta <code>backend/</code> comprimida en ZIP sin <code>node_modules/</code> y sin el archivo <code>.env</code>.</li>
+      <li>Capturas de las 5 pruebas de Thunder Client (A1): registro exitoso, login exitoso, acceso con token válido, acceso sin token (401) y token inválido (401).</li>
+      <li>Captura de phpMyAdmin mostrando el hash en la columna <code>password_hash</code> (A2).</li>
+      <li>Captura del login con contraseña incorrecta y explicación del comportamiento (A3).</li>
+      <li>Captura de jwt.io con el token decodificado e identificación de las tres partes (A4).</li>
+      <li>Código de A5 con el tiempo de expiración modificado a 1 hora y captura de jwt.io mostrando el campo <code>exp</code>.</li>
+      <li>Respuestas a las 5 preguntas de reflexión.</li>
+    </ul>
+    <div class="peligro"><strong>⚠️ No incluyas el archivo <code>.env</code> en el ZIP</strong> — contiene tu <code>JWT_SECRET</code> y la contraseña de MySQL. Verifica que <code>.gitignore</code> incluye <code>.env</code> antes de subir a cualquier repositorio.</div>
+  </div>
+
+  <!-- 9. RÚBRICA -->
+  <div class="seccion" id="rubrica">
+    <div class="seccion-titulo"><span class="seccion-num">9</span> Criterios de evaluación</div>
+    <table class="rubrica">
+      <thead><tr><th>Criterio</th><th>Descripción</th><th>Puntos</th></tr></thead>
+      <tbody>
+        <tr><td>Dependencias instaladas</td><td><code>jsonwebtoken</code> y <code>bcrypt</code> presentes en <code>package.json</code>.</td><td class="pts">5</td></tr>
+        <tr><td>JWT_SECRET configurado</td><td>Variable en <code>.env</code> con valor no trivial. El <code>.gitignore</code> excluye el archivo <code>.env</code>.</td><td class="pts">5</td></tr>
+        <tr><td>Endpoint de registro</td><td><code>POST /api/auth/registro</code> crea el usuario con contraseña hasheada. Verificado en phpMyAdmin con hash <code>$2b$</code>.</td><td class="pts">20</td></tr>
+        <tr><td>Endpoint de login</td><td><code>POST /api/auth/login</code> devuelve un JWT válido con credenciales correctas y <code>401</code> con credenciales incorrectas.</td><td class="pts">25</td></tr>
+        <tr><td>Middleware de autenticación</td><td>Peticiones sin token o con token inválido reciben <code>401</code>. Peticiones con token válido llegan al controlador correctamente.</td><td class="pts">25</td></tr>
+        <tr><td>Actividades A1–A5</td><td>5 capturas de Thunder Client, análisis de jwt.io y modificación del tiempo de expiración.</td><td class="pts">20</td></tr>
+      </tbody>
+      <tr class="total"><td colspan="2">Total</td><td>100</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<div class="footer">
+  Ingeniería de Desarrollo y Gestión de Software &nbsp;·&nbsp; Práctica 6 de 13 &nbsp;·&nbsp; Fase 3: Autenticación — inicio
+</div>
+
+<script>
+const KW='#7B40F2', ST='#C0392B', CM='#27AE60', FN='#16A085', PL='#1a1a2e', IM='#8E44AD', NM='#E67E22';
+const FONT = '15px "Courier New", monospace';
+const LH = 24, PX = 18, PY = 14;
+
+function draw(id, lines) {
+  const cv = document.getElementById(id);
+  if (!cv) return;
+  const dpr = window.devicePixelRatio || 1;
+  const tmp = document.createElement('canvas');
+  const tc  = tmp.getContext('2d');
+  tc.font = FONT;
+  let maxW = 0;
+  lines.forEach(l => { const w = tc.measureText(l.map(s=>s[1]).join('')).width; if(w>maxW) maxW=w; });
+  const W = Math.ceil(maxW + PX*2);
+  const H = lines.length * LH + PY*2;
+  cv.width = W*dpr; cv.height = H*dpr;
+  cv.style.width = W+'px'; cv.style.height = H+'px';
+  const ctx = cv.getContext('2d');
+  ctx.scale(dpr,dpr);
+  ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,W,H);
+  ctx.font = FONT; ctx.textBaseline='alphabetic';
+  lines.forEach((segs,i) => {
+    const y = PY + i*LH + LH*0.75;
+    let x = PX;
+    segs.forEach(([color,text]) => {
+      ctx.fillStyle=color; ctx.fillText(text,x,y);
+      x += tc.measureText(text).width;
+    });
+  });
+}
+
+const B = {
+
+/* Paso 1 */
+c_install: [
+  [[CM,'# Dentro de la carpeta backend/']],
+  [[PL,'npm install jsonwebtoken bcrypt']],
+],
+
+/* Paso 2 */
+c_env: [
+  [[CM,'# Puerto del servidor']],
+  [[NM,'PORT'],[PL,'=3000']],
+  [[PL,'']],
+  [[CM,'# Conexión a MySQL']],
+  [[NM,'DB_HOST'],[PL,'=localhost']],
+  [[NM,'DB_USER'],[PL,'=root']],
+  [[NM,'DB_PASS'],[PL,'=tu_contraseña']],
+  [[NM,'DB_NAME'],[PL,'=sistema_admin']],
+  [[PL,'']],
+  [[CM,'# Clave secreta para firmar tokens JWT — debe ser larga y aleatoria']],
+  [[NM,'JWT_SECRET'],[PL,'=m1_cl4v3_s3cr3t4_muy_l4rg4_y_s3gur4_2025'],[CM,'  ← agregar']],
+],
+
+/* Paso 3 */
+c_auth_ctrl: [
+  [[IM,'import'],[PL,' bcrypt '],[IM,'from'],[PL,' '],[ST,"'bcrypt'"],[PL,';']],
+  [[IM,'import'],[PL,' jwt    '],[IM,'from'],[PL,' '],[ST,"'jsonwebtoken'"],[PL,';']],
+  [[IM,'import'],[PL,' pool   '],[IM,'from'],[PL,' '],[ST,"'../db.js'"],[PL,';']],
+  [[PL,'']],
+  [[CM,'// ── POST /api/auth/registro ─────────────────────────────────']],
+  [[KW,'export const'],[PL,' registro = '],[KW,'async'],[PL,' (req, res) => {']],
+  [[PL,'  '],[KW,'try'],[PL,' {']],
+  [[PL,'    '],[KW,'const'],[PL,' { persona_id, usuario, password, rol } = req.body;']],
+  [[PL,'']],
+  [[PL,'    '],[CM,'// Hashear la contraseña — nunca se guarda en texto plano']],
+  [[PL,'    '],[KW,'const'],[PL,' password_hash = '],[KW,'await'],[PL,' bcrypt.'],[FN,'hash'],[PL,'(password, 10);']],
+  [[PL,'']],
+  [[PL,'    '],[CM,'// Insertar en la tabla usuarios con el hash']],
+  [[PL,'    '],[KW,'await'],[PL,' pool.'],[FN,'query'],[PL,'(']],
+  [[PL,'      '],[ST,"'INSERT INTO usuarios (persona_id, usuario, password_hash, rol) VALUES (?,?,?,?)'"],[PL,',']],
+  [[PL,'      [persona_id, usuario, password_hash, rol || '],[ST,"'usuario'"],[PL,']']],
+  [[PL,'    );']],
+  [[PL,'']],
+  [[PL,'    res.'],[FN,'status'],[PL,'(201).'],[FN,'json'],[PL,'({ mensaje: '],[ST,"'Usuario registrado correctamente'"],[PL,' });']],
+  [[PL,'']],
+  [[PL,'  } '],[KW,'catch'],[PL,' (err) {']],
+  [[PL,'    '],[CM,'// Error 1062 = usuario duplicado en MySQL']],
+  [[PL,'    '],[KW,'if'],[PL,' (err.code === '],[ST,"'ER_DUP_ENTRY'"],[PL,')']],
+  [[PL,'      '],[KW,'return'],[PL,' res.'],[FN,'status'],[PL,'(400).'],[FN,'json'],[PL,'({ error: '],[ST,"'El nombre de usuario ya existe'"],[PL,' });']],
+  [[PL,'    res.'],[FN,'status'],[PL,'(500).'],[FN,'json'],[PL,'({ error: err.message });']],
+  [[PL,'  }']],
+  [[PL,'};']],
+  [[PL,'']],
+  [[CM,'// ── POST /api/auth/login ────────────────────────────────────']],
+  [[KW,'export const'],[PL,' login = '],[KW,'async'],[PL,' (req, res) => {']],
+  [[PL,'  '],[KW,'try'],[PL,' {']],
+  [[PL,'    '],[KW,'const'],[PL,' { usuario, password } = req.body;']],
+  [[PL,'']],
+  [[PL,'    '],[CM,'// 1. Buscar al usuario en la BD']],
+  [[PL,'    '],[KW,'const'],[PL,' [rows] = '],[KW,'await'],[PL,' pool.'],[FN,'query'],[PL,'(']],
+  [[PL,'      '],[ST,"'SELECT * FROM usuarios WHERE usuario = ? AND activo = 1'"],[PL,',']],
+  [[PL,'      [usuario]']],
+  [[PL,'    );']],
+  [[PL,'']],
+  [[PL,'    '],[KW,'if'],[PL,' (rows.length === 0)']],
+  [[PL,'      '],[KW,'return'],[PL,' res.'],[FN,'status'],[PL,'(401).'],[FN,'json'],[PL,'({ error: '],[ST,"'Credenciales incorrectas'"],[PL,' });']],
+  [[PL,'']],
+  [[PL,'    '],[KW,'const'],[PL,' usuarioDB = rows[0];']],
+  [[PL,'']],
+  [[PL,'    '],[CM,'// 2. Comparar contraseña con el hash guardado en la BD']],
+  [[PL,'    '],[KW,'const'],[PL,' passwordValida = '],[KW,'await'],[PL,' bcrypt.'],[FN,'compare'],[PL,'(password, usuarioDB.password_hash);']],
+  [[PL,'']],
+  [[PL,'    '],[KW,'if'],[PL,' (!passwordValida)']],
+  [[PL,'      '],[KW,'return'],[PL,' res.'],[FN,'status'],[PL,'(401).'],[FN,'json'],[PL,'({ error: '],[ST,"'Credenciales incorrectas'"],[PL,' });']],
+  [[PL,'']],
+  [[PL,'    '],[CM,'// 3. Generar el token JWT con id y rol en el payload']],
+  [[PL,'    '],[KW,'const'],[PL,' token = jwt.'],[FN,'sign'],[PL,'(']],
+  [[PL,'      { id: usuarioDB.id, rol: usuarioDB.rol },']],
+  [[PL,'      process.env.JWT_SECRET,']],
+  [[PL,'      { expiresIn: '],[ST,"'8h'"],[PL,' }']],
+  [[PL,'    );']],
+  [[PL,'']],
+  [[PL,'    res.'],[FN,'json'],[PL,'({']],
+  [[PL,'      mensaje: '],[ST,"'Login exitoso'"],[PL,',']],
+  [[PL,'      token,']],
+  [[PL,'      usuario: { id: usuarioDB.id, usuario: usuarioDB.usuario, rol: usuarioDB.rol }']],
+  [[PL,'    });']],
+  [[PL,'']],
+  [[PL,'  } '],[KW,'catch'],[PL,' (err) {']],
+  [[PL,'    res.'],[FN,'status'],[PL,'(500).'],[FN,'json'],[PL,'({ error: err.message });']],
+  [[PL,'  }']],
+  [[PL,'};']],
+],
+
+/* Paso 4 */
+c_auth_routes: [
+  [[IM,'import'],[PL,' { Router }          '],[IM,'from'],[PL,' '],[ST,"'express'"],[PL,';']],
+  [[IM,'import'],[PL,' { registro, login } '],[IM,'from'],[PL,' '],[ST,"'../controllers/auth.controller.js'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'const'],[PL,' router = '],[FN,'Router'],[PL,'();']],
+  [[PL,'']],
+  [[CM,'// Rutas públicas — no requieren token porque son las que lo generan']],
+  [[PL,'router.'],[FN,'post'],[PL,'('],[ST,"'/registro'"],[PL,', registro);'],[CM,'  → POST /api/auth/registro']],
+  [[PL,'router.'],[FN,'post'],[PL,'('],[ST,"'/login'"],[PL,'   , login);'],[CM,'     → POST /api/auth/login']],
+  [[PL,'']],
+  [[KW,'export default'],[PL,' router;']],
+],
+
+/* Paso 5 */
+c_middleware: [
+  [[IM,'import'],[PL,' jwt '],[IM,'from'],[PL,' '],[ST,"'jsonwebtoken'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'export const'],[PL,' verificarToken = (req, res, next) => {']],
+  [[PL,'']],
+  [[PL,'  '],[CM,'// 1. Leer el header Authorization de la petición']],
+  [[PL,'  '],[KW,'const'],[PL,' authHeader = req.headers['],[ST,"'authorization'"],[PL,'];']],
+  [[PL,'']],
+  [[PL,'  '],[KW,'if'],[PL,' (!authHeader)']],
+  [[PL,'    '],[KW,'return'],[PL,' res.'],[FN,'status'],[PL,'(401).'],[FN,'json'],[PL,'({ error: '],[ST,"'Token no proporcionado'"],[PL,' });']],
+  [[PL,'']],
+  [[PL,'  '],[CM,'// 2. Extraer el token — el header llega como "Bearer eyJhbG..."']],
+  [[PL,'  '],[KW,'const'],[PL,' token = authHeader.'],[FN,'split'],[PL,'('],[ST,"' '"],[PL,')[1];']],
+  [[PL,'']],
+  [[PL,'  '],[KW,'try'],[PL,' {']],
+  [[PL,'    '],[CM,'// 3. Verificar la firma con el JWT_SECRET']],
+  [[PL,'    '],[KW,'const'],[PL,' payload = jwt.'],[FN,'verify'],[PL,'(token, process.env.JWT_SECRET);']],
+  [[PL,'']],
+  [[PL,'    '],[CM,'// 4. Guardar datos del usuario en req para usarlos en el controlador']],
+  [[PL,'    req.usuario = payload;'],[CM,'  ← { id, rol, iat, exp }']],
+  [[PL,'']],
+  [[PL,'    '],[CM,'// 5. Pasar al siguiente middleware o controlador']],
+  [[FN,'    next'],[PL,'();']],
+  [[PL,'']],
+  [[PL,'  } '],[KW,'catch'],[PL,' (err) {']],
+  [[PL,'    res.'],[FN,'status'],[PL,'(401).'],[FN,'json'],[PL,'({ error: '],[ST,"'Token no válido o expirado'"],[PL,' });']],
+  [[PL,'  }']],
+  [[PL,'};']],
+],
+
+/* Paso 6 */
+c_server: [
+  [[IM,'import'],[PL,' express             '],[IM,'from'],[PL,' '],[ST,"'express'"],[PL,';']],
+  [[IM,'import'],[PL,' cors                '],[IM,'from'],[PL,' '],[ST,"'cors'"],[PL,';']],
+  [[IM,'import'],[PL,' dotenv              '],[IM,'from'],[PL,' '],[ST,"'dotenv'"],[PL,';']],
+  [[IM,'import'],[PL,' personasRoutes      '],[IM,'from'],[PL,' '],[ST,"'./routes/personas.routes.js'"],[PL,';']],
+  [[IM,'import'],[PL,' authRoutes          '],[IM,'from'],[PL,' '],[ST,"'./routes/auth.routes.js'"],[PL,';'],[CM,'       ← agregar']],
+  [[IM,'import'],[PL,' { verificarToken }  '],[IM,'from'],[PL,' '],[ST,"'./middlewares/auth.middleware.js'"],[PL,';'],[CM,'  ← agregar']],
+  [[PL,'']],
+  [[PL,'dotenv.'],[FN,'config'],[PL,'();']],
+  [[KW,'const'],[PL,' app = '],[FN,'express'],[PL,'();']],
+  [[PL,'app.'],[FN,'use'],[PL,'('],[FN,'cors'],[PL,'());']],
+  [[PL,'app.'],[FN,'use'],[PL,'(express.'],[FN,'json'],[PL,'());']],
+  [[PL,'']],
+  [[CM,'// Ruta de diagnóstico — siempre pública']],
+  [[PL,'app.'],[FN,'get'],[PL,'('],[ST,"'/api/health'"],[PL,', (req, res) => res.'],[FN,'json'],[PL,'({ status: '],[ST,"'ok'"],[PL,' }));']],
+  [[PL,'']],
+  [[CM,'// Rutas públicas de autenticación — sin middleware']],
+  [[PL,'app.'],[FN,'use'],[PL,'('],[ST,"'/api/auth'"],[PL,',                 authRoutes);'],[CM,'  ← agregar']],
+  [[PL,'']],
+  [[CM,'// Rutas protegidas — verificarToken se ejecuta primero']],
+  [[PL,'app.'],[FN,'use'],[PL,'('],[ST,"'/api/personas'"],[PL,', verificarToken, personasRoutes);'],[CM,'  ← modificar']],
+  [[PL,'']],
+  [[KW,'const'],[PL,' PORT = process.env.PORT || 3000;']],
+  [[PL,'app.'],[FN,'listen'],[PL,'(PORT, () => console.'],[FN,'log'],[PL,'(`Servidor en http://localhost:${PORT}`));']],
+],
+
+/* Prueba 1 */
+c_t_registro: [
+  [[CM,'// Body → JSON']],
+  [[PL,'{']],
+  [[PL,'  '],[ST,'"persona_id"'],[PL,' : 1,'],[CM,'  ← id de una persona existente en tu BD']],
+  [[PL,'  '],[ST,'"usuario"'],[PL,'    : '],[ST,'"admin_sistema"'],[PL,',']],
+  [[PL,'  '],[ST,'"password"'],[PL,'   : '],[ST,'"MiPassword_123"'],[PL,',']],
+  [[PL,'  '],[ST,'"rol"'],[PL,'        : '],[ST,'"admin"']],
+  [[PL,'}']],
+],
+
+/* Prueba 2 */
+c_t_login: [
+  [[CM,'// Body → JSON']],
+  [[PL,'{']],
+  [[PL,'  '],[ST,'"usuario"'],[PL,'  : '],[ST,'"admin_sistema"'],[PL,',']],
+  [[PL,'  '],[ST,'"password"'],[PL,' : '],[ST,'"MiPassword_123"']],
+  [[PL,'}']],
+  [[PL,'']],
+  [[CM,'// Respuesta esperada — copiar el token:']],
+  [[PL,'{']],
+  [[PL,'  '],[ST,'"mensaje"'],[PL,' : '],[ST,'"Login exitoso"'],[PL,',']],
+  [[PL,'  '],[ST,'"token"'],[PL,'   : '],[ST,'"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."'],[CM,'  ← copiar']],
+  [[PL,'  '],[ST,'"usuario"'],[PL,' : { '],[ST,'"id"'],[PL,': 1, '],[ST,'"rol"'],[PL,': '],[ST,'"admin"'],[PL,' }']],
+  [[PL,'}']],
+],
+
+/* Prueba 3 */
+c_t_con_token: [
+  [[CM,'// En Thunder Client: pestaña Auth → Bearer Token']],
+  [[CM,'// Pegar el token copiado del login']],
+  [[PL,'']],
+  [[CM,'// El header que se envía automáticamente:']],
+  [[PL,'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...']],
+  [[PL,'']],
+  [[CM,'// Respuesta esperada:']],
+  [[PL,'[{ id: 1, nombre: '],[ST,'"Ana García"'],[PL,', ... }, ...]']],
+],
+
+};
+
+document.fonts.ready.then(() => {
+  for (const [id, lines] of Object.entries(B)) draw(id, lines);
+});
+</script>
+</body>
+</html>
