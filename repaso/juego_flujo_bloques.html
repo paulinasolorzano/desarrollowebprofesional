@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Constructor de Flujo — Sistema Administrativo</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#F4F6FA;color:#1a1a2e;min-height:100vh;}
+
+/* HEADER */
+.hdr{background:#0D47A1;color:#fff;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;}
+.hdr-title{font-size:17px;font-weight:700;}
+.hdr-sub{font-size:11px;opacity:.75;margin-top:2px;}
+.score-wrap{display:flex;align-items:center;gap:20px;}
+.score-box{text-align:center;}
+.score-num{font-size:26px;font-weight:700;line-height:1;}
+.score-lbl{font-size:10px;opacity:.7;text-transform:uppercase;letter-spacing:.05em;}
+.timer{font-family:'Courier New',monospace;font-size:15px;background:rgba(255,255,255,.15);padding:5px 12px;border-radius:6px;}
+
+/* PROGRESS */
+.progress-wrap{background:#E3F2FD;padding:0;}
+.progress-bar{height:5px;background:#42A5F5;transition:width .4s;border-radius:0;}
+
+/* TABS */
+.tabs-wrap{background:#fff;border-bottom:1px solid #E3F2FD;padding:0 28px;display:flex;align-items:center;gap:4px;}
+.tab{padding:12px 18px;font-size:13px;font-weight:600;color:#888;border:none;background:none;cursor:pointer;border-bottom:3px solid transparent;transition:all .15s;}
+.tab.active{color:#1565C0;border-bottom-color:#1565C0;}
+.tab.done{color:#2E7D32;}
+.tab.done::after{content:' ✓';}
+
+/* LAYOUT */
+.wrap{max-width:1020px;margin:0 auto;padding:20px 20px 40px;}
+
+/* INSTRUCCIÓN */
+.instruccion{background:#fff;border:1px solid #BBDEFB;border-left:4px solid #1565C0;border-radius:8px;padding:14px 18px;margin-bottom:18px;}
+.instruccion strong{color:#0D47A1;font-size:14px;display:block;margin-bottom:4px;}
+.instruccion p{font-size:13px;color:#444;line-height:1.6;}
+
+/* BANCO DE BLOQUES */
+.banco{background:#fff;border:1px solid #E0E0E0;border-radius:10px;padding:14px 16px;margin-bottom:18px;}
+.banco-titulo{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;}
+.banco-cuerpo{display:flex;flex-wrap:wrap;gap:7px;min-height:52px;}
+.banco-empty{font-size:12px;color:#bbb;align-self:center;padding:4px 0;}
+
+/* ARENA — 3 carriles */
+.arena{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;}
+
+.carril{border-radius:10px;overflow:visible;display:flex;flex-direction:column;}
+.carril-header{padding:10px 14px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;border-radius:10px 10px 0 0;}
+.carril-header .cicon{font-size:18px;}
+.carril-header .ctitle{flex:1;}
+.carril-header .ccount{font-size:11px;opacity:.7;font-weight:400;}
+
+.carril-browser .carril-header{background:#EDE7F6;color:#4A148C;}
+.carril-backend .carril-header{background:#E3F2FD;color:#0D47A1;}
+.carril-db      .carril-header{background:#E8F5E9;color:#1B5E20;}
+
+.carril-body{flex:1;border:2px dashed #ddd;border-top:none;border-radius:0 0 10px 10px;padding:8px;min-height:280px;display:flex;flex-direction:column;gap:6px;transition:background .15s,border-color .15s;background:#FAFAFA;}
+.carril-body.drag-over{background:#E8F0FE;border-color:#1565C0;border-style:dashed;}
+.carril-body.drag-over::after{content:'Suelta aquí';display:flex;align-items:center;justify-content:center;font-size:12px;color:#1565C0;font-weight:600;padding:8px;border-radius:6px;}
+
+.carril-browser .carril-body.drag-over{background:#F3E5F5;border-color:#7B1FA2;}
+.carril-db .carril-body.drag-over{background:#E8F5E9;border-color:#2E7D32;}
+
+/* SLOT vacío */
+.slot{border:1.5px dashed #ddd;border-radius:7px;padding:8px 10px;font-size:11px;color:#bbb;text-align:center;min-height:46px;display:flex;align-items:center;justify-content:center;gap:6px;background:#fff;}
+.slot-num{width:22px;height:22px;border-radius:50%;background:#F0F4FF;border:1px solid #BBDEFB;font-size:10px;display:flex;align-items:center;justify-content:center;color:#aaa;font-weight:700;flex-shrink:0;}
+
+/* BLOQUE */
+.blk{border-radius:8px;border:1.5px solid #E0E0E0;background:#fff;font-size:12px;cursor:grab;display:flex;align-items:stretch;gap:0;transition:box-shadow .15s,border-color .15s;position:relative;}
+.blk:active{cursor:grabbing;}
+.blk:hover{box-shadow:0 2px 8px rgba(0,0,0,.1);border-color:#BBDEFB;}
+.blk.dragging{opacity:.3;box-shadow:none;}
+
+/* número de posición */
+.blk-pos{width:28px;background:#F0F4FF;border-right:1px solid #E0E0E0;border-radius:7px 0 0 7px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#1565C0;flex-shrink:0;}
+
+/* contenido */
+.blk-content{flex:1;padding:8px 10px;display:flex;align-items:flex-start;gap:7px;line-height:1.4;}
+.blk-icon{font-size:15px;flex-shrink:0;margin-top:1px;}
+.blk-text{color:#1a1a2e;font-size:12px;}
+
+/* controles orden */
+.blk-ctrl{display:flex;flex-direction:column;border-left:1px solid #eee;flex-shrink:0;}
+.blk-btn{width:26px;flex:1;border:none;background:none;cursor:pointer;color:#aaa;font-size:13px;display:flex;align-items:center;justify-content:center;transition:background .1s,color .1s;}
+.blk-btn:hover{background:#F0F4FF;color:#1565C0;}
+.blk-btn:first-child{border-radius:0 7px 0 0;border-bottom:1px solid #eee;}
+.blk-btn:last-child{border-radius:0 0 7px 0;}
+
+/* bloque en banco (sin pos ni ctrl) */
+.blk.in-bank .blk-pos{display:none;}
+.blk.in-bank .blk-ctrl{display:none;}
+.blk.in-bank{border-radius:8px;}
+.blk.in-bank .blk-content{padding:7px 10px;}
+
+/* estados */
+.blk.correct .blk-pos{background:#E8F5E9;border-right-color:#A5D6A7;color:#2E7D32;}
+.blk.correct{border-color:#A5D6A7;background:#F1FBF4;}
+.blk.correct .blk-text{color:#1B5E20;}
+.blk.correct .blk-ctrl{border-left-color:#A5D6A7;}
+.blk.correct .blk-btn{color:#A5D6A7;}
+
+.blk.wrong .blk-pos{background:#FFEBEE;border-right-color:#FFCDD2;color:#C62828;}
+.blk.wrong{border-color:#FFCDD2;background:#FFF5F5;animation:shk .35s;}
+.blk.wrong .blk-text{color:#B71C1C;}
+.blk.wrong .blk-ctrl{border-left-color:#FFCDD2;}
+
+/* BOTÓN VERIFICAR */
+.verificar-wrap{text-align:center;margin-bottom:12px;}
+.btn-verificar{padding:11px 40px;border:none;border-radius:8px;background:#1565C0;color:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .15s;}
+.btn-verificar:disabled{opacity:.3;cursor:not-allowed;}
+.btn-verificar:not(:disabled):hover{opacity:.85;}
+.pendiente{font-size:12px;color:#888;margin-top:7px;}
+
+/* CONTADOR DE INTENTOS */
+.intentos-wrap{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;}
+.intentos-dots{display:flex;gap:5px;}
+.idot{width:10px;height:10px;border-radius:50%;background:#ddd;transition:background .2s;}
+.idot.used{background:#FF8A65;}
+.idot.last{background:#E53935;}
+.intentos-lbl{font-size:12px;color:#888;}
+
+/* BOTÓN VER RESPUESTA */
+.btn-ver-resp{display:none;margin:10px auto 0;padding:10px 28px;border:2px solid #E53935;border-radius:8px;background:#fff;color:#C62828;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;}
+.btn-ver-resp:hover{background:#FFEBEE;}
+.btn-ver-resp.show{display:block;}
+
+/* PANEL RESPUESTA CORRECTA — flujo cruzado */
+.respuesta-panel{display:none;background:#fff;border:2px solid #1565C0;border-radius:10px;padding:20px;margin-top:14px;}
+.respuesta-panel.show{display:block;}
+.respuesta-titulo{font-size:14px;font-weight:700;color:#0D47A1;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.respuesta-subtitulo{font-size:12px;color:#888;margin-bottom:16px;}
+.respuesta-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.resp-carril{border-radius:8px;overflow:hidden;}
+.resp-header{padding:8px 12px;font-size:12px;font-weight:700;}
+.resp-header.browser{background:#EDE7F6;color:#4A148C;}
+.resp-header.backend{background:#E3F2FD;color:#0D47A1;}
+.resp-header.db{background:#E8F5E9;color:#1B5E20;}
+.resp-body{border:1px solid #E0E0E0;border-top:none;border-radius:0 0 8px 8px;padding:8px;display:flex;flex-direction:column;gap:5px;}
+.resp-blk{display:flex;align-items:flex-start;gap:7px;padding:7px 10px;border-radius:6px;font-size:12px;line-height:1.4;position:relative;}
+.resp-blk.browser{background:#F3E5F5;border:1px solid #CE93D8;}
+.resp-blk.backend{background:#E8F0FE;border:1px solid #BBDEFB;}
+.resp-blk.db{background:#F1F8E9;border:1px solid #DCEDC8;}
+/* número GLOBAL — grande y visible */
+.resp-gnum{min-width:28px;height:28px;border-radius:50%;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,.2);}
+.resp-blk.browser .resp-gnum{background:#7B1FA2;color:#fff;}
+.resp-blk.backend .resp-gnum{background:#1565C0;color:#fff;}
+.resp-blk.db      .resp-gnum{background:#2E7D32;color:#fff;}
+.resp-blk-content{display:flex;align-items:flex-start;gap:6px;flex:1;}
+.resp-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+.resp-text{font-size:12px;line-height:1.4;}
+.resp-blk.browser .resp-text{color:#3C3489;}
+.resp-blk.backend .resp-text{color:#0C447C;}
+.resp-blk.db      .resp-text{color:#1B5E20;}
+/* leyenda flujo */
+.resp-leyenda{display:flex;align-items:center;gap:6px;font-size:11px;color:#888;margin-bottom:12px;flex-wrap:wrap;}
+.resp-leyenda-dot{width:18px;height:18px;border-radius:50%;font-size:10px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;}
+.resp-flecha{color:#BBDEFB;font-size:14px;font-weight:700;}
+
+/* FEEDBACK */
+.feedback{border-radius:8px;padding:12px 16px;font-size:13px;line-height:1.6;margin-top:10px;display:none;}
+.feedback.ok{background:#E8F5E9;border:1px solid #A5D6A7;color:#1B5E20;display:block;}
+.feedback.err{background:#FFEBEE;border:1px solid #FFCDD2;color:#B71C1C;display:block;}
+
+/* PANTALLA FINAL */
+.final{display:none;text-align:center;padding:3rem 1rem;}
+.final.show{display:block;}
+.final-emoji{font-size:56px;margin-bottom:16px;}
+.final-titulo{font-size:22px;font-weight:700;color:#0D47A1;margin-bottom:8px;}
+.final-sub{font-size:14px;color:#555;line-height:1.7;margin-bottom:24px;}
+.final-pts{font-size:56px;font-weight:700;color:#1565C0;}
+.final-ptslbl{font-size:13px;color:#888;margin-bottom:24px;}
+.btn-reiniciar{padding:12px 32px;border:none;border-radius:8px;background:#1565C0;color:#fff;font-size:14px;font-weight:700;cursor:pointer;}
+
+@keyframes shk{0%,100%{transform:translateX(0);}25%{transform:translateX(-5px);}75%{transform:translateX(5px);}}</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="hdr-title">🧩 Constructor de Flujo por Bloques</div>
+    <div class="hdr-sub">Ingeniería de Desarrollo y Gestión de Software · P05, P06 y P07</div>
+  </div>
+  <div class="score-wrap">
+    <div class="score-box"><div class="score-num" id="scoreNum">0</div><div class="score-lbl">Puntos</div></div>
+    <div class="timer" id="timer">00:00</div>
+  </div>
+</div>
+<div class="progress-wrap"><div class="progress-bar" id="progBar" style="width:0%"></div></div>
+
+<div class="tabs-wrap">
+  <button class="tab active" id="tab0" onclick="goLevel(0)">Nivel 1 · CRUD</button>
+  <button class="tab"        id="tab1" onclick="goLevel(1)">Nivel 2 · JWT</button>
+  <button class="tab"        id="tab2" onclick="goLevel(2)">Nivel 3 · Cookies</button>
+</div>
+
+<div class="wrap">
+  <div id="gameArea">
+    <div class="instruccion">
+      <strong id="lvlTitulo"></strong>
+      <p id="lvlDesc"></p>
+    </div>
+
+    <div class="banco">
+      <div class="banco-titulo">Bloques disponibles — arrástralos al carril donde ocurren</div>
+      <div class="banco-cuerpo" id="banco"
+           ondragover="ev(event)" ondrop="dropBanco(event)" ondragleave="leaveBanco(event)"></div>
+    </div>
+
+    <div class="arena">
+      <div class="carril carril-browser" id="carril-browser">
+        <div class="carril-header">
+          <span class="cicon">🖥️</span>
+          <span class="ctitle">Navegador / React</span>
+          <span class="ccount" id="cnt-browser">0 bloques</span>
+        </div>
+        <div class="carril-body" id="body-browser"
+             ondragover="evLane(event,'browser')" ondrop="dropLane(event,'browser')" ondragleave="leaveLane(event,'browser')">
+        </div>
+      </div>
+      <div class="carril carril-backend" id="carril-backend">
+        <div class="carril-header">
+          <span class="cicon">⚙️</span>
+          <span class="ctitle">Backend / Express</span>
+          <span class="ccount" id="cnt-backend">0 bloques</span>
+        </div>
+        <div class="carril-body" id="body-backend"
+             ondragover="evLane(event,'backend')" ondrop="dropLane(event,'backend')" ondragleave="leaveLane(event,'backend')">
+        </div>
+      </div>
+      <div class="carril carril-db" id="carril-db">
+        <div class="carril-header">
+          <span class="cicon">🗄️</span>
+          <span class="ctitle">Base de datos</span>
+          <span class="ccount" id="cnt-db">0 bloques</span>
+        </div>
+        <div class="carril-body" id="body-db"
+             ondragover="evLane(event,'db')" ondrop="dropLane(event,'db')" ondragleave="leaveLane(event,'db')">
+        </div>
+      </div>
+    </div>
+
+    <div class="verificar-wrap">
+      <button class="btn-verificar" id="btnVerif" disabled onclick="verificar()">Verificar respuestas</button>
+      <div class="pendiente" id="pendiente">Coloca todos los bloques en los carriles para poder verificar</div>
+      <div class="intentos-wrap">
+        <div class="intentos-dots" id="intentosDots"></div>
+        <span class="intentos-lbl" id="intentosLbl" style="display:none"></span>
+      </div>
+      <button class="btn-ver-resp" id="btnVerResp" onclick="mostrarRespuesta()">Ver respuesta correcta</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+
+    <div class="respuesta-panel" id="respPanel">
+      <div class="respuesta-titulo">✅ Respuesta correcta — Nivel <span id="respNivel"></span></div>
+      <div class="respuesta-subtitulo" id="respSubtitulo"></div>
+      <div class="resp-leyenda" id="respLeyenda"></div>
+      <div class="respuesta-grid" id="respGrid"></div>
+    </div>
+  </div>
+
+  <div class="final" id="final">
+    <div class="final-emoji">🏆</div>
+    <div class="final-titulo">¡Completaste los 3 niveles!</div>
+    <div class="final-sub">Demostraste que entiendes el flujo de CRUD con navegación,<br>autenticación con JWT y bcrypt, y cookies httpOnly.</div>
+    <div class="final-pts" id="finalPts">0</div>
+    <div class="final-ptslbl">puntos totales</div>
+    <button class="btn-reiniciar" onclick="reiniciar()">Jugar de nuevo</button>
+  </div>
+</div>
+
+<script>
+const NIVELES = [
+{
+  titulo: "Nivel 1 — CRUD completo con navegación (P05)",
+  desc: "El usuario hace clic en ✏️ para editar una persona. Arrastra cada bloque al carril correcto (Navegador, Backend o Base de datos). Usa los botones ↑ ↓ de cada bloque para reordenarlos dentro del carril. Cuando el banco esté vacío podrás verificar.",
+  bloques: [
+    {id:"a1",  icon:"👆", text:"Usuario hace clic en ✏️ en la fila de Ana García",         lane:"browser", order:1, globalOrder:1},
+    {id:"a2",  icon:"🔗", text:"useNavigate() cambia la URL a /personas/editar/3",          lane:"browser", order:2, globalOrder:2},
+    {id:"a3",  icon:"📄", text:"React Router monta PersonaFormPage para esa ruta",           lane:"browser", order:3, globalOrder:3},
+    {id:"a4",  icon:"🔍", text:"useParams() extrae el id '3' de la URL",                    lane:"browser", order:4, globalOrder:4},
+    {id:"a5",  icon:"📡", text:"axios.get('/api/personas/3') envía la petición HTTP",        lane:"browser", order:5, globalOrder:5},
+    {id:"a6",  icon:"➡️", text:"Express recibe GET /api/personas/3 y consulta el router",   lane:"backend", order:1, globalOrder:6},
+    {id:"a7",  icon:"⚙️", text:"getById() en el controlador recibe req.params.id = '3'",    lane:"backend", order:2, globalOrder:7},
+    {id:"a8",  icon:"🔎", text:"pool.query('SELECT * FROM personas WHERE id = ?', [3])",    lane:"db",      order:1, globalOrder:8},
+    {id:"a9",  icon:"📋", text:"MySQL devuelve la fila con los datos de Ana García",         lane:"db",      order:2, globalOrder:9},
+    {id:"a10", icon:"📤", text:"res.json(rows[0]) envía el objeto de persona al frontend",   lane:"backend", order:3, globalOrder:10},
+    {id:"a11", icon:"📝", text:"useEffect actualiza estado y PersonaForm se pre-llena",      lane:"browser", order:6, globalOrder:11},
+  ]
+},
+{
+  titulo: "Nivel 2 — Autenticación con JWT y bcrypt (P06)",
+  desc: "El usuario inicia sesión. Ordena el flujo completo desde que escribe la contraseña hasta que el sistema queda autenticado. Arrastra al carril correcto y usa ↑ ↓ para ajustar el orden.",
+  bloques: [
+    {id:"b1",  icon:"⌨️", text:"Usuario escribe usuario y contraseña en LoginPage",               lane:"browser", order:1, globalOrder:1},
+    {id:"b2",  icon:"📡", text:"handleSubmit llama a axios.post('/api/auth/login', datos)",        lane:"browser", order:2, globalOrder:2},
+    {id:"b3",  icon:"➡️", text:"Express recibe POST /api/auth/login en auth.routes.js",           lane:"backend", order:1, globalOrder:3},
+    {id:"b4",  icon:"🔎", text:"pool.query busca al usuario por nombre en la tabla usuarios",      lane:"db",      order:1, globalOrder:4},
+    {id:"b5",  icon:"📋", text:"MySQL devuelve la fila con el password_hash guardado",             lane:"db",      order:2, globalOrder:5},
+    {id:"b6",  icon:"🔒", text:"bcrypt.compare() compara la contraseña enviada con el hash",       lane:"backend", order:2, globalOrder:6},
+    {id:"b7",  icon:"🎫", text:"jwt.sign({ id, rol }, JWT_SECRET) genera el token firmado",        lane:"backend", order:3, globalOrder:7},
+    {id:"b8",  icon:"📤", text:"res.json({ token }) devuelve el JWT al frontend",                  lane:"backend", order:4, globalOrder:8},
+    {id:"b9",  icon:"🧠", text:"AuthContext guarda los datos del usuario en estado de React",      lane:"browser", order:3, globalOrder:9},
+    {id:"b10", icon:"🔗", text:"navigate('/personas') redirige al listado principal",               lane:"browser", order:4, globalOrder:10},
+    {id:"b11", icon:"🛡️", text:"axios agrega Authorization: Bearer token en cada petición futura", lane:"browser", order:5, globalOrder:11},
+  ]
+},
+{
+  titulo: "Nivel 3 — Cookies httpOnly (P07)",
+  desc: "El mismo login pero el token viaja en una cookie httpOnly. Identifica qué cambia respecto al nivel anterior y en qué capa ocurre cada paso.",
+  bloques: [
+    {id:"c1",  icon:"⌨️", text:"Usuario envía credenciales desde LoginPage",                                  lane:"browser", order:1, globalOrder:1},
+    {id:"c2",  icon:"📡", text:"axios.post con { withCredentials: true } envía la petición",                  lane:"browser", order:2, globalOrder:2},
+    {id:"c3",  icon:"➡️", text:"Express recibe la petición — cookie-parser ya está activo",                   lane:"backend", order:1, globalOrder:3},
+    {id:"c4",  icon:"🔎", text:"Busca usuario en BD y compara hash con bcrypt.compare()",                     lane:"db",      order:1, globalOrder:4},
+    {id:"c5",  icon:"📋", text:"MySQL confirma que las credenciales son correctas",                            lane:"db",      order:2, globalOrder:5},
+    {id:"c6",  icon:"🎫", text:"jwt.sign() genera el token — igual que en el nivel anterior",                 lane:"backend", order:2, globalOrder:6},
+    {id:"c7",  icon:"🍪", text:"res.cookie('token', jwt, { httpOnly:true, sameSite:'strict' })",              lane:"backend", order:3, globalOrder:7},
+    {id:"c8",  icon:"🚫", text:"El navegador guarda la cookie — JavaScript NO puede leerla",                  lane:"browser", order:3, globalOrder:8},
+    {id:"c9",  icon:"🔄", text:"El navegador envía la cookie automáticamente en cada petición siguiente",     lane:"browser", order:4, globalOrder:9},
+    {id:"c10", icon:"🔐", text:"verificarToken lee req.cookies.token — ya no necesita header Authorization",  lane:"backend", order:4, globalOrder:10},
+    {id:"c11", icon:"✅", text:"Middleware valida el JWT y llama a next() — la ruta protegida responde",      lane:"backend", order:5, globalOrder:11},
+  ]
+}
+];
+
+/* ── Estado ── */
+let curLv = 0;
+let score = 0;
+let done = [false, false, false];
+let secs = 0, iv = null, attempts = 0;
+let dragId = null;
+const MAX_INTENTOS = 10;
+/* placed[lane] = [id, id, ...] en orden */
+let placed = { browser: [], backend: [], db: [] };
+
+/* ── Timer ── */
+function tick() {
+  secs++;
+  const m = String(Math.floor(secs / 60)).padStart(2,'0');
+  const s = String(secs % 60).padStart(2,'0');
+  document.getElementById('timer').textContent = m + ':' + s;
+}
+function startTimer() { clearInterval(iv); secs = 0; document.getElementById('timer').textContent = '00:00'; iv = setInterval(tick, 1000); }
+
+/* ── Navegación de nivel ── */
+function goLevel(n) {
+  curLv = n;
+  placed = { browser: [], backend: [], db: [] };
+  attempts = 0;
+  renderNivel();
+  updateTabs();
+  startTimer();
+  hideFeedback();
+  renderDots();
+  document.getElementById('btnVerResp').className = 'btn-ver-resp';
+  document.getElementById('respPanel').className = 'respuesta-panel';
+}
+
+function updateTabs() {
+  for (let i = 0; i < 3; i++) {
+    const t = document.getElementById('tab' + i);
+    t.className = 'tab' + (i === curLv ? ' active' : '') + (done[i] ? ' done' : '');
+  }
+  document.getElementById('progBar').style.width = (done.filter(Boolean).length / 3 * 100) + '%';
+}
+
+/* ── Render nivel ── */
+function renderNivel() {
+  const lv = NIVELES[curLv];
+  document.getElementById('lvlTitulo').textContent = lv.titulo;
+  document.getElementById('lvlDesc').textContent = lv.desc;
+
+  /* banco mezclado */
+  const banco = document.getElementById('banco');
+  banco.innerHTML = '';
+  const mezclado = [...lv.bloques].sort(() => Math.random() - .5);
+  mezclado.forEach(b => banco.appendChild(crearBloque(b, 'banco')));
+
+  /* limpiar carriles */
+  ['browser', 'backend', 'db'].forEach(lane => {
+    document.getElementById('body-' + lane).innerHTML = '';
+    actualizarContador(lane);
+  });
+
+  refreshBtn();
+}
+
+/* ── Crear bloque DOM ── */
+function crearBloque(b, ctx, posIdx) {
+  const div = document.createElement('div');
+  div.className = 'blk' + (ctx === 'banco' ? ' in-bank' : '');
+  div.id = 'blk-' + b.id;
+  div.draggable = true;
+  div.dataset.id = b.id;
+
+  if (ctx !== 'banco') {
+    const pos = document.createElement('div');
+    pos.className = 'blk-pos';
+    pos.textContent = (posIdx !== undefined ? posIdx + 1 : '?');
+    div.appendChild(pos);
+  }
+
+  const content = document.createElement('div');
+  content.className = 'blk-content';
+  content.innerHTML = `<span class="blk-icon">${b.icon}</span><span class="blk-text">${b.text}</span>`;
+  div.appendChild(content);
+
+  if (ctx !== 'banco') {
+    const ctrl = document.createElement('div');
+    ctrl.className = 'blk-ctrl';
+    const btnUp = document.createElement('button');
+    btnUp.className = 'blk-btn';
+    btnUp.title = 'Subir';
+    btnUp.innerHTML = '▲';
+    btnUp.onclick = (e) => { e.stopPropagation(); moverBloque(b.id, -1); };
+    const btnDn = document.createElement('button');
+    btnDn.className = 'blk-btn';
+    btnDn.title = 'Bajar';
+    btnDn.innerHTML = '▼';
+    btnDn.onclick = (e) => { e.stopPropagation(); moverBloque(b.id, 1); };
+    ctrl.appendChild(btnUp);
+    ctrl.appendChild(btnDn);
+    div.appendChild(ctrl);
+  }
+
+  div.addEventListener('dragstart', e => {
+    dragId = b.id;
+    setTimeout(() => div.classList.add('dragging'), 0);
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  div.addEventListener('dragend', () => {
+    div.classList.remove('dragging');
+    dragId = null;
+  });
+
+  return div;
+}
+
+/* ── Mover bloque dentro del carril ↑ ↓ ── */
+function moverBloque(id, dir) {
+  let lane = null;
+  ['browser', 'backend', 'db'].forEach(l => { if (placed[l].includes(id)) lane = l; });
+  if (!lane) return;
+  const arr = placed[lane];
+  const idx = arr.indexOf(id);
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= arr.length) return;
+  arr.splice(idx, 1);
+  arr.splice(newIdx, 0, id);
+  rerenderCarril(lane);
+  hideFeedback();
+  refreshBtn();
+}
+
+/* ── Re-render carril desde placed[] ── */
+function rerenderCarril(lane) {
+  const body = document.getElementById('body-' + lane);
+  body.innerHTML = '';
+  placed[lane].forEach((id, idx) => {
+    const b = NIVELES[curLv].bloques.find(x => x.id === id);
+    if (!b) return;
+    const el = crearBloque(b, 'lane', idx);
+    body.appendChild(el);
+  });
+  actualizarContador(lane);
+}
+
+function actualizarContador(lane) {
+  const n = placed[lane].length;
+  document.getElementById('cnt-' + lane).textContent = n === 0 ? '' : n + ' bloque' + (n > 1 ? 's' : '');
+}
+
+/* ── Drag & drop desde banco a carril ── */
+function ev(e) { e.preventDefault(); }
+function evLane(e, lane) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.getElementById('body-' + lane).classList.add('drag-over');
+}
+function leaveLane(e, lane) { document.getElementById('body-' + lane).classList.remove('drag-over'); }
+function leaveBanco(e) {}
+
+function dropLane(e, lane) {
+  e.preventDefault();
+  document.getElementById('body-' + lane).classList.remove('drag-over');
+  if (!dragId) return;
+
+  /* quitar de donde estaba */
+  const prevLane = encontrarLane(dragId);
+  if (prevLane) {
+    placed[prevLane] = placed[prevLane].filter(id => id !== dragId);
+    rerenderCarril(prevLane);
+  } else {
+    /* venía del banco */
+    const el = document.getElementById('blk-' + dragId);
+    if (el) el.remove();
+  }
+
+  placed[lane].push(dragId);
+  rerenderCarril(lane);
+  hideFeedback();
+  refreshBtn();
+}
+
+function dropBanco(e) {
+  e.preventDefault();
+  if (!dragId) return;
+  const prevLane = encontrarLane(dragId);
+  if (!prevLane) return; /* ya estaba en el banco */
+  placed[prevLane] = placed[prevLane].filter(id => id !== dragId);
+  rerenderCarril(prevLane);
+  const b = NIVELES[curLv].bloques.find(x => x.id === dragId);
+  if (b) document.getElementById('banco').appendChild(crearBloque(b, 'banco'));
+  hideFeedback();
+  refreshBtn();
+}
+
+function encontrarLane(id) {
+  for (const lane of ['browser', 'backend', 'db']) {
+    if (placed[lane].includes(id)) return lane;
+  }
+  return null;
+}
+
+/* ── Estado del botón verificar ── */
+function bankCount() { return document.getElementById('banco').children.length; }
+
+function refreshBtn() {
+  const vacio = bankCount() === 0;
+  document.getElementById('btnVerif').disabled = !vacio;
+  document.getElementById('pendiente').textContent = vacio
+    ? 'Todos los bloques están en los carriles — revisa el orden y envía'
+    : 'Quedan ' + bankCount() + ' bloque(s) sin colocar en los carriles';
+}
+
+/* ── Puntos de intentos ── */
+function renderDots() {
+  const wrap = document.getElementById('intentosDots');
+  const lbl  = document.getElementById('intentosLbl');
+  wrap.innerHTML = '';
+  if (attempts === 0) { lbl.style.display = 'none'; return; }
+  lbl.style.display = 'inline';
+  lbl.textContent = attempts + ' / ' + MAX_INTENTOS + ' intentos';
+  for (let i = 0; i < MAX_INTENTOS; i++) {
+    const d = document.createElement('div');
+    d.className = 'idot' + (i < attempts ? (i === MAX_INTENTOS - 1 ? ' last' : ' used') : '');
+    wrap.appendChild(d);
+  }
+}
+
+/* ── Mostrar respuesta correcta ── */
+function mostrarRespuesta() {
+  const lv = NIVELES[curLv];
+  document.getElementById('respNivel').textContent = curLv + 1;
+
+  const grid = document.getElementById('respGrid');
+  grid.innerHTML = '';
+
+  // Subtítulo explicando los números globales
+  const subtit = document.getElementById('respSubtitulo');
+  if (subtit) {
+    subtit.innerHTML = 'El número <strong>grande</strong> en cada bloque indica el paso real del flujo completo — atravesando las tres capas en secuencia.';
+  }
+
+  // Leyenda
+  const ley = document.getElementById('respLeyenda');
+  if (ley) {
+    ley.innerHTML = `
+      <span style="font-weight:600;color:#555;">Flujo real:</span>
+      <span class="resp-leyenda-dot" style="background:#7B1FA2">1</span><span>Navegador</span>
+      <span class="resp-flecha">→</span>
+      <span class="resp-leyenda-dot" style="background:#1565C0">6</span><span>Backend</span>
+      <span class="resp-flecha">→</span>
+      <span class="resp-leyenda-dot" style="background:#2E7D32">8</span><span>Base de datos</span>
+      <span class="resp-flecha">→</span>
+      <span class="resp-leyenda-dot" style="background:#1565C0">10</span><span>Backend</span>
+      <span class="resp-flecha">→</span>
+      <span class="resp-leyenda-dot" style="background:#7B1FA2">11</span><span>Navegador</span>
+    `;
+  }
+
+  const lanes = [
+    { key: 'browser', label: '🖥️ Navegador / React' },
+    { key: 'backend', label: '⚙️ Backend / Express' },
+    { key: 'db',      label: '🗄️ Base de datos' }
+  ];
+
+  lanes.forEach(({ key, label }) => {
+    // Ordenar por order (posición dentro del carril) para mostrarlos en el orden correcto del carril
+    const correctos = lv.bloques
+      .filter(b => b.lane === key)
+      .sort((a, b) => a.order - b.order);
+
+    const col = document.createElement('div');
+    col.className = 'resp-carril';
+
+    const hdr = document.createElement('div');
+    hdr.className = 'resp-header ' + key;
+    hdr.textContent = label;
+    col.appendChild(hdr);
+
+    const body = document.createElement('div');
+    body.className = 'resp-body';
+
+    correctos.forEach((b) => {
+      const blk = document.createElement('div');
+      blk.className = 'resp-blk ' + key;
+      blk.innerHTML = `
+        <div class="resp-gnum" title="Paso ${b.globalOrder} en el flujo completo">${b.globalOrder}</div>
+        <div class="resp-blk-content">
+          <span class="resp-icon">${b.icon}</span>
+          <span class="resp-text">${b.text}</span>
+        </div>
+      `;
+      body.appendChild(blk);
+    });
+
+    col.appendChild(body);
+    grid.appendChild(col);
+  });
+
+  document.getElementById('respPanel').className = 'respuesta-panel show';
+  document.getElementById('respPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ── Verificar ── */
+function verificar() {
+  const lv = NIVELES[curLv];
+  attempts++;
+  renderDots();
+  let ok = 0;
+  const errs = [];
+
+  lv.bloques.forEach(b => {
+    const el = document.getElementById('blk-' + b.id);
+    if (!el) return;
+    el.classList.remove('correct', 'wrong');
+
+    const inLane  = placed[b.lane]?.includes(b.id);
+    const inOrder = placed[b.lane]?.indexOf(b.id) === b.order - 1;
+
+    if (inLane && inOrder) {
+      el.classList.add('correct');
+      ok++;
+    } else {
+      el.classList.add('wrong');
+      if (!inLane) errs.push(`"${b.text.substring(0,30)}…" está en el carril incorrecto`);
+      else         errs.push(`"${b.text.substring(0,30)}…" está en la posición incorrecta`);
+    }
+
+    const posEl = el.querySelector('.blk-pos');
+    if (posEl) posEl.textContent = placed[b.lane]?.indexOf(b.id) + 1 || '?';
+  });
+
+  const fb = document.getElementById('feedback');
+  const total = lv.bloques.length;
+
+  /* Mostrar botón ver respuesta si llegó al límite */
+  if (attempts >= MAX_INTENTOS && ok < total) {
+    document.getElementById('btnVerResp').className = 'btn-ver-resp show';
+  }
+
+  if (ok === total) {
+    const tBonus = Math.max(0, 300 - secs);
+    const aBonus = attempts === 1 ? 100 : attempts === 2 ? 50 : 0;
+    const ganado = 200 + tBonus + aBonus;
+    score += ganado;
+    document.getElementById('scoreNum').textContent = score;
+    done[curLv] = true;
+    updateTabs();
+    clearInterval(iv);
+    document.getElementById('btnVerif').disabled = true;
+    document.getElementById('pendiente').textContent = '';
+    document.getElementById('btnVerResp').className = 'btn-ver-resp';
+
+    fb.className = 'feedback ok';
+    const next = done.findIndex(d => !d);
+    let msg = `✅ ¡Perfecto! Los ${total} bloques están en el carril y orden correctos. +${ganado} pts`;
+    if (attempts === 1) msg += ' (bonus: primer intento)';
+
+    if (next === -1) {
+      fb.textContent = msg + ' · ¡Has completado los 3 niveles!';
+      setTimeout(() => {
+        document.getElementById('gameArea').style.display = 'none';
+        document.getElementById('final').classList.add('show');
+        document.getElementById('finalPts').textContent = score;
+      }, 2200);
+    } else {
+      fb.textContent = msg + ` · Avanza al Nivel ${next + 1}.`;
+    }
+  } else {
+    score = Math.max(0, score - 20);
+    document.getElementById('scoreNum').textContent = score;
+    fb.className = 'feedback err';
+    const restantes = MAX_INTENTOS - attempts;
+    const avisoLimite = restantes > 0
+      ? ` Te quedan ${restantes} intento(s).`
+      : ' Has alcanzado el límite de intentos. Puedes ver la respuesta correcta.';
+    const muestra = errs.slice(0, 2).join(' · ') + (errs.length > 2 ? ` (y ${errs.length - 2} más)` : '');
+    fb.textContent = `❌ ${ok} de ${total} bloques correctos. ${muestra}.${avisoLimite}`;
+  }
+}
+
+function hideFeedback() {
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback';
+  fb.textContent = '';
+  document.querySelectorAll('.blk').forEach(el => el.classList.remove('correct', 'wrong'));
+}
+
+function reiniciar() {
+  score = 0; done = [false, false, false]; curLv = 0;
+  document.getElementById('scoreNum').textContent = '0';
+  document.getElementById('gameArea').style.display = 'block';
+  document.getElementById('final').classList.remove('show');
+  goLevel(0);
+}
+
+goLevel(0);
+</script>
+</body>
+</html>
