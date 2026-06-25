@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Actividad — Conceptos React: useState, useEffect, Router y más</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#1a1a2e;font-size:14px;line-height:1.7;}
+
+/* HEADER */
+.hdr{background:#1565C0;color:#fff;}
+.hdr-top{background:#0D47A1;padding:14px 40px;display:flex;justify-content:space-between;align-items:center;}
+.hdr-inst{font-size:11px;opacity:.8;text-transform:uppercase;letter-spacing:.04em;}
+.hdr-carrera{font-size:13px;font-weight:700;margin-top:2px;}
+.hdr-badge{background:#fff;color:#0D47A1;font-weight:700;font-size:13px;padding:5px 16px;border-radius:20px;}
+.hdr-main{padding:18px 40px 22px;}
+.hdr-label{font-size:10px;opacity:.7;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;}
+.hdr-titulo{font-size:24px;font-weight:700;margin-bottom:6px;}
+.hdr-meta{display:flex;gap:20px;font-size:12px;opacity:.8;flex-wrap:wrap;}
+.hdr-strip{height:5px;background:#42A5F5;}
+
+/* LAYOUT */
+.content{max-width:860px;margin:0 auto;padding:32px 40px 60px;}
+
+/* DATOS DEL ALUMNO */
+.datos-card{background:#F8FBFF;border:1px solid #BBDEFB;border-radius:10px;padding:20px 24px;margin-bottom:28px;}
+.datos-titulo{font-size:12px;font-weight:700;color:#0D47A1;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px;}
+.datos-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.dato-campo{display:flex;flex-direction:column;gap:4px;}
+.dato-label{font-size:11px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+.dato-linea{border:none;border-bottom:1.5px solid #BBDEFB;padding:4px 0;font-size:13px;color:#1a1a2e;background:transparent;width:100%;outline:none;}
+.dato-linea:focus{border-bottom-color:#1565C0;}
+
+/* INTRO */
+.intro-card{background:#E3F2FD;border-left:4px solid #1565C0;border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:28px;}
+.intro-card p{font-size:13.5px;color:#0D47A1;line-height:1.7;margin-bottom:8px;}
+.intro-card p:last-child{margin-bottom:0;}
+
+/* INSTRUCCIÓN LIBRETA */
+.libreta-banner{background:#FFF8E1;border:1.5px dashed #F59E0B;border-radius:10px;padding:14px 20px;margin-bottom:28px;display:flex;align-items:flex-start;gap:12px;}
+.libreta-icon{font-size:28px;flex-shrink:0;}
+.libreta-texto strong{display:block;font-size:13px;color:#92400E;margin-bottom:4px;}
+.libreta-texto p{font-size:12.5px;color:#78350F;line-height:1.6;}
+
+/* SECCIÓN */
+.seccion{margin-bottom:32px;}
+.seccion-titulo{font-size:15px;font-weight:700;color:#0D47A1;border-bottom:2px solid #BBDEFB;padding-bottom:8px;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.seccion-num{background:#1565C0;color:#fff;font-size:12px;font-weight:700;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+/* PREGUNTA */
+.pregunta{background:#fff;border:1px solid #BBDEFB;border-radius:10px;margin-bottom:14px;overflow:hidden;}
+.preg-header{padding:12px 16px;display:flex;align-items:flex-start;gap:12px;}
+.preg-num{background:#1565C0;color:#fff;font-size:11px;font-weight:700;min-width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.preg-contenido{flex:1;}
+.preg-texto{font-size:13.5px;color:#1a1a2e;line-height:1.6;font-weight:500;}
+.preg-socratica{font-size:12px;color:#1565C0;margin-top:4px;font-style:italic;}
+.preg-body{padding:0 16px 14px 56px;}
+.preg-tip{background:#F0F4FF;border-radius:6px;padding:8px 12px;font-size:12px;color:#555;line-height:1.5;margin-bottom:10px;}
+.preg-tip strong{color:#0D47A1;}
+.lineas-respuesta{display:flex;flex-direction:column;gap:8px;margin-top:8px;}
+.linea-r{border:none;border-bottom:1px solid #BBDEFB;padding:3px 0;width:100%;font-size:13px;color:#1a1a2e;background:transparent;outline:none;font-family:'Segoe UI',Arial,sans-serif;}
+.linea-r:focus{border-bottom-color:#1565C0;}
+.linea-r::placeholder{color:#bbb;font-size:12px;}
+.preg-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;margin-left:8px;vertical-align:middle;}
+.badge-hook{background:#EEEDFE;color:#3C3489;}
+.badge-router{background:#FFF3E0;color:#854F0B;}
+.badge-context{background:#FAECE7;color:#712B13;}
+.badge-axios{background:#E8F5E9;color:#1B5E20;}
+.badge-seguridad{background:#FFEBEE;color:#B71C1C;}
+.badge-patron{background:#F1EFE8;color:#444441;}
+
+/* ACTIVIDAD PRÁCTICA */
+.actividad-card{background:#fff;border:2px solid #1565C0;border-radius:10px;margin-bottom:14px;overflow:hidden;}
+.act-header{background:#1565C0;padding:10px 16px;display:flex;align-items:center;gap:10px;}
+.act-num{background:#fff;color:#1565C0;font-size:11px;font-weight:700;min-width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.act-titulo{font-size:13px;font-weight:700;color:#fff;}
+.act-tipo{font-size:10px;color:rgba(255,255,255,.75);margin-left:auto;font-weight:600;}
+.act-body{padding:14px 16px;}
+.act-descripcion{font-size:13px;color:#333;line-height:1.6;margin-bottom:12px;}
+.act-pasos{list-style:none;padding:0;counter-reset:paso;}
+.act-pasos li{counter-increment:paso;padding:6px 0 6px 30px;position:relative;font-size:13px;color:#444;border-bottom:1px solid #F0F4FF;line-height:1.5;}
+.act-pasos li:last-child{border-bottom:none;}
+.act-pasos li::before{content:counter(paso);position:absolute;left:0;top:50%;transform:translateY(-50%);width:20px;height:20px;background:#E3F2FD;color:#1565C0;border-radius:50%;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.act-codigo{background:#F8F8FF;border:1px solid #E0E0E0;border-radius:6px;padding:10px 14px;font-family:'Courier New',monospace;font-size:12px;color:#1a1a2e;margin:10px 0;line-height:1.8;}
+.act-codigo .cm{color:#27AE60;}
+.act-codigo .kw{color:#7B40F2;}
+.act-codigo .st{color:#C0392B;}
+.act-nota{background:#FFF8E1;border-left:3px solid #F59E0B;border-radius:0 6px 6px 0;padding:8px 12px;font-size:12px;color:#78350F;margin-top:10px;}
+.lineas-act{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
+
+/* FIRMA */
+.firma-section{background:#F8FBFF;border:1px solid #BBDEFB;border-radius:10px;padding:20px 24px;margin-top:28px;}
+.firma-titulo{font-size:12px;font-weight:700;color:#0D47A1;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px;}
+.firma-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;}
+.firma-campo{display:flex;flex-direction:column;gap:24px;align-items:center;}
+.firma-linea{width:100%;border:none;border-bottom:1.5px solid #1565C0;height:1px;}
+.firma-label{font-size:11px;color:#888;text-align:center;margin-top:6px;}
+
+/* FOOTER */
+.footer{background:#0D47A1;color:#fff;text-align:center;padding:14px;font-size:12px;margin-top:40px;}
+
+/* PRINT */
+@media print{
+  body{font-size:12px;}
+  .content{padding:20px 24px;}
+  .hdr-strip{display:none;}
+  .dato-linea,.linea-r,.lineas-act .linea-r{border-bottom:1px solid #999!important;}
+  .btn-imprimir{display:none!important;}
+}
+.btn-imprimir{position:fixed;bottom:24px;right:24px;background:#1565C0;color:#fff;border:none;border-radius:50px;padding:12px 22px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(21,101,192,.4);z-index:999;transition:opacity .15s;}
+.btn-imprimir:hover{opacity:.88;}
+</style>
+</head>
+<body>
+
+<button class="btn-imprimir" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+
+<div class="hdr">
+  <div class="hdr-top">
+    <div>
+      <div class="hdr-inst">Ingeniería de Desarrollo y Gestión de Software</div>
+      <div class="hdr-carrera">Desarrollo Web Profesional · Seguridad en el Desarrollo de Aplicaciones</div>
+    </div>
+    <div class="hdr-badge">Actividad de reflexión</div>
+  </div>
+  <div class="hdr-main">
+    <div class="hdr-label">Fase 2 y 3 — React · Router · Context · Axios · Cookies</div>
+    <div class="hdr-titulo">Conceptos clave de React aplicados al Sistema Administrativo</div>
+    <div class="hdr-meta">
+      <span>📚 10 preguntas socráticas</span>
+      <span>✏️ Actividad en libreta obligatoria</span>
+      <span>⏱ Tiempo estimado: 50 minutos</span>
+      <span>📝 Se firma en libreta al terminar</span>
+    </div>
+  </div>
+  <div class="hdr-strip"></div>
+</div>
+
+<div class="content">
+
+  <!-- DATOS -->
+  <div class="datos-card">
+    <div class="datos-titulo">Datos del alumno</div>
+    <div class="datos-grid">
+      <div class="dato-campo" style="grid-column:1/-1;">
+        <div class="dato-label">Nombre completo</div>
+        <input class="dato-linea" type="text" placeholder="Escribe tu nombre completo">
+      </div>
+      <div class="dato-campo">
+        <div class="dato-label">Fecha</div>
+        <input class="dato-linea" type="text" placeholder="dd / mm / aaaa">
+      </div>
+      <div class="dato-campo">
+        <div class="dato-label">Grupo</div>
+        <input class="dato-linea" type="text" placeholder="Ej. DS31">
+      </div>
+    </div>
+  </div>
+
+  <!-- INTRO -->
+  <div class="intro-card">
+    <p>Las siguientes preguntas no tienen una respuesta de una sola línea. Están diseñadas para que <strong>raiones</strong>, conectes lo que viste en las prácticas y, si algo no recuerdas con claridad, lo investigues. No busques la respuesta literal en el código — busca el <em>por qué</em>.</p>
+    <p>Responde aquí lo que puedas y completa el desarrollo en tu libreta. Tu maestra revisará ambos — la hoja y la libreta — y firmará las dos cuando estén completas.</p>
+  </div>
+
+  <!-- INSTRUCCIÓN LIBRETA -->
+  <div class="libreta-banner">
+    <div class="libreta-icon">📓</div>
+    <div class="libreta-texto">
+      <strong>Instrucción de libreta — obligatoria</strong>
+      <p>Para cada pregunta escribe en tu libreta: el número de la pregunta, tu respuesta completa con tus propias palabras, y al menos un ejemplo relacionado con el Sistema Administrativo que estás construyendo. Al terminar la actividad práctica dibuja el diagrama de flujo que se solicita. Tu maestra firmará esta hoja <strong>y</strong> la página de tu libreta antes de que salgas.</p>
+    </div>
+  </div>
+
+  <!-- SECCIÓN 1: HOOKS -->
+  <div class="seccion">
+    <div class="seccion-titulo">
+      <span class="seccion-num">1</span>
+      useState y useEffect — estado y efectos secundarios
+    </div>
+
+    <!-- P1 -->
+    <div class="pregunta">
+      <div class="preg-header">
+        <div class="preg-num">1</div>
+        <div class="preg-contenido">
+          <div class="preg-texto">¿Por qué React necesita un hook especial (<code>useState</code>) para guardar datos, en lugar de simplemente usar una variable normal de JavaScript? <span class="preg-badge badge-hook">useState</span></div>
+          <div class="preg-socratica">💭 Piensa: ¿qué pasa con una variable normal cuando React vuelve a renderizar el componente?</div>
+        </div>
+      </div>
+      <div class="preg-body">
+        <div class="preg-tip"><strong>Conecta con el proyecto:</strong> En PersonaForm.jsx tienes <code>const [form, setForm] = useState(vacío)</code>. ¿Qué pasaría si guardaras los campos del formulario en una variable <code>let form = {}</code> en lugar de con useState?</div>
+        <div class="lineas-respuesta">
+          <input class="linea-r" type="text" placeholder="Escribe tu respuesta aquí...">
+          <input class="linea-r" type="text" placeholder="">
+          <input class="linea-r" type="text" placeholder="">
+        </div>
+      </div>
+    </div>
+
+    <!-- P2 -->
+    <div class="pregunta">
+      <div class="preg-header">
+        <div class="preg-num">2</div>
+        <div class="preg-contenido">
+          <div class="preg-texto">En el proyecto tienes <code>useEffect(() =&gt; { cargarPersonas(); }, [])</code> y en otro lugar <code>useEffect(() =&gt; { getPersonaById(id) }, [id])</code>. ¿Cuál es la diferencia real entre poner <code>[]</code> y poner <code>[id]</code>? <span class="preg-badge badge-hook">useEffect</span></div>
+          <div class="preg-socratica">💭 ¿Qué problema concreto se resolvería si no pusieras el id en el arreglo de dependencias?</div>
+        </div>
+      </div>
+      <div class="preg-body">
+        <div class="preg-tip"><strong>Escenario real:</strong> El usuario va a <code>/personas/editar/3</code>, edita y guarda. Luego hace clic en ✏️ de otra persona — la URL cambia a <code>/personas/editar/7</code>. ¿Qué ocurriría con el formulario si el useEffect no tuviera <code>[id]</code> en su arreglo de dependencias?</div>
+        <div class="lineas-respuesta">
+          <input class="linea-r" type="text" placeholder="Diferencia entre [] y [id]:">
+          <input class="linea-r" type="text" placeholder="¿Qué pasaría sin [id]?">
+          <input class="linea-r" type="text" placeholder="">
+        </div>
+      </div>
+    </div>
+
+    <!-- P3 -->
+    <div class="pregunta">
+      <div class="preg-header">
+        <div class="preg-num">3</div>
+        <div class="preg-contenido">
+          <div class="preg-texto">Cuando haces <code>setForm({ ...form, [e.target.name]: e.target.value })</code>, estás usando el operador spread. ¿Por qué no puedes simplemente hacer <code>form.nombre = e.target.value</code> directamente? <span class="preg-badge badge-hook">useState</span></div>
+          <div class="preg-socratica">💭 Investiga qué significa "inmutabilidad del estado" en React y por qué existe esa regla.</div>
+        </div>
+      </div>
+      <div class="preg-body">
+        <div class="preg-tip"><strong>Pista:</strong> React compara el estado anterior con el nuevo para decidir si necesita re-renderizar. Si mutas el objeto directamente, ¿cómo sabe React que algo cambió?</div>
+        <div class="lineas-respuesta">
+          <input class="linea-r" type="text" placeholder="¿Qué es la inmutabilidad del estado?">
+          <input class="linea-r" type="text" placeholder="¿Por qué no se puede mutar directamente?">
+          <input class="linea-r" type="text" placeholder="">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECCIÓN 2: ROUTER -->
+  <div class="seccion">
+    <div class="seccion-titulo">
+      <span class="seccion-num">2</span>
+      React Router DOM — navegación entre pantallas
+    </div>
+
+    <!-- P4 -->
+    <div class="pregunta">
+      <div class="preg-header">
+        <div class="preg-num">4</div>
+        <div class="preg-contenido">
+          <div class="preg-texto">¿Por qué en el Navbar usamos <code>&lt;Link to="/personas"&gt;</code> en lugar de <code>&lt;a href="/personas"&gt;</code>? Ambos te llevan a la misma URL, pero uno destruye el trabajo de React. ¿Cuál y por qué? <span class="preg-badge badge-router">React Router</span></div>
+          <div class="preg-socratica">💭 ¿Qué hace el navegador cuando procesa un <code>&lt;a href&gt;</code>? ¿Qué hace React Router con <code>Link</code> en su lugar?</div>
+        </div>
+      </div>
+      <div class="preg-body">
+        <div class="preg-tip"><strong>Prueba en el proyecto:</strong> Cambia temporalmente un <code>Link</code> por <code>&lt;a href&gt;</code> y navega. ¿Notas algo diferente? ¿Qué pasa con el estado de la aplicación?</div>
+        <div class="lineas-respuesta">
+          <input class="linea-r" type="text" placeholder="¿Qué hace &lt;a href&gt; que Link no hace?">
+          <input class="linea-r" type="text" placeholder="¿Qué se pierde al recargar la página?">
+          <input class="linea-r" type="text" placeholder="">
+        </div>
+      </div>
+    </div>
+
+    <!-- P5 -->
+    <div class="pregunta">
+      <div class="preg-header">
+        <div class="preg-num">5</div>
+        <div class="preg-contenido">
+          <div class="preg-texto">En <code>App.jsx</code> tienes la ruta <code>path="/personas/editar/:id"</code> y en <code>PersonaFormPage.jsx</code> tienes <code>const { id } = useParams()</code>. ¿Por qué <code>id</code> llega como string <code>"3"</code> y no como número <code>3</code>? ¿Dónde importa esa diferencia en el código? <span class="preg-badge badge-router">useParams</span></div>
+          <div class="preg-socratica">💭 Si pasas ese id directamente a una consulta SQL como <code>WHERE id = ?</code>, ¿importa que sea string o número?</div>
+        </div>
+      </div>
+      <div class="preg-body">
+        <div class="preg-tip"><strong>Investiga:</strong> Busca qué hace <code>parseInt(id)</code> y <code>Number(id)</code>. ¿En qué casos del proyecto necesitarías convertir el tipo?</div>
+        <div class="lineas-respuesta">
+          <input class="linea-r" type="text" placeholder="¿Por qué llega como string?">
+          <input class="linea-r" type="text" placeholder="¿Dónde importa esa diferencia?">
+          <input class="linea-r" type="text" placeholder="">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECCIÓN 3: CONTEXT Y SEGURIDAD -->
+  <div class="seccion">
+    <div class="seccion-titulo">
+      <span class="seccion-num">3</span>
+      Context API, PrivateRoute y cookies httpOnly
+    </div>
+
+    <!-- P6 -->
+    <div class="pregunta">
+      <div class="preg-header">
+        <div class="preg-num">6</div>
+        <div class="preg-contenido">
+          <div class="preg-texto">El <code>AuthProvider</code> necesita estar <em>dentro</em> del <code>BrowserRouter</code> en <code>main.jsx</code>. ¿Qué error concreto ocurriría si los inviertes — es decir, si pones <code>BrowserRouter</code> dentro de <code>AuthProvider</code>? <span class="preg-badge badge-context">Context</span></div>
+          <div class="preg-socratica">💭 Dentro de AuthContext usamos <code>useNavigate()</code>. ¿Qué necesita ese hook para funcionar?</div>
+        </div>
+      </div>
+      <div class="preg-body">
+        <div class="preg-tip"><strong>Pista:</strong> <code>useNavigate()</code> solo funciona dentro del árbol de componentes de un <code>BrowserRouter</code>. Si <code>AuthProvider</code> estuviera por encima del <code>BrowserRouter</code>, ¿qué pasaría cuando <code>AuthContext</code> llame a <code>useNavigate()</code>?</div>
+        <div class="lineas-respuesta">
+          <input class="linea-r" type="text" placeholder="¿Qué error aparecería en la consola?">
+          <input class="linea-r" type="text" placeholder="¿Por qué el orden de los wrappers importa?">
+          <input class="linea-r" type="text" placeholder="">
+        </div>
+      </div>
+    </div>
+
+    <!-- P7 -->
+    <div class="pregunta">
+      <div class="preg-header">
+        <div class="preg-num">7</div>
+        <div class="preg-contenido">
+          <div class="preg-texto">Si guardas el JWT en <code>localStorage</code>, un script malicioso puede robarlo con <code>localStorage.getItem('token')</code>. Pero si usas una cookie <code>httpOnly</code>, ese mismo script no puede leerla. ¿Por qué? ¿Qué hace el atributo <code>httpOnly</code> exactamente? <span class="preg-badge badge-seguridad">Seguridad</span></div>
+          <div class="preg-socratica">💭 Prueba en la consola del navegador: escribe <code>document.cookie</code> después de hacer login. ¿Ves el token? ¿Por qué no?</div>
+        </div>
+      </div>
+      <div class="preg-body">
+        <div class="preg-tip"><strong>Investiga:</strong> Busca qué es un ataque XSS (Cross-Site Scripting) y cómo una cookie httpOnly lo mitiga. Escribe en la libreta un ejemplo de código XSS que robaría el token de localStorage pero fallaría con httpOnly.</div>
+        <div class="lineas-respuesta">
+          <input class="linea-r" type="text" placeholder="¿Qué hace httpOnly al atributo de la cookie?">
+          <input class="linea-r" type="text" placeholder="¿Qué ataque previene? ¿Cómo?">
+          <input class="linea-r" type="text" placeholder="">
+        </div>
+      </div>
+    </div>
+
+    <!-- P8 -->
+    <div class="pregunta">
+      <div class="preg-header">
+        <div class="preg-num">8</div>
+        <div class="preg-contenido">
+          <div class="preg-texto">Cuando el usuario recarga la página, React pierde todo su estado — incluyendo el objeto <code>usuario</code> del contexto. Sin embargo la sesión se recupera automáticamente sin pedir login de nuevo. ¿Cómo funciona ese mecanismo en el proyecto? <span class="preg-badge badge-context">Context</span> <span class="preg-badge badge-seguridad">Seguridad</span></div>
+          <div class="preg-socratica">💭 Revisa el <code>useEffect</code> dentro de <code>AuthProvider</code>. ¿Qué hace al montar? ¿Qué endpoint llama y por qué puede saber si hay sesión activa?</div>
+        </div>
+      </div>
+      <div class="preg-body">
+        <div class="preg-tip"><strong>Traza el flujo:</strong> Al recargar → AuthProvider monta → useEffect ejecuta → llama a <code>GET /api/auth/me</code> → el navegador envía la cookie automáticamente → el backend verifica el JWT en la cookie → responde con los datos del usuario → setUsuario() restaura el estado. Escribe ese flujo completo en la libreta.</div>
+        <div class="lineas-respuesta">
+          <input class="linea-r" type="text" placeholder="¿Qué hace useEffect al montar AuthProvider?">
+          <input class="linea-r" type="text" placeholder="¿Por qué el navegador envía la cookie sin que lo pidas?">
+          <input class="linea-r" type="text" placeholder="">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECCIÓN 4: AXIOS Y PATRONES -->
+  <div class="seccion">
+    <div class="seccion-titulo">
+      <span class="seccion-num">4</span>
+      Axios, arquitectura y patrones del proyecto
+    </div>
+
+    <!-- P9 -->
+    <div class="pregunta">
+      <div class="preg-header">
+        <div class="preg-num">9</div>
+        <div class="preg-contenido">
+          <div class="preg-texto">En el proyecto todas las llamadas HTTP están encapsuladas en <code>src/api/personas.api.js</code> y los componentes importan funciones de ahí en lugar de usar axios directamente. ¿Qué ventaja concreta tiene eso cuando el backend cambia, por ejemplo, de <code>/api/personas</code> a <code>/api/v2/personas</code>? <span class="preg-badge badge-axios">Axios</span> <span class="preg-badge badge-patron">Patrón</span></div>
+          <div class="preg-socratica">💭 ¿Cuántos archivos tendrías que modificar en cada caso: con el módulo de API centralizado vs sin él?</div>
+        </div>
+      </div>
+      <div class="preg-body">
+        <div class="preg-tip"><strong>Cuenta los archivos:</strong> Sin el módulo centralizado, axios.get estaría en PersonasPage, PersonaFormPage, Navbar… Con el módulo, ¿en cuántos archivos cambiarías la URL?</div>
+        <div class="lineas-respuesta">
+          <input class="linea-r" type="text" placeholder="¿Qué ventaja da centralizar las llamadas HTTP?">
+          <input class="linea-r" type="text" placeholder="¿Cuántos archivos cambiarían en cada caso?">
+          <input class="linea-r" type="text" placeholder="">
+        </div>
+      </div>
+    </div>
+
+    <!-- P10 -->
+    <div class="pregunta">
+      <div class="preg-header">
+        <div class="preg-num">10</div>
+        <div class="preg-contenido">
+          <div class="preg-texto">El componente <code>PersonaFormPage.jsx</code> maneja dos casos con el mismo código: crear una persona nueva y editar una existente. La única diferencia es si <code>id</code> existe en la URL o no. ¿Es eso buena práctica o deberían ser dos componentes separados? Argumenta con pros y contras. <span class="preg-badge badge-patron">Patrón</span></div>
+          <div class="preg-socratica">💭 ¿Qué pasa cuando el formulario de editar necesita mostrar campos extra que no aparecen al crear? ¿Cómo lo resolverías sin duplicar todo el formulario?</div>
+        </div>
+      </div>
+      <div class="preg-body">
+        <div class="preg-tip"><strong>Investiga:</strong> Busca el concepto "single responsibility principle" (principio de responsabilidad única) y evalúa si PersonaFormPage lo cumple. No hay una respuesta única correcta — lo importante es que argumentes.</div>
+        <div class="lineas-respuesta">
+          <input class="linea-r" type="text" placeholder="Pros de un solo componente para crear y editar:">
+          <input class="linea-r" type="text" placeholder="Contras o limitaciones:">
+          <input class="linea-r" type="text" placeholder="Tu conclusión:">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIVIDAD PRÁCTICA EN LIBRETA -->
+  <div class="seccion">
+    <div class="seccion-titulo">
+      <span class="seccion-num">5</span>
+      Actividad práctica — obligatoria en libreta
+    </div>
+
+    <div class="actividad-card">
+      <div class="act-header">
+        <div class="act-num">A</div>
+        <div class="act-titulo">Dibuja el mapa de componentes y flujo de datos</div>
+        <div class="act-tipo">✏️ Libreta</div>
+      </div>
+      <div class="act-body">
+        <div class="act-descripcion">En tu libreta dibuja el árbol de componentes del proyecto <strong>tal como lo tienes en este momento</strong>. Usa la estructura real de tu código, no una genérica.</div>
+        <ul class="act-pasos">
+          <li>En la parte superior dibuja <code>main.jsx</code> con sus dos wrappers: <code>BrowserRouter</code> y <code>AuthProvider</code>.</li>
+          <li>Debajo dibuja <code>App.jsx</code> con las 5 rutas que tiene y el componente que muestra cada una.</li>
+          <li>Para cada página (<code>PersonasPage</code>, <code>PersonaFormPage</code>, <code>LoginPage</code>) dibuja los componentes que usa internamente.</li>
+          <li>Con flechas de línea continua muestra el flujo de props (datos que bajan). Con flechas de línea punteada muestra las llamadas a la API (axios).</li>
+          <li>Marca con 🔒 las rutas que están envueltas en <code>PrivateRoute</code>.</li>
+        </ul>
+        <div class="act-nota">Tu maestra verificará que el diagrama corresponda exactamente al código de tu proyecto y que las conexiones sean correctas.</div>
+      </div>
+    </div>
+
+    <div class="actividad-card">
+      <div class="act-header">
+        <div class="act-num">B</div>
+        <div class="act-titulo">Escribe de memoria los 5 hooks y cuándo usarlos</div>
+        <div class="act-tipo">✏️ Libreta</div>
+      </div>
+      <div class="act-body">
+        <div class="act-descripcion">Sin ver el código ni esta hoja, escribe en tu libreta una tabla con estas columnas: <strong>Hook</strong> · <strong>¿Para qué sirve?</strong> · <strong>¿Dónde lo usas en el proyecto?</strong></div>
+        <ul class="act-pasos">
+          <li><code>useState</code> — cuándo usarlo y qué pasa cuando no se usa</li>
+          <li><code>useEffect</code> — diferencia entre los tres tipos de arreglo de dependencias</li>
+          <li><code>useNavigate</code> — cuándo navegar desde código vs desde JSX</li>
+          <li><code>useParams</code> — qué devuelve exactamente y de dónde viene el valor</li>
+          <li><code>useContext</code> / <code>useAuth</code> — cómo conecta un componente con el estado global</li>
+        </ul>
+        <div class="act-nota">Después de escribir la tabla de memoria, puedes abrir el código para verificar. Marca con ✓ lo que acertaste y corrige con otro color lo que no.</div>
+      </div>
+    </div>
+
+    <div class="actividad-card">
+      <div class="act-header">
+        <div class="act-num">C</div>
+        <div class="act-titulo">Traza el flujo de login con cookies httpOnly — sin ver el código</div>
+        <div class="act-tipo">✏️ Libreta</div>
+      </div>
+      <div class="act-body">
+        <div class="act-descripcion">Dibuja en tu libreta el flujo completo del login con cookies, desde que el usuario escribe su contraseña hasta que la tabla de personas carga. Incluye los archivos de código que intervienen en cada paso.</div>
+        <ul class="act-pasos">
+          <li>Dibuja tres columnas: Navegador / React · Backend / Express · Base de datos</li>
+          <li>Numera cada paso del 1 al 11 cruzando las columnas según el orden real</li>
+          <li>En cada paso escribe el nombre del archivo y la función que se ejecuta</li>
+          <li>Señala exactamente dónde se genera la cookie y dónde la recibe el navegador</li>
+          <li>Señala por qué <code>document.cookie</code> no puede leer esa cookie en el navegador</li>
+        </ul>
+        <div class="act-nota">Este diagrama es el mismo que verificaste en el Juego de Flujo por Bloques. Si no recuerdas algún paso, razona desde el código — no copies del juego directamente.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIRMA -->
+  <div class="firma-section">
+    <div class="firma-titulo">Verificación y firma — se completa al finalizar la actividad</div>
+    <div class="firma-grid">
+      <div class="firma-campo">
+        <div style="height:48px;"></div>
+        <div class="firma-linea"></div>
+        <div class="firma-label">Firma del alumno</div>
+      </div>
+      <div class="firma-campo">
+        <div style="height:48px;"></div>
+        <div class="firma-linea"></div>
+        <div class="firma-label">Firma de la maestra<br>(hoja de actividad)</div>
+      </div>
+      <div class="firma-campo">
+        <div style="height:48px;"></div>
+        <div class="firma-linea"></div>
+        <div class="firma-label">Firma de la maestra<br>(libreta verificada)</div>
+      </div>
+    </div>
+    <div style="margin-top:16px;font-size:12px;color:#888;text-align:center;">
+      La firma en libreta confirma que los diagramas A, B y C están completos, correctos y son propios del alumno.
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  Ingeniería de Desarrollo y Gestión de Software &nbsp;·&nbsp; Sistema Administrativo Web &nbsp;·&nbsp; Prácticas P04–P07
+</div>
+
+</body>
+</html>
