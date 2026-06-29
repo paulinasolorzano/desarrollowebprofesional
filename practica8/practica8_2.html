@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica 8 — Módulo de Usuarios y control de acceso por roles</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',Arial,sans-serif; background:#fff; color:#1a1a2e; font-size:14px; line-height:1.7; }
+.header { background:#1565C0; color:#fff; }
+.header-top { background:#0D47A1; padding:18px 40px 14px; display:flex; justify-content:space-between; align-items:flex-start; }
+.header-inst { font-size:11px; opacity:0.85; letter-spacing:0.03em; text-transform:uppercase; }
+.header-carrera { font-size:13px; font-weight:600; margin-top:3px; }
+.header-badge { background:#fff; color:#0D47A1; font-weight:700; font-size:13px; padding:6px 16px; border-radius:20px; white-space:nowrap; align-self:center; }
+.header-main { padding:20px 40px 24px; }
+.header-practica { font-size:11px; opacity:0.75; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; }
+.header-titulo { font-size:26px; font-weight:700; margin-bottom:8px; }
+.header-meta { display:flex; gap:24px; font-size:12px; opacity:0.85; flex-wrap:wrap; }
+.header-strip { height:5px; background:#42A5F5; }
+.content { max-width:900px; margin:0 auto; padding:36px 40px 60px; }
+.toc { background:#E3F2FD; border-left:4px solid #1565C0; border-radius:0 8px 8px 0; padding:20px 24px; margin-bottom:36px; }
+.toc-title { font-size:13px; font-weight:700; color:#0D47A1; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px; }
+.toc ol { padding-left:18px; }
+.toc li { font-size:13px; color:#1565C0; padding:3px 0; }
+.toc li a { color:#1565C0; text-decoration:none; }
+.toc li a:hover { text-decoration:underline; }
+.seccion { margin-bottom:36px; }
+.seccion-titulo { font-size:16px; font-weight:700; color:#0D47A1; border-bottom:2px solid #BBDEFB; padding-bottom:8px; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+.seccion-num { background:#1565C0; color:#fff; font-size:12px; font-weight:700; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.subseccion-titulo { font-size:14px; font-weight:700; color:#1565C0; margin:18px 0 8px; }
+p { margin-bottom:10px; }
+.contexto-card { background:#F8FBFF; border:1px solid #BBDEFB; border-radius:10px; padding:20px 24px; margin-bottom:16px; }
+.contexto-card p:last-child { margin-bottom:0; }
+.concepto-bloque { border:1px solid #BBDEFB; border-radius:10px; margin-bottom:14px; overflow:hidden; }
+.concepto-header { background:#1565C0; color:#fff; padding:10px 16px; font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px; }
+.concepto-icon { font-size:16px; }
+.concepto-body { padding:14px 16px; font-size:13.5px; background:#F8FBFF; }
+.concepto-body p { margin-bottom:8px; }
+.concepto-body p:last-child { margin-bottom:0; }
+.analogia { background:#FFF8E1; border-left:3px solid #F59E0B; padding:10px 14px; margin-top:8px; border-radius:0 6px 6px 0; font-size:13px; }
+.analogia strong { color:#92400E; }
+.obj-lista { list-style:none; padding:0; }
+.obj-lista li { padding:6px 0 6px 24px; position:relative; font-size:13.5px; border-bottom:1px solid #F0F4FF; }
+.obj-lista li:last-child { border-bottom:none; }
+.obj-lista li::before { content:'✓'; position:absolute; left:0; color:#1565C0; font-weight:700; }
+.nota  { background:#FFF8E1; border-left:4px solid #F59E0B; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.nota strong { color:#92400E; }
+.info  { background:#E8F5E9; border-left:4px solid #43A047; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.info strong { color:#1B5E20; }
+.peligro { background:#FFEBEE; border-left:4px solid #E53935; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.peligro strong { color:#B71C1C; }
+.profesional { background:#EDE7F6; border-left:4px solid #7B1FA2; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.profesional strong { color:#4A148C; }
+.seguridad { background:#FFF3E0; border-left:4px solid #E65100; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.seguridad strong { color:#E65100; }
+.flujo { display:flex; align-items:center; margin:16px 0; flex-wrap:wrap; }
+.flujo-item { background:#E3F2FD; border:1px solid #90CAF9; border-radius:8px; padding:10px 16px; text-align:center; font-size:12px; flex:1; min-width:100px; }
+.flujo-item.activo { background:#1565C0; color:#fff; border-color:#1565C0; font-weight:700; }
+.flujo-item.futuro { background:#F5F5F5; border-color:#ddd; color:#999; }
+.flujo-item.listo  { background:#E8F5E9; border-color:#66BB6A; color:#2E7D32; }
+.flujo-item .fi-num { font-size:10px; opacity:0.7; margin-bottom:2px; }
+.flujo-item .fi-nombre { font-size:12px; font-weight:600; }
+.flujo-sep { color:#90CAF9; font-size:18px; padding:0 6px; }
+.paso { background:#fff; border:1px solid #BBDEFB; border-radius:10px; padding:20px 24px; margin-bottom:20px; }
+.paso-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.paso-num { background:#1565C0; color:#fff; font-size:13px; font-weight:700; padding:4px 12px; border-radius:14px; }
+.paso-titulo { font-size:14px; font-weight:700; color:#0D47A1; }
+.paso p { font-size:13.5px; margin-bottom:10px; }
+.file-label { display:inline-block; background:#E3F2FD; color:#0D47A1; font-family:'Courier New',monospace; font-size:12px; padding:4px 12px; border-radius:6px 6px 0 0; border:1px solid #BBDEFB; border-bottom:none; font-weight:600; margin-top:10px; }
+.file-label.nuevo { background:#E8F5E9; color:#1B5E20; border-color:#A5D6A7; }
+.file-label.modif { background:#FFF8E1; color:#92400E; border-color:#FFE082; }
+.code-wrap { border:1px solid #BBDEFB; border-radius:0 8px 8px 8px; overflow:hidden; margin-bottom:12px; background:#fff; }
+.code-wrap.nuevo { border-color:#A5D6A7; }
+.code-wrap.modif { border-color:#FFE082; }
+.code-wrap canvas { display:block; max-width:100%; }
+.folder-tree { background:#fff; border:1px solid #BBDEFB; border-radius:8px; padding:16px 20px; margin:12px 0; font-family:'Courier New',monospace; font-size:13px; line-height:2.1; }
+.folder-tree .d { color:#1565C0; font-weight:700; }
+.folder-tree .f { color:#2E7D32; }
+.folder-tree .f-nuevo { color:#2E7D32; font-weight:700; background:#E8F5E9; padding:1px 4px; border-radius:3px; }
+.folder-tree .f-modif { color:#92400E; font-weight:700; background:#FFF8E1; padding:1px 4px; border-radius:3px; }
+.folder-tree .cm { color:#9E9E9E; font-style:italic; }
+.tabla-gen { width:100%; border-collapse:collapse; font-size:13px; margin:12px 0; }
+.tabla-gen th { background:#1565C0; color:#fff; padding:9px 14px; text-align:left; font-size:12px; }
+.tabla-gen td { padding:9px 14px; border-bottom:1px solid #E3F2FD; vertical-align:top; }
+.tabla-gen tr:nth-child(even) td { background:#F8FBFF; }
+.tabla-gen code { background:#E3F2FD; color:#0D47A1; padding:1px 6px; border-radius:3px; font-size:12px; }
+.actividades { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.actividades th { background:#1565C0; color:#fff; padding:10px 14px; text-align:left; font-weight:600; font-size:12px; }
+.actividades td { padding:9px 14px; border-bottom:1px solid #E3F2FD; vertical-align:top; }
+.actividades tr:nth-child(even) td { background:#F8FBFF; }
+.actividades tr:last-child td { border-bottom:none; }
+.tipo-badge { font-size:11px; padding:3px 8px; border-radius:10px; font-weight:600; white-space:nowrap; }
+.tipo-codigo { background:#E3F2FD; color:#0D47A1; }
+.tipo-prueba { background:#E8F5E9; color:#1B5E20; }
+.tipo-thunder { background:#FFF3E0; color:#E65100; }
+.reflexion-lista { list-style:none; padding:0; counter-reset:ref; }
+.reflexion-lista li { counter-increment:ref; padding:10px 14px 10px 44px; position:relative; background:#F8FBFF; border:1px solid #BBDEFB; border-radius:8px; margin-bottom:8px; font-size:13.5px; }
+.reflexion-lista li::before { content:counter(ref); position:absolute; left:12px; top:50%; transform:translateY(-50%); background:#1565C0; color:#fff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
+.rubrica { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.rubrica th { background:#0D47A1; color:#fff; padding:10px 14px; text-align:left; font-weight:600; font-size:12px; }
+.rubrica td { padding:9px 14px; border-bottom:1px solid #E3F2FD; }
+.rubrica tr:nth-child(even) td { background:#F8FBFF; }
+.rubrica .total td { background:#1565C0; color:#fff; font-weight:700; }
+.pts { font-weight:700; color:#0D47A1; }
+.entregable-lista { list-style:none; padding:0; }
+.entregable-lista li { padding:8px 14px 8px 36px; position:relative; font-size:13.5px; border-bottom:1px solid #F0F4FF; }
+.entregable-lista li:last-child { border-bottom:none; }
+.entregable-lista li::before { content:'📄'; position:absolute; left:8px; }
+.footer { background:#0D47A1; color:#fff; text-align:center; padding:14px 40px; font-size:12px; margin-top:40px; }
+code { background:#E3F2FD; color:#0D47A1; padding:1px 5px; border-radius:3px; font-size:12px; font-family:'Courier New',monospace; }
+/* Tabla de roles */
+.roles-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin:14px 0; }
+.rol-card { border-radius:8px; overflow:hidden; }
+.rol-hdr { padding:8px 12px; font-size:12px; font-weight:700; text-align:center; }
+.rol-body { padding:10px 12px; font-size:12px; line-height:1.8; border:1px solid #BBDEFB; border-top:none; border-radius:0 0 8px 8px; background:#F8FBFF; }
+.rol-hdr.admin   { background:#1565C0; color:#fff; }
+.rol-hdr.usuario { background:#43A047; color:#fff; }
+.rol-hdr.invitado{ background:#757575; color:#fff; }
+
+/* Tab colapsable — Flujo de Login */
+.tab-flujo { border:1px solid #BBDEFB; border-radius:10px; margin-bottom:28px; overflow:hidden; }
+.tab-flujo-btn {
+  width:100%; background:#E3F2FD; border:none; padding:14px 20px;
+  display:flex; align-items:center; justify-content:space-between;
+  cursor:pointer; font-family:'Segoe UI',Arial,sans-serif;
+  font-size:14px; font-weight:700; color:#0D47A1; text-align:left;
+}
+.tab-flujo-btn:hover { background:#BBDEFB; }
+.tab-flujo-btn .tf-izq { display:flex; align-items:center; gap:10px; }
+.tab-flujo-btn .tf-icono { font-size:18px; }
+.tab-flujo-btn .tf-flecha {
+  font-size:16px; color:#1565C0; transition:transform .25s;
+  display:inline-block;
+}
+.tab-flujo-btn.abierto .tf-flecha { transform:rotate(180deg); }
+.tab-flujo-cuerpo {
+  display:none; padding:20px 20px 24px; background:#fff;
+  border-top:1px solid #BBDEFB;
+}
+.tab-flujo-cuerpo.visible { display:block; }
+.tab-flujo-intro {
+  font-size:13px; color:#444; line-height:1.6; margin-bottom:16px;
+  background:#F8FBFF; border-left:3px solid #1565C0; padding:10px 14px;
+  border-radius:0 6px 6px 0;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-inst">Ingeniería de Desarrollo y Gestión de Software</div>
+      <div class="header-carrera">Desarrollo Web Integral y Seguridad</div>
+    </div>
+    <div class="header-badge">Práctica 8</div>
+  </div>
+  <div class="header-main">
+    <div class="header-practica">Fase 4 — Módulos CRUD · inicio</div>
+    <div class="header-titulo">Módulo de Usuarios y control de acceso por roles</div>
+    <div class="header-meta">
+      <span>⏱ Duración: 2 horas</span>
+      <span>🔐 RBAC · roles · middleware de autorización</span>
+      <span>📦 Entregable: CRUD de usuarios con control de roles funcional</span>
+    </div>
+  </div>
+  <div class="header-strip"></div>
+</div>
+
+<div class="content">
+
+  <div class="toc">
+    <div class="toc-title">Tabla de contenidos</div>
+    <ol>
+      <li><a href="#donde">¿Dónde estamos en el proyecto?</a></li>
+      <li><a href="#conceptos">Conceptos clave: roles, autenticación vs autorización y RBAC</a></li>
+      <li><a href="#objetivos">Objetivos de la práctica</a></li>
+      <li><a href="#estructura">Nueva estructura del proyecto</a></li>
+      <li><a href="#desarrollo">Desarrollo paso a paso</a></li>
+      <li><a href="#actividades">Actividades</a></li>
+      <li><a href="#reflexion">Preguntas de reflexión</a></li>
+      <li><a href="#entregable">Entregable</a></li>
+      <li><a href="#rubrica">Criterios de evaluación</a></li>
+    </ol>
+  </div>
+
+  <!-- TAB COLAPSABLE — Flujo de Login -->
+  <div class="tab-flujo">
+    <button class="tab-flujo-btn" id="btnFlujo" onclick="toggleFlujo()">
+      <span class="tf-izq">
+        <span class="tf-icono">🗺️</span>
+        <span>¿Cómo se conectan los archivos cuando el usuario hace Login? — ver diagrama de flujo</span>
+      </span>
+      <span class="tf-flecha" id="flechaFlujo">▼</span>
+    </button>
+    <div class="tab-flujo-cuerpo" id="cuerpoFlujo">
+      <div class="tab-flujo-intro">
+        Antes de comenzar a codificar, observa cómo viaja la información desde que el usuario presiona <strong>Iniciar sesión</strong> hasta que el sistema confirma que tiene acceso. Cada cuadro muestra un archivo real del proyecto y <em>por qué</em> interviene en ese momento.
+      </div>
+      <svg width="100%" viewBox="0 0 820 900" style="display:block;max-width:820px;margin:0 auto;">
+        <defs>
+          <marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+
+        <!-- ═══ ZONA FRONTEND ═══ -->
+        <rect x="10" y="14" width="800" height="296" rx="10" fill="#F8FBFF" stroke="#BBDEFB" stroke-width="1" stroke-dasharray="5 3"/>
+        <text x="22" y="10" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#888" font-weight="600">🖥️  FRONTEND — ocurre en el navegador del alumno</text>
+
+        <!-- 1. LoginPage -->
+        <rect x="24" y="32" width="196" height="72" rx="8" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1"/>
+        <text x="122" y="57" font-family="'Segoe UI',Arial,sans-serif" font-size="13" font-weight="700" fill="#3C3489" text-anchor="middle">LoginPage.jsx</text>
+        <text x="122" y="74" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#534AB7" text-anchor="middle">Es la pantalla con el formulario.</text>
+        <text x="122" y="88" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#534AB7" text-anchor="middle">Captura usuario y contraseña.</text>
+
+        <!-- flecha 1→2 -->
+        <line x1="220" y1="68" x2="248" y2="68" stroke="#534AB7" stroke-width="1.3" marker-end="url(#arr2)"/>
+        <text x="234" y="62" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#888" text-anchor="middle">llama a</text>
+
+        <!-- 2. AuthContext -->
+        <rect x="248" y="32" width="212" height="72" rx="8" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1"/>
+        <text x="354" y="57" font-family="'Segoe UI',Arial,sans-serif" font-size="13" font-weight="700" fill="#3C3489" text-anchor="middle">AuthContext.jsx</text>
+        <text x="354" y="74" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#534AB7" text-anchor="middle">Gestiona la sesión global.</text>
+        <text x="354" y="88" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#534AB7" text-anchor="middle">login() coordina el proceso.</text>
+
+        <!-- flecha 2→3 -->
+        <line x1="460" y1="68" x2="488" y2="68" stroke="#534AB7" stroke-width="1.3" marker-end="url(#arr2)"/>
+        <text x="474" y="62" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#888" text-anchor="middle">delega a</text>
+
+        <!-- 3. auth.api.js -->
+        <rect x="488" y="32" width="312" height="72" rx="8" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1"/>
+        <text x="644" y="57" font-family="'Segoe UI',Arial,sans-serif" font-size="13" font-weight="700" fill="#3C3489" text-anchor="middle">auth.api.js</text>
+        <text x="644" y="74" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#534AB7" text-anchor="middle">Centraliza las llamadas HTTP del módulo auth.</text>
+        <text x="644" y="88" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#534AB7" text-anchor="middle">Envía POST /api/auth/login con credenciales.</text>
+
+        <!-- flecha hacia abajo HTTP -->
+        <line x1="644" y1="104" x2="644" y2="192" stroke="#185FA5" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arr2)"/>
+        <text x="666" y="152" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#888">POST HTTP</text>
+
+        <!-- línea sep HTTP -->
+        <line x1="10" y1="316" x2="810" y2="316" stroke="#BBDEFB" stroke-width="1" stroke-dasharray="4 4"/>
+        <text x="410" y="312" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#aaa" text-anchor="middle">— petición cruza del navegador al servidor —</text>
+
+        <!-- fila intermedia frontend: vuelta final -->
+        <!-- PrivateRoute -->
+        <rect x="24" y="218" width="210" height="72" rx="8" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1"/>
+        <text x="129" y="243" font-family="'Segoe UI',Arial,sans-serif" font-size="13" font-weight="700" fill="#3C3489" text-anchor="middle">PrivateRoute.jsx</text>
+        <text x="129" y="260" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#534AB7" text-anchor="middle">Verifica que haya usuario en</text>
+        <text x="129" y="274" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#534AB7" text-anchor="middle">contexto → muestra la página.</text>
+
+        <!-- setUsuario -->
+        <rect x="264" y="218" width="212" height="72" rx="8" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1"/>
+        <text x="370" y="243" font-family="'Segoe UI',Arial,sans-serif" font-size="13" font-weight="700" fill="#3C3489" text-anchor="middle">AuthContext.jsx</text>
+        <text x="370" y="260" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#534AB7" text-anchor="middle">setUsuario() guarda en estado</text>
+        <text x="370" y="274" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#534AB7" text-anchor="middle">quién inició sesión.</text>
+
+        <!-- flechas vuelta frontend -->
+        <line x1="644" y1="328" x2="644" y2="360" stroke="#185FA5" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arr2)"/>
+        <line x1="644" y1="360" x2="480" y2="360" stroke="#185FA5" stroke-width="1.5" stroke-dasharray="5 3"/>
+        <line x1="480" y1="360" x2="480" y2="290" stroke="#534AB7" stroke-width="1.3" marker-end="url(#arr2)"/>
+        <text x="570" y="356" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#888" text-anchor="middle">200 + cookie httpOnly</text>
+        <line x1="264" y1="254" x2="236" y2="254" stroke="#534AB7" stroke-width="1.3" marker-end="url(#arr2)"/>
+        <text x="250" y="248" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#888" text-anchor="middle">navega</text>
+
+        <!-- resultado -->
+        <rect x="24" y="218" width="6" height="72" rx="3" fill="#3B6D11"/>
+
+        <!-- ═══ ZONA BACKEND ═══ -->
+        <rect x="10" y="376" width="800" height="396" rx="10" fill="#F1FBF4" stroke="#A5D6A7" stroke-width="1" stroke-dasharray="5 3"/>
+        <text x="22" y="372" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#888" font-weight="600">⚙️  BACKEND — ocurre en el servidor Node.js</text>
+
+        <!-- 4. auth.routes.js -->
+        <rect x="508" y="394" width="288" height="72" rx="8" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="1"/>
+        <text x="652" y="419" font-family="'Segoe UI',Arial,sans-serif" font-size="13" font-weight="700" fill="#085041" text-anchor="middle">auth.routes.js</text>
+        <text x="652" y="436" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#0F6E56" text-anchor="middle">Define qué función atiende</text>
+        <text x="652" y="450" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#0F6E56" text-anchor="middle">cada URL del módulo auth.</text>
+
+        <!-- flecha llegada HTTP → routes -->
+        <line x1="644" y1="394" x2="644" y2="328" stroke="#185FA5" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arr2)"/>
+
+        <!-- flecha routes→controller -->
+        <line x1="508" y1="430" x2="480" y2="430" stroke="#0F6E56" stroke-width="1.3" marker-end="url(#arr2)"/>
+        <text x="494" y="424" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#888" text-anchor="middle">llama a</text>
+
+        <!-- 5. auth.controller.js -->
+        <rect x="264" y="394" width="216" height="72" rx="8" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="1"/>
+        <text x="372" y="419" font-family="'Segoe UI',Arial,sans-serif" font-size="13" font-weight="700" fill="#085041" text-anchor="middle">auth.controller.js</text>
+        <text x="372" y="436" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#0F6E56" text-anchor="middle">Contiene la lógica real.</text>
+        <text x="372" y="450" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#0F6E56" text-anchor="middle">Orquesta bcrypt y JWT.</text>
+
+        <!-- flecha controller→MySQL -->
+        <line x1="264" y1="430" x2="236" y2="430" stroke="#0F6E56" stroke-width="1.3" marker-end="url(#arr2)"/>
+        <text x="250" y="424" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#888" text-anchor="middle">busca</text>
+
+        <!-- 6. MySQL -->
+        <rect x="24" y="394" width="212" height="72" rx="8" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="1"/>
+        <text x="130" y="419" font-family="'Segoe UI',Arial,sans-serif" font-size="13" font-weight="700" fill="#085041" text-anchor="middle">MySQL / tabla usuarios</text>
+        <text x="130" y="436" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#0F6E56" text-anchor="middle">Almacena los usuarios</text>
+        <text x="130" y="450" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#0F6E56" text-anchor="middle">y el password_hash.</text>
+
+        <!-- flecha regreso MySQL→bcrypt curva -->
+        <path d="M130 466 L130 502 L372 502 L372 486" fill="none" stroke="#0F6E56" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arr2)"/>
+        <text x="240" y="498" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#888" text-anchor="middle">devuelve fila con password_hash</text>
+
+        <!-- 7. bcrypt.compare -->
+        <rect x="264" y="514" width="216" height="72" rx="8" fill="#FFF8E1" stroke="#FFE082" stroke-width="1"/>
+        <text x="372" y="539" font-family="'Segoe UI',Arial,sans-serif" font-size="13" font-weight="700" fill="#633806" text-anchor="middle">bcrypt.compare()</text>
+        <text x="372" y="556" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#854F0B" text-anchor="middle">Compara la contraseña enviada</text>
+        <text x="372" y="570" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#854F0B" text-anchor="middle">con el hash. No descifra: verifica.</text>
+
+        <!-- flecha bcrypt→jwt -->
+        <line x1="480" y1="550" x2="508" y2="550" stroke="#854F0B" stroke-width="1.3" marker-end="url(#arr2)"/>
+        <text x="494" y="544" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#888" text-anchor="middle">si ✓</text>
+
+        <!-- 8. jwt.sign -->
+        <rect x="508" y="514" width="288" height="72" rx="8" fill="#FFF8E1" stroke="#FFE082" stroke-width="1"/>
+        <text x="652" y="539" font-family="'Segoe UI',Arial,sans-serif" font-size="13" font-weight="700" fill="#633806" text-anchor="middle">jwt.sign()</text>
+        <text x="652" y="556" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#854F0B" text-anchor="middle">Genera token con id y rol del usuario,</text>
+        <text x="652" y="570" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#854F0B" text-anchor="middle">firmado con JWT_SECRET del .env.</text>
+
+        <!-- flecha jwt→cookie -->
+        <line x1="652" y1="586" x2="652" y2="634" stroke="#0F6E56" stroke-width="1.3" marker-end="url(#arr2)"/>
+
+        <!-- 9. res.cookie -->
+        <rect x="508" y="634" width="288" height="72" rx="8" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="1"/>
+        <text x="652" y="659" font-family="'Segoe UI',Arial,sans-serif" font-size="13" font-weight="700" fill="#085041" text-anchor="middle">res.cookie()</text>
+        <text x="652" y="676" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#0F6E56" text-anchor="middle">Mete el token en cookie httpOnly.</text>
+        <text x="652" y="690" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#0F6E56" text-anchor="middle">JavaScript NO puede leerla → más seguro.</text>
+
+        <!-- LEYENDA -->
+        <rect x="24" y="734" width="14" height="14" rx="3" fill="#534AB7"/>
+        <text x="44" y="745" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#444">Frontend React</text>
+        <rect x="164" y="734" width="14" height="14" rx="3" fill="#0F6E56"/>
+        <text x="184" y="745" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#444">Backend Express</text>
+        <rect x="320" y="734" width="14" height="14" rx="3" fill="#854F0B"/>
+        <text x="340" y="745" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#444">Seguridad bcrypt/JWT</text>
+        <line x1="500" y1="741" x2="528" y2="741" stroke="#185FA5" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="536" y="745" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#444">Petición / respuesta HTTP</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 1. DÓNDE ESTAMOS -->
+  <div class="seccion" id="donde">
+    <div class="seccion-titulo"><span class="seccion-num">1</span> ¿Dónde estamos en el proyecto?</div>
+
+    <div class="contexto-card">
+      <p>En las prácticas anteriores construiste el sistema completo para el módulo de Personas: base de datos, API REST, frontend con CRUD y navegación, y autenticación segura con JWT y cookies httpOnly. El sistema ya sabe <strong>quién eres</strong> cuando inicias sesión.</p>
+      <p>Lo que el sistema <strong>no sabe todavía</strong> es qué puedes hacer según tu rol. Un usuario administrador debería poder crear y eliminar cuentas, pero un usuario normal solo debería poder ver su propia información. En esta práctica implementamos esa lógica con el módulo de Usuarios y el sistema de roles.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0;">
+      <div style="border:2px solid #BBDEFB;border-radius:8px;overflow:hidden;">
+        <div style="background:#E3F2FD;padding:8px 14px;font-size:12px;font-weight:700;color:#0D47A1;">✅ Lo que ya tienes (P01–P07)</div>
+        <div style="padding:14px;font-size:13px;line-height:2;">
+          El sistema sabe <strong>quién eres</strong> (JWT)<br>
+          Personas: CRUD completo funcionando<br>
+          Rutas privadas protegidas con cookie
+        </div>
+      </div>
+      <div style="border:2px solid #A5D6A7;border-radius:8px;overflow:hidden;">
+        <div style="background:#E8F5E9;padding:8px 14px;font-size:12px;font-weight:700;color:#1B5E20;">🆕 Lo que agregas en P08</div>
+        <div style="padding:14px;font-size:13px;line-height:2;">
+          El sistema sabe <strong>qué puedes hacer</strong> (rol)<br>
+          Usuarios: CRUD completo con roles<br>
+          Middleware que protege por rol, no solo por sesión
+        </div>
+      </div>
+    </div>
+
+    <div class="flujo">
+      <div class="flujo-item listo"><div class="fi-num">P01–P07</div><div class="fi-nombre">BD · API · Auth</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item activo"><div class="fi-num">P08</div><div class="fi-nombre">Usuarios + Roles</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item futuro"><div class="fi-num">P09</div><div class="fi-nombre">Proyectos</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item futuro"><div class="fi-num">P10</div><div class="fi-nombre">Tareas</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item futuro"><div class="fi-num">P11–P13</div><div class="fi-nombre">Avanzado</div></div>
+    </div>
+  </div>
+
+  <!-- 2. CONCEPTOS -->
+  <div class="seccion" id="conceptos">
+    <div class="seccion-titulo"><span class="seccion-num">2</span> Conceptos clave: roles, autenticación vs autorización y RBAC</div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🔑</span> Autenticación vs Autorización — dos cosas distintas</div>
+      <div class="concepto-body">
+        <p>Son dos conceptos que muchos confunden porque van juntos, pero hacen cosas completamente diferentes:</p>
+        <table class="tabla-gen" style="margin-top:8px;">
+          <thead><tr><th>Concepto</th><th>Pregunta que responde</th><th>¿Dónde lo implementaste?</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Autenticación</strong></td><td>¿Eres quien dices ser?</td><td>P06–P07: JWT + bcrypt + cookies</td></tr>
+            <tr><td><strong>Autorización</strong></td><td>¿Tienes permiso para hacer esto?</td><td>P08: middleware de roles (nuevo)</td></tr>
+          </tbody>
+        </table>
+        <div class="analogia"><strong>Analogía:</strong> La autenticación es mostrar tu credencial en la puerta del edificio — demuestras quién eres. La autorización es el sistema de tarjetas dentro del edificio — tu credencial abre algunas puertas pero no otras, dependiendo de tu nivel de acceso.</div>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">👥</span> Los tres roles del sistema</div>
+      <div class="concepto-body">
+        <p>El sistema tiene tres roles con permisos distintos. Es importante entender qué puede hacer cada uno antes de escribir el código:</p>
+        <div class="roles-grid">
+          <div class="rol-card">
+            <div class="rol-hdr admin">👑 admin</div>
+            <div class="rol-body">
+              ✅ Ver todos los usuarios<br>
+              ✅ Crear nuevos usuarios<br>
+              ✅ Editar cualquier usuario<br>
+              ✅ Cambiar roles<br>
+              ✅ Activar / desactivar acceso<br>
+              ✅ Acceso completo al sistema
+            </div>
+          </div>
+          <div class="rol-card">
+            <div class="rol-hdr usuario">👤 usuario</div>
+            <div class="rol-body">
+              ✅ Ver su propio perfil<br>
+              ✅ Editar sus propios datos<br>
+              ✅ Ver personas y proyectos<br>
+              ❌ No puede crear usuarios<br>
+              ❌ No puede cambiar roles<br>
+              ❌ No puede ver otros perfiles
+            </div>
+          </div>
+          <div class="rol-card">
+            <div class="rol-hdr invitado">👁️ invitado</div>
+            <div class="rol-body">
+              ✅ Solo lectura<br>
+              ✅ Ver personas (sin editar)<br>
+              ❌ No puede crear nada<br>
+              ❌ No puede editar nada<br>
+              ❌ No puede eliminar nada<br>
+              ❌ No accede a usuarios
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🛡️</span> ¿Qué es RBAC? (Role-Based Access Control)</div>
+      <div class="concepto-body">
+        <p><strong>RBAC</strong> significa Control de Acceso Basado en Roles. En lugar de dar permisos individuales a cada usuario, se asigna un <strong>rol</strong> y ese rol tiene permisos predefinidos. Es mucho más fácil de administrar: si quieres cambiar lo que puede hacer un administrador, cambias los permisos del rol, no los de cada usuario por separado.</p>
+        <p>En el código, RBAC se implementa con un <strong>middleware de autorización</strong> que lee el rol del usuario (que viene en el JWT) y lo compara con los roles permitidos para ese endpoint. Si el rol no está en la lista, responde <code>403 Forbidden</code>.</p>
+        <div class="analogia"><strong>Analogía:</strong> RBAC es como los permisos en una empresa. No le dices a cada empleado qué puede y qué no puede hacer. Defines los puestos (Director, Coordinador, Asistente) y cada puesto ya tiene sus permisos. Cuando contratas a alguien le asignas un puesto y automáticamente hereda todos sus permisos.</div>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">⚙️</span> ¿Cómo funciona el middleware de autorización?</div>
+      <div class="concepto-body">
+        <p>Ya tienes el middleware <code>verificarToken</code> que comprueba que hay sesión activa. Ahora agregas un segundo middleware <code>verificarRol</code> que comprueba que el rol del usuario tiene permiso para esa acción concreta.</p>
+        <p>Los dos middlewares trabajan en cadena: primero pasa el filtro de autenticación (¿tienes sesión?) y luego el filtro de autorización (¿tu rol tiene permiso?). Solo si pasa los dos llega al controlador.</p>
+        <table class="tabla-gen">
+          <thead><tr><th>Capa</th><th>Middleware</th><th>Si falla responde</th></tr></thead>
+          <tbody>
+            <tr><td>Autenticación</td><td><code>verificarToken</code> — ya existe de P07</td><td><code>401 Unauthorized</code> — no hay sesión</td></tr>
+            <tr><td>Autorización</td><td><code>verificarRol('admin')</code> — nuevo en P08</td><td><code>403 Forbidden</code> — no tienes permiso</td></tr>
+            <tr><td>Controlador</td><td>Función que procesa la petición</td><td>La respuesta correcta</td></tr>
+          </tbody>
+        </table>
+        <div class="nota"><strong>¿Por qué 401 y no 403?</strong> El código <code>401</code> significa "no sé quién eres" (no autenticado). El código <code>403</code> significa "sé quién eres pero no tienes permiso" (no autorizado). Son errores distintos y los clientes de la API los manejan de forma diferente.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. OBJETIVOS -->
+  <div class="seccion" id="objetivos">
+    <div class="seccion-titulo"><span class="seccion-num">3</span> Objetivos de la práctica</div>
+    <ul class="obj-lista">
+      <li>Crear el controlador <code>usuarios.controller.js</code> con CRUD completo: listar, obtener uno, crear, actualizar y desactivar.</li>
+      <li>Crear el middleware <code>verificarRol</code> que restringe endpoints según el rol del usuario autenticado.</li>
+      <li>Crear las rutas <code>usuarios.routes.js</code> aplicando los dos middlewares en cadena.</li>
+      <li>Registrar el módulo de usuarios en <code>server.js</code>.</li>
+      <li>Crear en el frontend las páginas <code>UsuariosPage.jsx</code> y <code>UsuarioFormPage.jsx</code>.</li>
+      <li>Crear el módulo de API <code>usuarios.api.js</code> con <code>withCredentials: true</code>.</li>
+      <li>Agregar la navegación al módulo de usuarios en el Navbar.</li>
+      <li>Probar todos los endpoints con Thunder Client incluyendo los casos de rol incorrecto.</li>
+    </ul>
+  </div>
+
+  <!-- 4. ESTRUCTURA -->
+  <div class="seccion" id="estructura">
+    <div class="seccion-titulo"><span class="seccion-num">4</span> Nueva estructura del proyecto</div>
+
+    <p>Archivos en <span style="background:#E8F5E9;color:#1B5E20;font-family:monospace;font-size:12px;padding:1px 4px;border-radius:3px;font-weight:700;">verde</span> son nuevos y los que están en <span style="background:#FFF8E1;color:#92400E;font-family:monospace;font-size:12px;padding:1px 4px;border-radius:3px;font-weight:700;">amarillo</span> se modifican.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div>
+        <p style="font-size:12px;font-weight:700;color:#0D47A1;margin-bottom:6px;">Backend</p>
+        <div class="folder-tree">
+          <span class="d">backend/</span><br>
+          ├── server.js&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← agregar ruta usuarios</span><br>
+          ├── <span class="f-modif">server.js</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← registrar usuariosRoutes</span><br>
+          ├── <span class="d">middlewares/</span><br>
+          │&nbsp;&nbsp;&nbsp;├── auth.middleware.js&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+          │&nbsp;&nbsp;&nbsp;└── <span class="f-nuevo">rol.middleware.js</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← verificarRol nuevo</span><br>
+          ├── <span class="d">controllers/</span><br>
+          │&nbsp;&nbsp;&nbsp;├── auth.controller.js&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+          │&nbsp;&nbsp;&nbsp;├── personas.controller.js&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+          │&nbsp;&nbsp;&nbsp;└── <span class="f-nuevo">usuarios.controller.js</span>&nbsp;&nbsp;<span class="cm">← CRUD de usuarios</span><br>
+          └── <span class="d">routes/</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;├── auth.routes.js&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;├── personas.routes.js&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;└── <span class="f-nuevo">usuarios.routes.js</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← rutas del módulo</span>
+        </div>
+      </div>
+      <div>
+        <p style="font-size:12px;font-weight:700;color:#0D47A1;margin-bottom:6px;">Frontend</p>
+        <div class="folder-tree">
+          <span class="d">frontend/src/</span><br>
+          ├── <span class="f-modif">App.jsx</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← agregar rutas de usuarios</span><br>
+          ├── <span class="f-modif">components/Navbar.jsx</span>&nbsp;&nbsp;<span class="cm">← agregar enlace Usuarios</span><br>
+          ├── <span class="d">api/</span><br>
+          │&nbsp;&nbsp;&nbsp;├── auth.api.js&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+          │&nbsp;&nbsp;&nbsp;├── personas.api.js&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+          │&nbsp;&nbsp;&nbsp;└── <span class="f-nuevo">usuarios.api.js</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← llamadas HTTP usuarios</span><br>
+          └── <span class="d">pages/</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;├── LoginPage.jsx&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;├── PersonasPage.jsx&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;├── PersonaFormPage.jsx&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;├── <span class="f-nuevo">UsuariosPage.jsx</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← listado de usuarios</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;└── <span class="f-nuevo">UsuarioFormPage.jsx</span>&nbsp;&nbsp;&nbsp;<span class="cm">← crear y editar usuario</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. DESARROLLO -->
+  <div class="seccion" id="desarrollo">
+    <div class="seccion-titulo"><span class="seccion-num">5</span> Desarrollo paso a paso</div>
+
+    <!-- PASO 1 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 1</span><span class="paso-titulo">Crear el middleware de roles <code>rol.middleware.js</code></span></div>
+      <p>Este es el nuevo middleware de <strong>autorización</strong>. Lo creas en la carpeta <code>middlewares/</code> que ya existe. Funciona diferente al de autenticación: recibe los roles permitidos como parámetro y devuelve una función middleware.</p>
+      <div class="file-label nuevo">backend/middlewares/rol.middleware.js — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_rol_mid"></canvas></div>
+      <p>Observa algo importante en cómo está escrito: <code>verificarRol('admin')</code> es una función que <strong>devuelve</strong> otra función. Eso se llama <em>factory de middlewares</em>. Te permite escribir <code>verificarRol('admin', 'usuario')</code> para admitir varios roles con el mismo middleware.</p>
+      <div class="profesional">
+        <strong>💡 ¿Por qué usa <code>req.usuario</code>?</strong> Recuerdas que el middleware <code>verificarToken</code> guarda el payload del JWT en <code>req.usuario</code>. Ese payload tiene el campo <code>rol</code>. <code>verificarRol</code> simplemente lee ese campo — por eso siempre debe ir <strong>después</strong> de <code>verificarToken</code> en la cadena de middlewares.
+      </div>
+    </div>
+
+    <!-- PASO 2 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 2</span><span class="paso-titulo">Crear el controlador <code>usuarios.controller.js</code></span></div>
+      <p>Este controlador maneja las cinco operaciones del módulo de usuarios. La diferencia con <code>personas.controller.js</code> es que aquí también se gestiona el campo <code>rol</code> y se hace un JOIN con personas para mostrar el nombre del titular de cada cuenta.</p>
+      <div class="file-label nuevo">backend/controllers/usuarios.controller.js — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_usuarios_ctrl"></canvas></div>
+      <p>Puntos importantes de este controlador:</p>
+      <ul class="obj-lista">
+        <li><strong>getAll</strong> — usa <code>JOIN personas</code> para traer el nombre de la persona vinculada a cada cuenta de usuario, no solo el <code>persona_id</code>.</li>
+        <li><strong>create</strong> — llama a <code>bcrypt.hash()</code> exactamente igual que en P06. La contraseña nunca se guarda en texto plano.</li>
+        <li><strong>update</strong> — actualiza solo los campos que llegan en el body. Si <code>password</code> viene en el body lo hashea; si no viene no lo toca.</li>
+        <li><strong>remove</strong> — soft delete: cambia <code>activo = 0</code> en lugar de borrar el registro.</li>
+      </ul>
+      <div class="nota">
+        <strong>¿Por qué no devolvemos el password_hash en getAll?</strong> El SELECT usa <code>u.id, u.usuario, u.rol, u.activo, per.nombre AS persona</code> — sin incluir <code>password_hash</code>. Nunca se envía información de contraseñas al frontend, aunque esté hasheada.
+      </div>
+    </div>
+
+    <!-- PASO 3 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 3</span><span class="paso-titulo">Crear las rutas <code>usuarios.routes.js</code> con doble middleware</span></div>
+      <p>Aquí está la clave de P08: cada ruta tiene los dos middlewares en cadena. Primero <code>verificarToken</code> verifica que hay sesión, luego <code>verificarRol</code> verifica que el rol tiene permiso. Solo si pasa los dos llega al controlador.</p>
+      <div class="file-label nuevo">backend/routes/usuarios.routes.js — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_usuarios_routes"></canvas></div>
+      <p>Nota cómo los permisos reflejan exactamente la tabla de roles que diseñamos:</p>
+      <table class="tabla-gen">
+        <thead><tr><th>Endpoint</th><th>Método</th><th>Roles permitidos</th><th>¿Por qué?</th></tr></thead>
+        <tbody>
+          <tr><td><code>/api/usuarios</code></td><td>GET</td><td>admin</td><td>Solo admin ve la lista de todos los usuarios</td></tr>
+          <tr><td><code>/api/usuarios/:id</code></td><td>GET</td><td>admin, usuario</td><td>Cada usuario puede ver su propio perfil</td></tr>
+          <tr><td><code>/api/usuarios</code></td><td>POST</td><td>admin</td><td>Solo admin crea nuevas cuentas</td></tr>
+          <tr><td><code>/api/usuarios/:id</code></td><td>PUT</td><td>admin, usuario</td><td>Cada quien edita su cuenta; admin edita cualquiera</td></tr>
+          <tr><td><code>/api/usuarios/:id</code></td><td>DELETE</td><td>admin</td><td>Solo admin puede desactivar cuentas</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PASO 4 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 4</span><span class="paso-titulo">Registrar el módulo en <code>server.js</code></span></div>
+      <p>Agrega las dos líneas nuevas en <code>server.js</code>: el import de las rutas y el <code>app.use()</code>. El módulo de usuarios también va protegido con <code>verificarToken</code> — la autorización adicional por rol ya está dentro de cada ruta.</p>
+      <div class="file-label modif">backend/server.js — agregar las líneas marcadas</div>
+      <div class="code-wrap modif"><canvas id="c_server"></canvas></div>
+    </div>
+
+    <!-- PASO 5 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 5</span><span class="paso-titulo">Crear el módulo de API <code>usuarios.api.js</code> en el frontend</span></div>
+      <p>Sigue exactamente el mismo patrón de <code>personas.api.js</code>: instancia de axios con <code>withCredentials: true</code> y una función por operación.</p>
+      <div class="file-label nuevo">frontend/src/api/usuarios.api.js — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_usuarios_api"></canvas></div>
+    </div>
+
+    <!-- PASO 6 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 6</span><span class="paso-titulo">Crear la página de listado <code>UsuariosPage.jsx</code></span></div>
+      <p>La tabla de usuarios muestra el nombre de la persona vinculada a cada cuenta, el nombre de usuario, el rol con un badge de color diferente y el estado activo/inactivo. Los botones de editar y desactivar solo aparecen si el usuario logueado es admin.</p>
+      <div class="file-label nuevo">frontend/src/pages/UsuariosPage.jsx — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_usuarios_page"></canvas></div>
+      <div class="profesional">
+        <strong>💡 Ocultar botones según el rol en React:</strong> <code>useAuth()</code> devuelve el objeto <code>usuario</code> con su <code>rol</code>. Con una condición simple <code>{usuario.rol === 'admin' && &lt;button&gt;...}</code> los botones solo aparecen en pantalla para administradores. Importante: esto es solo visual — el backend también rechaza la petición si el rol no tiene permiso, así que la seguridad real está en el servidor.
+      </div>
+    </div>
+
+    <!-- PASO 7 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 7</span><span class="paso-titulo">Crear el formulario <code>UsuarioFormPage.jsx</code></span></div>
+      <p>El formulario de usuario tiene un selector de persona (carga todas las personas activas) y un selector de rol. Al crear, pide contraseña. Al editar, el campo contraseña es opcional — si se deja vacío no se cambia.</p>
+      <div class="file-label nuevo">frontend/src/pages/UsuarioFormPage.jsx — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_usuario_form_page"></canvas></div>
+      <div class="nota">
+        <strong>¿Por qué el campo contraseña es opcional al editar?</strong> Si el administrador solo quiere cambiar el rol de un usuario no debería tener que poner una nueva contraseña. El controlador del backend detecta si <code>password</code> viene en el body: si viene lo hashea y lo actualiza, si no viene deja el hash actual sin tocar.
+      </div>
+    </div>
+
+    <!-- PASO 8 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 8</span><span class="paso-titulo">Actualizar <code>Navbar.jsx</code> y <code>App.jsx</code></span></div>
+      <p>Agrega el enlace al módulo de usuarios en el Navbar (solo visible para admin) y las rutas correspondientes en App.jsx.</p>
+      <div class="file-label modif">frontend/src/components/Navbar.jsx — agregar enlace Usuarios</div>
+      <div class="code-wrap modif"><canvas id="c_navbar"></canvas></div>
+      <div class="file-label modif">frontend/src/App.jsx — agregar rutas de usuarios</div>
+      <div class="code-wrap modif"><canvas id="c_app"></canvas></div>
+    </div>
+
+    <!-- PASO 9 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 9</span><span class="paso-titulo">Probar con Thunder Client — 6 pruebas obligatorias</span></div>
+
+      <div class="subseccion-titulo">Prueba 1 — Listar usuarios como admin</div>
+      <div class="file-label">Thunder Client — GET http://localhost:3000/api/usuarios — cookie de sesión admin</div>
+      <div class="code-wrap"><canvas id="c_t1"></canvas></div>
+      <div class="info"><strong>✅ Esperado:</strong> <code>200</code> con arreglo de usuarios. Cada objeto incluye el campo <code>persona</code> con el nombre real.</div>
+
+      <div class="subseccion-titulo" style="margin-top:18px;">Prueba 2 — Crear usuario nuevo</div>
+      <div class="file-label">Thunder Client — POST http://localhost:3000/api/usuarios — Body JSON</div>
+      <div class="code-wrap"><canvas id="c_t2"></canvas></div>
+      <div class="info"><strong>✅ Esperado:</strong> <code>201</code>. Verifica en phpMyAdmin que <code>password_hash</code> empieza con <code>$2b$</code>.</div>
+
+      <div class="subseccion-titulo" style="margin-top:18px;">Prueba 3 — Editar rol de un usuario</div>
+      <div class="file-label">Thunder Client — PUT http://localhost:3000/api/usuarios/2 — Body JSON</div>
+      <div class="code-wrap"><canvas id="c_t3"></canvas></div>
+      <div class="info"><strong>✅ Esperado:</strong> <code>200</code>. El rol del usuario 2 cambia. La contraseña no se modifica porque no se envió en el body.</div>
+
+      <div class="subseccion-titulo" style="margin-top:18px;">Prueba 4 — Acceso denegado con rol incorrecto</div>
+      <p>Inicia sesión con una cuenta de rol <code>usuario</code> (no admin). Con esa sesión intenta hacer GET a <code>/api/usuarios</code>.</p>
+      <div class="info"><strong>✅ Esperado:</strong> <code>403 Forbidden</code> con el mensaje "No tienes permiso para realizar esta acción". El servidor rechaza aunque haya sesión válida.</div>
+
+      <div class="subseccion-titulo" style="margin-top:18px;">Prueba 5 — Desactivar usuario</div>
+      <div class="file-label">Thunder Client — DELETE http://localhost:3000/api/usuarios/2 — sesión admin</div>
+      <div class="info"><strong>✅ Esperado:</strong> <code>200</code>. En phpMyAdmin el campo <code>activo</code> del usuario 2 es <code>0</code> pero el registro sigue existiendo.</div>
+
+      <div class="subseccion-titulo" style="margin-top:18px;">Prueba 6 — Usuario ve su propio perfil</div>
+      <div class="file-label">Thunder Client — GET http://localhost:3000/api/usuarios/1 — sesión de cualquier rol</div>
+      <div class="info"><strong>✅ Esperado:</strong> <code>200</code> con los datos del usuario 1. Este endpoint permite <code>admin</code> y <code>usuario</code> — ambos pueden consultar perfiles.</div>
+    </div>
+  </div>
+
+  <!-- 6. ACTIVIDADES -->
+  <div class="seccion" id="actividades">
+    <div class="seccion-titulo"><span class="seccion-num">6</span> Actividades</div>
+    <table class="actividades">
+      <thead><tr><th>Núm.</th><th>Actividad</th><th>Tipo</th></tr></thead>
+      <tbody>
+        <tr><td>A1</td><td>Realiza las 6 pruebas de Thunder Client del Paso 9. Toma captura de cada respuesta mostrando el código HTTP y el body.</td><td><span class="tipo-badge tipo-thunder">Thunder Client</span></td></tr>
+        <tr><td>A2</td><td>Verifica en phpMyAdmin que al crear un usuario el <code>password_hash</code> empieza con <code>$2b$</code> y que al desactivar uno el campo <code>activo</code> queda en <code>0</code>. Toma captura de ambos.</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+        <tr><td>A3</td><td>Inicia sesión con una cuenta de rol <code>usuario</code> en el frontend. Verifica que el enlace "Usuarios" no aparece en el Navbar y que si intentas ir directamente a <code>/usuarios</code>, el servidor responde <code>403</code>. Toma captura.</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+        <tr><td>A4</td><td>Modifica <code>verificarRol</code> para que acepte múltiples roles en una sola llamada: <code>verificarRol('admin', 'usuario')</code>. Verifica que sigue funcionando con Thunder Client.</td><td><span class="tipo-badge tipo-codigo">Código</span></td></tr>
+        <tr><td>A5</td><td>Agrega en <code>UsuariosPage.jsx</code> un indicador visual del rol de cada usuario usando badges de Bootstrap con colores diferentes: azul para admin, verde para usuario y gris para invitado.</td><td><span class="tipo-badge tipo-codigo">Código</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 7. REFLEXIÓN -->
+  <div class="seccion" id="reflexion">
+    <div class="seccion-titulo"><span class="seccion-num">7</span> Preguntas de reflexión</div>
+    <ol class="reflexion-lista">
+      <li>¿Cuál es la diferencia entre un error <code>401 Unauthorized</code> y un <code>403 Forbidden</code>? ¿En qué situación concreta del proyecto aparece cada uno?</li>
+      <li>El middleware <code>verificarRol</code> siempre debe ir después de <code>verificarToken</code> en la cadena. ¿Por qué? ¿Qué pasaría si los pusieras en orden inverso?</li>
+      <li>En el frontend ocultamos los botones de admin para los usuarios sin ese rol. Sin embargo, eso no es suficiente como medida de seguridad. ¿Por qué? ¿Qué es lo que realmente protege al sistema?</li>
+      <li>¿Por qué al editar un usuario el campo <code>password</code> es opcional? ¿Qué podría salir mal si siempre fuera obligatorio?</li>
+      <li>Si un usuario con rol <code>usuario</code> intenta ver el perfil de otro usuario usando <code>GET /api/usuarios/5</code>, el endpoint actualmente lo permite (porque el rol <code>usuario</code> tiene acceso a ese endpoint). ¿Cómo modificarías el controlador para que un usuario solo pueda ver su propio perfil?</li>
+    </ol>
+  </div>
+
+  <!-- 8. ENTREGABLE -->
+  <div class="seccion" id="entregable">
+    <div class="seccion-titulo"><span class="seccion-num">8</span> Entregable</div>
+    <ul class="entregable-lista">
+      <li>Carpetas <code>backend/</code> y <code>frontend/</code> comprimidas en ZIP sin <code>node_modules/</code>.</li>
+      <li>Capturas de las 6 pruebas de Thunder Client (A1).</li>
+      <li>Capturas de phpMyAdmin con <code>password_hash</code> y usuario desactivado (A2).</li>
+      <li>Capturas del Navbar sin enlace Usuarios y la respuesta <code>403</code> en Thunder Client (A3).</li>
+      <li>Código de A4 (verificarRol con múltiples roles) y A5 (badges de rol) implementados.</li>
+      <li>Respuestas a las 5 preguntas de reflexión.</li>
+    </ul>
+    <div class="peligro"><strong>⚠️ No incluyas <code>.env</code> ni <code>node_modules/</code></strong> en el ZIP.</div>
+  </div>
+
+  <!-- 9. RÚBRICA -->
+  <div class="seccion" id="rubrica">
+    <div class="seccion-titulo"><span class="seccion-num">9</span> Criterios de evaluación</div>
+    <table class="rubrica">
+      <thead><tr><th>Criterio</th><th>Descripción</th><th>Puntos</th></tr></thead>
+      <tbody>
+        <tr><td>Middleware verificarRol</td><td>Funciona correctamente: <code>403</code> cuando el rol no tiene permiso, pasa al siguiente cuando sí.</td><td class="pts">20</td></tr>
+        <tr><td>CRUD de usuarios en backend</td><td>Los 5 endpoints responden correctamente. Las contraseñas se hashean con bcrypt. Soft delete funciona.</td><td class="pts">25</td></tr>
+        <tr><td>Permisos por endpoint</td><td>Cada ruta aplica los roles correctos según la tabla de la práctica. Verificado con Thunder Client.</td><td class="pts">20</td></tr>
+        <tr><td>Frontend — listado y formulario</td><td>UsuariosPage muestra la tabla con roles. UsuarioFormPage permite crear y editar. Botones visibles solo para admin.</td><td class="pts">20</td></tr>
+        <tr><td>Actividades A4 y A5</td><td>verificarRol con múltiples roles y badges de colores implementados.</td><td class="pts">15</td></tr>
+      </tbody>
+      <tr class="total"><td colspan="2">Total</td><td>100</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<div class="footer">
+  Ingeniería de Desarrollo y Gestión de Software &nbsp;·&nbsp; Práctica 8 de 13 &nbsp;·&nbsp; Fase 4: Módulos CRUD — inicio
+</div>
+
+<script>
+const KW='#7B40F2',ST='#C0392B',CM='#27AE60',FN='#16A085',PL='#1a1a2e',IM='#8E44AD',NM='#E67E22';
+const FONT='15px "Courier New", monospace';
+const LH=24,PX=18,PY=14;
+
+function draw(id,lines){
+  const cv=document.getElementById(id);if(!cv)return;
+  const dpr=window.devicePixelRatio||1;
+  const tmp=document.createElement('canvas');const tc=tmp.getContext('2d');tc.font=FONT;
+  let maxW=0;
+  lines.forEach(l=>{const w=tc.measureText(l.map(s=>s[1]).join('')).width;if(w>maxW)maxW=w;});
+  const W=Math.ceil(maxW+PX*2),H=lines.length*LH+PY*2;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.width=W+'px';cv.style.height=H+'px';
+  const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);
+  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,H);
+  ctx.font=FONT;ctx.textBaseline='alphabetic';
+  lines.forEach((segs,i)=>{
+    const y=PY+i*LH+LH*0.75;let x=PX;
+    segs.forEach(([color,text])=>{ctx.fillStyle=color;ctx.fillText(text,x,y);x+=tc.measureText(text).width;});
+  });
+}
+
+const B={
+
+c_rol_mid:[
+  [[CM,'// middlewares/rol.middleware.js']],
+  [[CM,'// Uso: verificarRol("admin")  o  verificarRol("admin","usuario")']],
+  [[PL,'']],
+  [[KW,'export const'],[PL,' verificarRol = (...rolesPermitidos) => {']],
+  [[PL,'  '],[KW,'return'],[PL,' (req, res, next) => {']],
+  [[PL,'']],
+  [[PL,'    '],[CM,'// req.usuario lo puso verificarToken en el paso anterior']],
+  [[PL,'    '],[KW,'const'],[PL,' rolDelUsuario = req.usuario?.rol;']],
+  [[PL,'']],
+  [[PL,'    '],[KW,'if'],[PL,' (!rolDelUsuario)']],
+  [[PL,'      '],[KW,'return'],[PL,' res.'],[FN,'status'],[PL,'(401).'],[FN,'json'],[PL,'({']],
+  [[PL,'        error: '],[ST,"'No autenticado'"],[PL,'']],
+  [[PL,'      });']],
+  [[PL,'']],
+  [[CM,'    // ¿El rol del usuario está en la lista de permitidos?']],
+  [[PL,'    '],[KW,'if'],[PL,' (!rolesPermitidos.'],[FN,'includes'],[PL,'(rolDelUsuario))']],
+  [[PL,'      '],[KW,'return'],[PL,' res.'],[FN,'status'],[PL,'(403).'],[FN,'json'],[PL,'({']],
+  [[PL,'        error: '],[ST,"'No tienes permiso para esta acción'"],[PL,',']],
+  [[PL,'        tuRol: rolDelUsuario,']],
+  [[PL,'        rolesPermitidos']],
+  [[PL,'      });']],
+  [[PL,'']],
+  [[CM,'    // Rol válido → pasar al controlador']],
+  [[FN,'    next'],[PL,'();']],
+  [[PL,'  };']],
+  [[PL,'};']],
+],
+
+c_usuarios_ctrl:[
+  [[IM,'import'],[PL,' bcrypt '],[IM,'from'],[PL,' '],[ST,"'bcrypt'"],[PL,';']],
+  [[IM,'import'],[PL,' pool   '],[IM,'from'],[PL,' '],[ST,"'../db.js'"],[PL,';']],
+  [[PL,'']],
+  [[CM,'// GET /api/usuarios — lista todos los usuarios con nombre de persona vinculada']],
+  [[KW,'export const'],[PL,' getAll = '],[KW,'async'],[PL,' (req, res) => {']],
+  [[PL,'  '],[KW,'try'],[PL,' {']],
+  [[PL,'    '],[KW,'const'],[PL,' [rows] = '],[KW,'await'],[PL,' pool.'],[FN,'query'],[PL,'(`']],
+  [[PL,'      SELECT u.id, u.usuario, u.rol, u.activo,']],
+  [[PL,'             per.nombre AS persona']],
+  [[PL,'      FROM   usuarios u']],
+  [[PL,'      JOIN   personas per ON u.persona_id = per.id']],
+  [[PL,'      ORDER  BY u.id']],
+  [[PL,'    `);']],
+  [[PL,'    res.'],[FN,'json'],[PL,'(rows);']],
+  [[PL,'  } '],[KW,'catch'],[PL,' (err) { res.'],[FN,'status'],[PL,'(500).'],[FN,'json'],[PL,'({ error: err.message }); }']],
+  [[PL,'};']],
+  [[PL,'']],
+  [[CM,'// GET /api/usuarios/:id — obtiene un usuario por id']],
+  [[KW,'export const'],[PL,' getById = '],[KW,'async'],[PL,' (req, res) => {']],
+  [[PL,'  '],[KW,'try'],[PL,' {']],
+  [[PL,'    '],[KW,'const'],[PL,' [rows] = '],[KW,'await'],[PL,' pool.'],[FN,'query'],[PL,'(`']],
+  [[PL,'      SELECT u.id, u.usuario, u.rol, u.activo, per.nombre AS persona']],
+  [[PL,'      FROM   usuarios u JOIN personas per ON u.persona_id = per.id']],
+  [[PL,'      WHERE  u.id = ?`,[req.params.id]);']],
+  [[PL,'    '],[KW,'if'],[PL,' (rows.length === 0)']],
+  [[PL,'      '],[KW,'return'],[PL,' res.'],[FN,'status'],[PL,'(404).'],[FN,'json'],[PL,'({ error: '],[ST,"'Usuario no encontrado'"],[PL,' });']],
+  [[PL,'    res.'],[FN,'json'],[PL,'(rows[0]);']],
+  [[PL,'  } '],[KW,'catch'],[PL,' (err) { res.'],[FN,'status'],[PL,'(500).'],[FN,'json'],[PL,'({ error: err.message }); }']],
+  [[PL,'};']],
+  [[PL,'']],
+  [[CM,'// POST /api/usuarios — crea un nuevo usuario con contraseña hasheada']],
+  [[KW,'export const'],[PL,' create = '],[KW,'async'],[PL,' (req, res) => {']],
+  [[PL,'  '],[KW,'try'],[PL,' {']],
+  [[PL,'    '],[KW,'const'],[PL,' { persona_id, usuario, password, rol } = req.body;']],
+  [[PL,'    '],[KW,'const'],[PL,' hash = '],[KW,'await'],[PL,' bcrypt.'],[FN,'hash'],[PL,'(password, 10);']],
+  [[PL,'    '],[KW,'const'],[PL,' [result] = '],[KW,'await'],[PL,' pool.'],[FN,'query'],[PL,'(']],
+  [[PL,'      '],[ST,"'INSERT INTO usuarios'"]],
+  [[PL,'      '],[ST,"'(persona_id, usuario, password_hash, rol)'"]],
+  [[PL,'      '],[ST,"'VALUES (?,?,?,?)'"],[PL,',']],
+  [[PL,'      [persona_id, usuario, hash, rol || '],[ST,"'usuario'"],[PL,']']],
+  [[PL,'    );']],
+  [[PL,'    res.'],[FN,'status'],[PL,'(201).'],[FN,'json'],[PL,'({ mensaje: '],[ST,"'Usuario creado'"],[PL,', id: result.insertId });']],
+  [[PL,'  } '],[KW,'catch'],[PL,' (err) {']],
+  [[PL,'    '],[KW,'if'],[PL,' (err.code === '],[ST,"'ER_DUP_ENTRY'"],[PL,')']],
+  [[PL,'      '],[KW,'return'],[PL,' res.'],[FN,'status'],[PL,'(409).'],[FN,'json'],[PL,'({ error: '],[ST,"'El nombre de usuario ya existe'"],[PL,' });']],
+  [[PL,'    res.'],[FN,'status'],[PL,'(500).'],[FN,'json'],[PL,'({ error: err.message });']],
+  [[PL,'  }']],
+  [[PL,'};']],
+  [[PL,'']],
+  [[CM,'// PUT /api/usuarios/:id — actualiza datos y opcionalmente la contraseña']],
+  [[KW,'export const'],[PL,' update = '],[KW,'async'],[PL,' (req, res) => {']],
+  [[PL,'  '],[KW,'try'],[PL,' {']],
+  [[PL,'    '],[KW,'const'],[PL,' { usuario, password, rol } = req.body;']],
+  [[PL,'    '],[KW,'let'],[PL,' query = '],[ST,"'UPDATE usuarios SET usuario=?, rol=?'"],[PL,';']],
+  [[PL,'    '],[KW,'let'],[PL,' params = [usuario, rol];']],
+  [[PL,'    '],[KW,'if'],[PL,' (password) {']],
+  [[PL,'      '],[CM,'// Solo actualiza la contraseña si se envió una nueva']],
+  [[PL,'      '],[KW,'const'],[PL,' hash = '],[KW,'await'],[PL,' bcrypt.'],[FN,'hash'],[PL,'(password, 10);']],
+  [[PL,'      query += '],[ST,"', password_hash=?'"],[PL,';']],
+  [[PL,'      params.'],[FN,'push'],[PL,'(hash);']],
+  [[PL,'    }']],
+  [[PL,'    query += '],[ST,"' WHERE id=?'"],[PL,';']],
+  [[PL,'    params.'],[FN,'push'],[PL,'(req.params.id);']],
+  [[PL,'    '],[KW,'await'],[PL,' pool.'],[FN,'query'],[PL,'(query, params);']],
+  [[PL,'    res.'],[FN,'json'],[PL,'({ mensaje: '],[ST,"'Usuario actualizado'"],[PL,' });']],
+  [[PL,'  } '],[KW,'catch'],[PL,' (err) { res.'],[FN,'status'],[PL,'(500).'],[FN,'json'],[PL,'({ error: err.message }); }']],
+  [[PL,'};']],
+  [[PL,'']],
+  [[CM,'// DELETE /api/usuarios/:id — soft delete (activo = 0)']],
+  [[KW,'export const'],[PL,' remove = '],[KW,'async'],[PL,' (req, res) => {']],
+  [[PL,'  '],[KW,'try'],[PL,' {']],
+  [[PL,'    '],[KW,'await'],[PL,' pool.'],[FN,'query'],[PL,'('],[ST,"'UPDATE usuarios SET activo=0 WHERE id=?'"],[PL,', [req.params.id]);']],
+  [[PL,'    res.'],[FN,'json'],[PL,'({ mensaje: '],[ST,"'Usuario desactivado'"],[PL,' });']],
+  [[PL,'  } '],[KW,'catch'],[PL,' (err) { res.'],[FN,'status'],[PL,'(500).'],[FN,'json'],[PL,'({ error: err.message }); }']],
+  [[PL,'};']],
+],
+
+c_usuarios_routes:[
+  [[IM,'import'],[PL,' { Router } '],[IM,'from'],[PL,' '],[ST,"'express'"],[PL,';']],
+  [[IM,'import'],[PL,' { getAll, getById, create, update, remove }']],
+  [[PL,'  '],[IM,'from'],[PL,' '],[ST,"'../controllers/usuarios.controller.js'"],[PL,';']],
+  [[IM,'import'],[PL,' { verificarToken } '],[IM,'from'],[PL,' '],[ST,"'../middlewares/auth.middleware.js'"],[PL,';']],
+  [[IM,'import'],[PL,' { verificarRol }   '],[IM,'from'],[PL,' '],[ST,"'../middlewares/rol.middleware.js'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'const'],[PL,' router = '],[FN,'Router'],[PL,'();']],
+  [[PL,'']],
+  [[CM,'// 2 middlewares en cadena: autenticación → autorización → controlador']],
+  [[CM,'// GET /  → solo admin ve la lista completa']],
+  [[PL,'router.'],[FN,'get'],[PL,'('],[ST,"'/'"],[PL,',    verificarToken, '],[FN,'verificarRol'],[PL,'('],[ST,"'admin'"],[PL,'),          getAll);']],
+  [[CM,'// GET /:id → admin y usuario pueden ver un perfil']],
+  [[PL,'router.'],[FN,'get'],[PL,'('],[ST,"'/:id'"],[PL,', verificarToken, '],[FN,'verificarRol'],[PL,'('],[ST,"'admin'"],[PL,','],[ST,"'usuario'"],[PL,'), getById);']],
+  [[CM,'// POST / → solo admin crea cuentas']],
+  [[PL,'router.'],[FN,'post'],[PL,'('],[ST,"'/'"],[PL,',    verificarToken, '],[FN,'verificarRol'],[PL,'('],[ST,"'admin'"],[PL,'),          create);']],
+  [[CM,'// PUT /:id → admin y usuario editan']],
+  [[PL,'router.'],[FN,'put'],[PL,'('],[ST,"'/:id'"],[PL,', verificarToken, '],[FN,'verificarRol'],[PL,'('],[ST,"'admin'"],[PL,','],[ST,"'usuario'"],[PL,'), update);']],
+  [[CM,'// DELETE /:id → solo admin desactiva']],
+  [[PL,'router.'],[FN,'delete'],[PL,'('],[ST,"'/:id'"],[PL,', verificarToken, '],[FN,'verificarRol'],[PL,'('],[ST,"'admin'"],[PL,'),          remove);']],
+  [[PL,'']],
+  [[KW,'export default'],[PL,' router;']],
+],
+
+c_server:[
+  [[IM,'import'],[PL,' personasRoutes  '],[IM,'from'],[PL,' '],[ST,"'./routes/personas.routes.js'"],[PL,';']],
+  [[IM,'import'],[PL,' authRoutes      '],[IM,'from'],[PL,' '],[ST,"'./routes/auth.routes.js'"],[PL,';']],
+  [[IM,'import'],[PL,' usuariosRoutes  '],[IM,'from'],[PL,' '],[ST,"'./routes/usuarios.routes.js'"],[PL,';'],[CM,'  ← agregar']],
+  [[IM,'import'],[PL,' { verificarToken } '],[IM,'from'],[PL,' '],[ST,"'./middlewares/auth.middleware.js'"],[PL,';']],
+  [[PL,'']],
+  [[CM,'// ... resto de la configuración de express y cors igual que antes ...']],
+  [[PL,'']],
+  [[PL,'app.'],[FN,'use'],[PL,'('],[ST,"'/api/auth'"],[PL,'    ,                 authRoutes);']],
+  [[PL,'app.'],[FN,'use'],[PL,'('],[ST,"'/api/personas'"],[PL,' , verificarToken, personasRoutes);']],
+  [[PL,'app.'],[FN,'use'],[PL,'('],[ST,"'/api/usuarios'"],[PL,' , verificarToken, usuariosRoutes);'],[CM,'  ← agregar']],
+  [[CM,'// La autorización por rol ya está dentro de cada ruta en usuarios.routes.js']],
+],
+
+c_usuarios_api:[
+  [[IM,'import'],[PL,' axios '],[IM,'from'],[PL,' '],[ST,"'axios'"],[PL,';']],
+  [[PL,'']],
+  [[CM,'// Instancia con cookie en cada petición']],
+  [[KW,'const'],[PL,' api = axios.'],[FN,'create'],[PL,'({']],
+  [[PL,'  baseURL:         '],[ST,"'http://localhost:3000/api'"],[PL,',']],
+  [[PL,'  withCredentials: '],[KW,'true']],
+  [[PL,'});']],
+  [[PL,'']],
+  [[CM,'// GET /api/usuarios']],
+  [[KW,'export const'],[PL,' getUsuarios = '],[KW,'async'],[PL,' () =>']],
+  [[PL,'  (await api.'],[FN,'get'],[PL,'('],[ST,"'/usuarios'"],[PL,')).data;']],
+  [[PL,'']],
+  [[CM,'// GET /api/usuarios/:id']],
+  [[KW,'export const'],[PL,' getUsuarioById = '],[KW,'async'],[PL,' (id) =>']],
+  [[PL,'  (await api.'],[FN,'get'],[PL,'(`/usuarios/${id}`)).data;']],
+  [[PL,'']],
+  [[CM,'// POST /api/usuarios']],
+  [[KW,'export const'],[PL,' crearUsuario = '],[KW,'async'],[PL,' (datos) =>']],
+  [[PL,'  (await api.'],[FN,'post'],[PL,'('],[ST,"'/usuarios'"],[PL,', datos)).data;']],
+  [[PL,'']],
+  [[CM,'// PUT /api/usuarios/:id']],
+  [[KW,'export const'],[PL,' actualizarUsuario = '],[KW,'async'],[PL,' (id, datos) =>']],
+  [[PL,'  (await api.'],[FN,'put'],[PL,'(`/usuarios/${id}`, datos)).data;']],
+  [[PL,'']],
+  [[CM,'// DELETE /api/usuarios/:id — soft delete']],
+  [[KW,'export const'],[PL,' desactivarUsuario = '],[KW,'async'],[PL,' (id) =>']],
+  [[PL,'  (await api.'],[FN,'delete'],[PL,'(`/usuarios/${id}`)).data;']],
+],
+
+c_usuarios_page:[
+  [[IM,'import'],[PL,' { useState, useEffect } '],[IM,'from'],[PL,' '],[ST,"'react'"],[PL,';']],
+  [[IM,'import'],[PL,' { useNavigate }         '],[IM,'from'],[PL,' '],[ST,"'react-router-dom'"],[PL,';']],
+  [[IM,'import'],[PL,' { useAuth }             '],[IM,'from'],[PL,' '],[ST,"'../context/AuthContext'"],[PL,';']],
+  [[IM,'import'],[PL,' { getUsuarios, desactivarUsuario } '],[IM,'from'],[PL,' '],[ST,"'../api/usuarios.api'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'function'],[PL,' '],[FN,'UsuariosPage'],[PL,'() {']],
+  [[PL,'  '],[KW,'const'],[PL,' [usuarios, setUsuarios] = '],[FN,'useState'],[PL,'([]);']],
+  [[PL,'  '],[KW,'const'],[PL,' [cargando, setCargando] = '],[FN,'useState'],[PL,'('],[KW,'true'],[PL,');']],
+  [[PL,'  '],[KW,'const'],[PL,' [alerta, setAlerta] = '],[FN,'useState'],[PL,'('],[KW,'null'],[PL,');']],
+  [[PL,'  '],[KW,'const'],[PL,' navigate = '],[FN,'useNavigate'],[PL,'();']],
+  [[PL,'  '],[KW,'const'],[PL,' { usuario } = '],[FN,'useAuth'],[PL,'();'],[CM,'  ← leer rol del usuario logueado']],
+  [[PL,'']],
+  [[FN,'  useEffect'],[PL,'(() => {']],
+  [[PL,'    '],[FN,'getUsuarios'],[PL,'()']],
+  [[PL,'      .'],[FN,'then'],[PL,'(d => '],[FN,'setUsuarios'],[PL,'(d))']],
+  [[PL,'      .'],[KW,'finally'],[PL,'(() => '],[FN,'setCargando'],[PL,'('],[KW,'false'],[PL,'))']],
+  [[PL,'  }, []);']],
+  [[PL,'']],
+  [[KW,'  async function'],[PL,' '],[FN,'handleDesactivar'],[PL,'(id, nombre) {']],
+  [[PL,'    '],[KW,'if'],[PL,' (!confirm(`¿Desactivar a "${nombre}"?`)) '],[KW,'return'],[PL,';']],
+  [[PL,'    '],[KW,'await'],[PL,' '],[FN,'desactivarUsuario'],[PL,'(id);']],
+  [[PL,'    '],[FN,'setAlerta'],[PL,'('],[ST,"'Usuario desactivado'"],[PL,');']],
+  [[PL,'    '],[FN,'getUsuarios'],[PL,'().'],[FN,'then'],[PL,'(d => '],[FN,'setUsuarios'],[PL,'(d));']],
+  [[PL,'  }']],
+  [[PL,'']],
+  [[PL,'  '],[KW,'if'],[PL,' (cargando) '],[KW,'return'],[PL,' <div className='],[ST,'"container mt-5 text-center"'],[PL,'>']],
+  [[PL,'    <div className='],[ST,'"spinner-border text-primary"'],[PL,'></div></div>;']],
+  [[PL,'']],
+  [[PL,'  '],[KW,'return'],[PL,' (']],
+  [[PL,'    <div className='],[ST,'"container mt-4"'],[PL,'>']],
+  [[PL,'      {alerta && <div className='],[ST,'"alert alert-warning"'],[PL,'>{alerta}</div>}']],
+  [[PL,'      <div className='],[ST,'"d-flex justify-content-between align-items-center mb-3"'],[PL,'>']],
+  [[PL,'        <h5 className='],[ST,'"text-primary mb-0"'],[PL,'>Módulo de Usuarios</h5>']],
+  [[PL,'        {usuario.rol === '],[ST,"'admin'"],[PL,' && (']],
+  [[PL,'          <button className='],[ST,'"btn btn-primary btn-sm"'],[PL,'']],
+  [[PL,'            onClick={() => '],[FN,'navigate'],[PL,'('],[ST,"'/usuarios/nuevo'"],[PL,')}>']],
+  [[PL,'            ➕ Nuevo usuario']],
+  [[PL,'          </button>']],
+  [[PL,'        )}'],[CM,'  ← botón solo para admin']],
+  [[PL,'      </div>']],
+  [[PL,'      <table className='],[ST,'"table table-bordered table-hover align-middle"'],[PL,'>']],
+  [[PL,'        <thead className='],[ST,'"table-primary"'],[PL,'><tr>']],
+  [[PL,'          <th>#</th><th>Usuario</th><th>Persona</th>']],
+  [[PL,'          <th>Rol</th><th>Estado</th>']],
+  [[PL,'          {usuario.rol === '],[ST,"'admin'"],[PL,' && <th>Acciones</th>}']],
+  [[PL,'        </tr></thead>']],
+  [[PL,'        <tbody>']],
+  [[PL,'          {usuarios.'],[FN,'map'],[PL,'(u => (']],
+  [[PL,'            <tr key={u.id}>']],
+  [[PL,'              <td>{u.id}</td>']],
+  [[PL,'              <td>{u.usuario}</td>']],
+  [[PL,'              <td>{u.persona}</td>']],
+  [[CM,"              {/* badge color según rol */}"]],
+  [[PL,'              <td>']],
+  [[PL,"                <span className={`badge bg-${"],[PL,'']],
+  [[PL,"                  u.rol==='admin' ? 'primary' :"]],
+  [[PL,"                  u.rol==='usuario' ? 'success' : 'secondary'"]],
+  [[PL,'                }`}>{u.rol}</span>']],
+  [[PL,'              </td>']],
+  [[PL,'              <td>']],
+  [[PL,'                <span className={`badge ${u.activo ?']],
+  [[PL,"                  'bg-success':'bg-secondary'}`}>"]],
+  [[PL,'                  {u.activo ? '],[ST,"'Activo'"],[PL,' : '],[ST,"'Inactivo'"],[PL,'}']],
+  [[PL,'                </span>']],
+  [[PL,'              </td>']],
+  [[PL,'              {usuario.rol === '],[ST,"'admin'"],[PL,' && (']],
+  [[PL,'                <td>']],
+  [[PL,'                  <button className='],[ST,'"btn btn-outline-primary btn-sm me-1"'],[PL,'']],
+  [[PL,'                    onClick={() => '],[FN,'navigate'],[PL,'(`/usuarios/editar/${u.id}`)}>']],
+  [[PL,'                    ✏️']],
+  [[PL,'                  </button>']],
+  [[PL,'                  <button className='],[ST,'"btn btn-outline-danger btn-sm"'],[PL,'']],
+  [[PL,'                    onClick={() => '],[FN,'handleDesactivar'],[PL,'(u.id, u.usuario)}>']],
+  [[PL,'                    🗑️']],
+  [[PL,'                  </button>']],
+  [[PL,'                </td>']],
+  [[PL,'              )}'],[CM,'  ← acciones solo para admin']],
+  [[PL,'            </tr>']],
+  [[PL,'          ))}']],
+  [[PL,'        </tbody>']],
+  [[PL,'      </table>']],
+  [[PL,'    </div>']],
+  [[PL,'  );']],
+  [[PL,'}']],
+  [[PL,'']],
+  [[KW,'export default'],[PL,' UsuariosPage;']],
+],
+c_usuario_form_page:[
+  [[IM,'import'],[PL,' { useState, useEffect } '],[IM,'from'],[PL,' '],[ST,"'react'"],[PL,';']],
+  [[IM,'import'],[PL,' { useParams, useNavigate } '],[IM,'from'],[PL,' '],[ST,"'react-router-dom'"],[PL,';']],
+  [[IM,'import'],[PL,' { getUsuarioById, crearUsuario, actualizarUsuario }']],
+  [[PL,'  '],[IM,'from'],[PL,' '],[ST,"'../api/usuarios.api'"],[PL,';']],
+  [[IM,'import'],[PL,' { getPersonas } '],[IM,'from'],[PL,' '],[ST,"'../api/personas.api'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'function'],[PL,' '],[FN,'UsuarioFormPage'],[PL,'() {']],
+  [[PL,'  '],[KW,'const'],[PL,' { id } = '],[FN,'useParams'],[PL,'();']],
+  [[PL,'  '],[KW,'const'],[PL,' navigate = '],[FN,'useNavigate'],[PL,'();']],
+  [[PL,'  '],[KW,'const'],[PL,' [personas, setPersonas] = '],[FN,'useState'],[PL,'([]);']],
+  [[PL,'  '],[KW,'const'],[PL,' [form, setForm] = '],[FN,'useState'],[PL,'({']],
+  [[PL,'    persona_id: '],[ST,"''"],[PL,', usuario: '],[ST,"''"],[PL,', password: '],[ST,"''"],[PL,', rol: '],[ST,"'usuario'"],[PL,'']],
+  [[PL,'  });']],
+  [[PL,'  '],[KW,'const'],[PL,' [error, setError] = '],[FN,'useState'],[PL,'('],[ST,"''"],[PL,');']],
+  [[PL,'']],
+  [[CM,'  // Al montar: carga personas y si edita carga datos del usuario']],
+  [[FN,'  useEffect'],[PL,'(() => {']],
+  [[PL,'    '],[FN,'getPersonas'],[PL,'().'],[FN,'then'],[PL,'(d => '],[FN,'setPersonas'],[PL,'(d));']],
+  [[PL,'    '],[KW,'if'],[PL,' (id)']],
+  [[PL,'      '],[FN,'getUsuarioById'],[PL,'(id).'],[FN,'then'],[PL,'(d =>']],
+  [[PL,'        '],[FN,'setForm'],[PL,'({ ...d, password: '],[ST,"''"],[PL,' }));']],
+  [[PL,'  }, [id]);']],
+  [[PL,'']],
+  [[KW,'  const'],[PL,' handleChange = e =>']],
+  [[PL,'    '],[FN,'setForm'],[PL,'({ ...form, [e.target.name]: e.target.value });']],
+  [[PL,'']],
+  [[KW,'  async function'],[PL,' '],[FN,'handleSubmit'],[PL,'(e) {']],
+  [[PL,'    e.'],[FN,'preventDefault'],[PL,'(); '],[FN,'setError'],[PL,'('],[ST,"''"],[PL,');']],
+  [[PL,'    '],[KW,'try'],[PL,' {']],
+  [[PL,'      '],[KW,'if'],[PL,' (id) '],[KW,'await'],[PL,' '],[FN,'actualizarUsuario'],[PL,'(id, form);']],
+  [[PL,'      '],[KW,'else'],[PL,'    '],[KW,'await'],[PL,' '],[FN,'crearUsuario'],[PL,'(form);']],
+  [[PL,'      '],[FN,'navigate'],[PL,'('],[ST,"'/usuarios'"],[PL,');']],
+  [[PL,'    } '],[KW,'catch'],[PL,' (err) {']],
+  [[PL,'      '],[FN,'setError'],[PL,'(err.response?.data?.error || '],[ST,"'Error al guardar'"],[PL,');']],
+  [[PL,'    }']],
+  [[PL,'  }']],
+  [[PL,'']],
+  [[PL,'  '],[KW,'return'],[PL,' (']],
+  [[PL,'    <div className='],[ST,'"container mt-4"'],[PL,' style={{ maxWidth: '],[ST,"'560px'"],[PL,' }}>']],
+  [[PL,'      <h5 className='],[ST,'"text-primary mb-3"'],[PL,'>']],
+  [[PL,'        {id ? '],[ST,"'✏️ Editar usuario'"],[PL,' : '],[ST,"'➕ Nuevo usuario'"],[PL,'}']],
+  [[PL,'      </h5>']],
+  [[PL,'      {error && <div className='],[ST,'"alert alert-danger"'],[PL,'>{error}</div>}']],
+  [[PL,'      <form onSubmit={handleSubmit}>']],
+  [[PL,'']],
+  [[CM,'        {/* Selector de persona */}']],
+  [[PL,'        <div className='],[ST,'"mb-3"'],[PL,'>']],
+  [[PL,'          <label className='],[ST,'"form-label fw-semibold"'],[PL,'>Persona vinculada *</label>']],
+  [[PL,'          <select className='],[ST,'"form-select"'],[PL,' name='],[ST,'"persona_id"'],[PL,'']],
+  [[PL,'            value={form.persona_id} onChange={handleChange} required>']],
+  [[PL,'            <option value='],[ST,'""'],[PL,'>Selecciona una persona...</option>']],
+  [[PL,'            {personas.'],[FN,'map'],[PL,'(p =>']],
+  [[PL,'              <option key={p.id} value={p.id}>{p.nombre}</option>']],
+  [[PL,'            )}']],
+  [[PL,'          </select>']],
+  [[PL,'        </div>']],
+  [[PL,'']],
+  [[CM,'        {/* Nombre de usuario */}']],
+  [[PL,'        <div className='],[ST,'"mb-3"'],[PL,'>']],
+  [[PL,'          <label className='],[ST,'"form-label fw-semibold"'],[PL,'>Nombre de usuario *</label>']],
+  [[PL,'          <input className='],[ST,'"form-control"'],[PL,' name='],[ST,'"usuario"'],[PL,'']],
+  [[PL,'            value={form.usuario} onChange={handleChange} required />']],
+  [[PL,'        </div>']],
+  [[PL,'']],
+  [[CM,'        {/* Contraseña — obligatoria al crear, opcional al editar */}']],
+  [[PL,'        <div className='],[ST,'"mb-3"'],[PL,'>']],
+  [[PL,'          <label className='],[ST,'"form-label fw-semibold"'],[PL,'>']],
+  [[PL,'            Contraseña {id && '],[ST,"'(dejar vacío = no cambiar)'"],[PL,'}']],
+  [[PL,'          </label>']],
+  [[PL,'          <input className='],[ST,'"form-control"'],[PL,' type='],[ST,'"password"'],[PL,'']],
+  [[PL,'            name='],[ST,'"password"'],[PL,' value={form.password}']],
+  [[PL,'            onChange={handleChange}']],
+  [[PL,'            required={!id} />'],[CM,'  ← obligatoria solo al crear']],
+  [[PL,'        </div>']],
+  [[PL,'']],
+  [[CM,'        {/* Selector de rol */}']],
+  [[PL,'        <div className='],[ST,'"mb-3"'],[PL,'>']],
+  [[PL,'          <label className='],[ST,'"form-label fw-semibold"'],[PL,'>Rol *</label>']],
+  [[PL,'          <select className='],[ST,'"form-select"'],[PL,' name='],[ST,'"rol"'],[PL,'']],
+  [[PL,'            value={form.rol} onChange={handleChange}>']],
+  [[PL,'            <option value='],[ST,'"admin"'],[PL,'>👑 Admin</option>']],
+  [[PL,'            <option value='],[ST,'"usuario"'],[PL,'>👤 Usuario</option>']],
+  [[PL,'            <option value='],[ST,'"invitado"'],[PL,'>👁️ Invitado</option>']],
+  [[PL,'          </select>']],
+  [[PL,'        </div>']],
+  [[PL,'']],
+  [[PL,'        <div className='],[ST,'"d-flex gap-2"'],[PL,'>']],
+  [[PL,'          <button type='],[ST,'"submit"'],[PL,' className='],[ST,'"btn btn-primary"'],[PL,'>']],
+  [[PL,'            {id ? '],[ST,"'Guardar cambios'"],[PL,' : '],[ST,"'Crear usuario'"],[PL,'}']],
+  [[PL,'          </button>']],
+  [[PL,'          <button type='],[ST,'"button"'],[PL,' className='],[ST,'"btn btn-outline-secondary"'],[PL,'']],
+  [[PL,'            onClick={() => '],[FN,'navigate'],[PL,'('],[ST,"'/usuarios'"],[PL,')}>']],
+  [[PL,'            Cancelar']],
+  [[PL,'          </button>']],
+  [[PL,'        </div>']],
+  [[PL,'      </form>']],
+  [[PL,'    </div>']],
+  [[PL,'  );']],
+  [[PL,'}']],
+  [[PL,'']],
+  [[KW,'export default'],[PL,' UsuarioFormPage;']],
+],
+c_navbar:[
+  [[IM,'import'],[PL,' { Link }    '],[IM,'from'],[PL,' '],[ST,"'react-router-dom'"],[PL,';']],
+  [[IM,'import'],[PL,' { useAuth } '],[IM,'from'],[PL,' '],[ST,"'../context/AuthContext'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'function'],[PL,' '],[FN,'Navbar'],[PL,'() {']],
+  [[PL,'  '],[KW,'const'],[PL,' { usuario, logout } = '],[FN,'useAuth'],[PL,'();']],
+  [[PL,'  '],[KW,'return'],[PL,' (']],
+  [[PL,'    <nav className='],[ST,'"navbar navbar-dark bg-primary px-4 py-2"'],[PL,'>']],
+  [[PL,'      <Link to='],[ST,"'/personas'"],[PL,' className='],[ST,'"navbar-brand fw-bold text-white"'],[PL,'>']],
+  [[PL,'        🖥️ Sistema Admin']],
+  [[PL,'      </Link>']],
+  [[PL,'      <div className='],[ST,'"d-flex align-items-center gap-3"'],[PL,'>']],
+  [[PL,'        {usuario && (']],
+  [[PL,'          <>']],
+  [[PL,'            <Link to='],[ST,"'/personas'"],[PL,' className='],[ST,'"text-white-50 text-decoration-none"'],[PL,'>']],
+  [[PL,'              Personas']],
+  [[PL,'            </Link>']],
+  [[PL,'            {usuario.rol === '],[ST,"'admin'"],[PL,' && (']],
+  [[PL,'              <Link to='],[ST,"'/usuarios'"],[PL,' className='],[ST,'"text-white-50 text-decoration-none"'],[PL,'>']],
+  [[PL,'                Usuarios'],[CM,'  ← solo admin']],
+  [[PL,'              </Link>']],
+  [[PL,'            )}']],
+  [[PL,'            <span className='],[ST,'"text-white-50"'],[PL,' style={{fontSize:'],[ST,"'12px'"],[PL,'}}>']],
+  [[PL,'              👤 {usuario.usuario}']],
+  [[PL,'              <span className='],[ST,'"badge bg-light text-primary ms-1"'],[PL,'>']],
+  [[PL,'                {usuario.rol}']],
+  [[PL,'              </span>']],
+  [[PL,'            </span>']],
+  [[PL,'            <button className='],[ST,'"btn btn-outline-light btn-sm"'],[PL,' onClick={logout}>']],
+  [[PL,'              Salir']],
+  [[PL,'            </button>']],
+  [[PL,'          </>']],
+  [[PL,'        )}']],
+  [[PL,'      </div>']],
+  [[PL,'    </nav>']],
+  [[PL,'  );']],
+  [[PL,'}']],
+  [[KW,'export default'],[PL,' Navbar;']],
+],
+c_app:[
+  [[IM,'import'],[PL,' UsuariosPage    '],[IM,'from'],[PL,' '],[ST,"'./pages/UsuariosPage'"],[PL,';']],
+  [[IM,'import'],[PL,' UsuarioFormPage '],[IM,'from'],[PL,' '],[ST,"'./pages/UsuarioFormPage'"],[PL,';']],
+  [[PL,'']],
+  [[CM,'// Dentro de <Routes> agregar:']],
+  [[PL,'<Route path='],[ST,"'/usuarios'"],[PL,'']],
+  [[PL,'  element={<PrivateRoute><UsuariosPage /></PrivateRoute>} />']],
+  [[PL,'<Route path='],[ST,"'/usuarios/nuevo'"],[PL,'']],
+  [[PL,'  element={<PrivateRoute><UsuarioFormPage /></PrivateRoute>} />']],
+  [[PL,'<Route path='],[ST,"'/usuarios/editar/:id'"],[PL,'']],
+  [[PL,'  element={<PrivateRoute><UsuarioFormPage /></PrivateRoute>} />']],
+],
+
+c_t1:[
+  [[CM,'// Respuesta esperada 200 OK — arreglo con JOIN:']],
+  [[PL,'[']],
+  [[PL,'  {']],
+  [[PL,'    id: 1, usuario: '],[ST,'"admin_sistema"'],[PL,',']],
+  [[PL,'    persona: '],[ST,'"Ana García"'],[PL,', rol: '],[ST,'"admin"'],[PL,', activo: 1']],
+  [[PL,'  },']],
+  [[PL,'  {']],
+  [[PL,'    id: 2, usuario: '],[ST,'"luis_dev"'],[PL,',']],
+  [[PL,'    persona: '],[ST,'"Luis Martínez"'],[PL,', rol: '],[ST,'"usuario"'],[PL,', activo: 1']],
+  [[PL,'  }']],
+  [[PL,']']],
+],
+
+c_t2:[
+  [[CM,'// Body → JSON']],
+  [[PL,'{']],
+  [[PL,'  '],[ST,'"persona_id"'],[PL,' : 3,']],
+  [[PL,'  '],[ST,'"usuario"'],[PL,'    : '],[ST,'"maria_coord"'],[PL,',']],
+  [[PL,'  '],[ST,'"password"'],[PL,'   : '],[ST,'"Pass_Segura_456"'],[PL,',']],
+  [[PL,'  '],[ST,'"rol"'],[PL,'        : '],[ST,'"usuario"']],
+  [[PL,'}']],
+],
+
+c_t3:[
+  [[CM,'// Body → JSON — password NO se envía, el hash no cambia']],
+  [[PL,'{']],
+  [[PL,'  '],[ST,'"usuario"'],[PL,' : '],[ST,'"luis_admin"'],[PL,',']],
+  [[PL,'  '],[ST,'"rol"'],[PL,'     : '],[ST,'"admin"']],
+  [[PL,'}']],
+],
+
+};
+
+document.fonts.ready.then(()=>{
+  for(const [id,lines] of Object.entries(B)) draw(id,lines);
+});
+
+function toggleFlujo(){
+  const btn    = document.getElementById('btnFlujo');
+  const cuerpo = document.getElementById('cuerpoFlujo');
+  const flecha = document.getElementById('flechaFlujo');
+  const abierto = cuerpo.classList.toggle('visible');
+  btn.classList.toggle('abierto', abierto);
+  flecha.textContent = abierto ? '▲' : '▼';
+}
+</script>
+</body>
+</html>
