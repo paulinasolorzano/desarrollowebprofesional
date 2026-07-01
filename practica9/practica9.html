@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica 9 — Módulo de Proyectos con JOIN y permisos de solo lectura</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',Arial,sans-serif; background:#fff; color:#1a1a2e; font-size:14px; line-height:1.7; }
+.header { background:#1565C0; color:#fff; }
+.header-top { background:#0D47A1; padding:18px 40px 14px; display:flex; justify-content:space-between; align-items:flex-start; }
+.header-inst { font-size:11px; opacity:0.85; letter-spacing:0.03em; text-transform:uppercase; }
+.header-carrera { font-size:13px; font-weight:600; margin-top:3px; }
+.header-badge { background:#fff; color:#0D47A1; font-weight:700; font-size:13px; padding:6px 16px; border-radius:20px; white-space:nowrap; align-self:center; }
+.header-main { padding:20px 40px 24px; }
+.header-practica { font-size:11px; opacity:0.75; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; }
+.header-titulo { font-size:26px; font-weight:700; margin-bottom:8px; }
+.header-meta { display:flex; gap:24px; font-size:12px; opacity:0.85; flex-wrap:wrap; }
+.header-strip { height:5px; background:#42A5F5; }
+.content { max-width:900px; margin:0 auto; padding:36px 40px 60px; }
+.toc { background:#E3F2FD; border-left:4px solid #1565C0; border-radius:0 8px 8px 0; padding:20px 24px; margin-bottom:36px; }
+.toc-title { font-size:13px; font-weight:700; color:#0D47A1; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px; }
+.toc ol { padding-left:18px; }
+.toc li { font-size:13px; color:#1565C0; padding:3px 0; }
+.toc li a { color:#1565C0; text-decoration:none; }
+.toc li a:hover { text-decoration:underline; }
+.seccion { margin-bottom:36px; }
+.seccion-titulo { font-size:16px; font-weight:700; color:#0D47A1; border-bottom:2px solid #BBDEFB; padding-bottom:8px; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+.seccion-num { background:#1565C0; color:#fff; font-size:12px; font-weight:700; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.subseccion-titulo { font-size:14px; font-weight:700; color:#1565C0; margin:18px 0 8px; }
+p { margin-bottom:10px; }
+.contexto-card { background:#F8FBFF; border:1px solid #BBDEFB; border-radius:10px; padding:20px 24px; margin-bottom:16px; }
+.contexto-card p:last-child { margin-bottom:0; }
+.concepto-bloque { border:1px solid #BBDEFB; border-radius:10px; margin-bottom:14px; overflow:hidden; }
+.concepto-header { background:#1565C0; color:#fff; padding:10px 16px; font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px; }
+.concepto-icon { font-size:16px; }
+.concepto-body { padding:14px 16px; font-size:13.5px; background:#F8FBFF; }
+.concepto-body p { margin-bottom:8px; }
+.concepto-body p:last-child { margin-bottom:0; }
+.analogia { background:#FFF8E1; border-left:3px solid #F59E0B; padding:10px 14px; margin-top:8px; border-radius:0 6px 6px 0; font-size:13px; }
+.analogia strong { color:#92400E; }
+.obj-lista { list-style:none; padding:0; }
+.obj-lista li { padding:6px 0 6px 24px; position:relative; font-size:13.5px; border-bottom:1px solid #F0F4FF; }
+.obj-lista li:last-child { border-bottom:none; }
+.obj-lista li::before { content:'✓'; position:absolute; left:0; color:#1565C0; font-weight:700; }
+.nota  { background:#FFF8E1; border-left:4px solid #F59E0B; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.nota strong { color:#92400E; }
+.info  { background:#E8F5E9; border-left:4px solid #43A047; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.info strong { color:#1B5E20; }
+.peligro { background:#FFEBEE; border-left:4px solid #E53935; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.peligro strong { color:#B71C1C; }
+.profesional { background:#EDE7F6; border-left:4px solid #7B1FA2; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.profesional strong { color:#4A148C; }
+.seguridad { background:#FFF3E0; border-left:4px solid #E65100; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.seguridad strong { color:#E65100; }
+.flujo { display:flex; align-items:center; margin:16px 0; flex-wrap:wrap; }
+.flujo-item { background:#E3F2FD; border:1px solid #90CAF9; border-radius:8px; padding:10px 16px; text-align:center; font-size:12px; flex:1; min-width:100px; }
+.flujo-item.activo { background:#1565C0; color:#fff; border-color:#1565C0; font-weight:700; }
+.flujo-item.futuro { background:#F5F5F5; border-color:#ddd; color:#999; }
+.flujo-item.listo  { background:#E8F5E9; border-color:#66BB6A; color:#2E7D32; }
+.flujo-item .fi-num { font-size:10px; opacity:0.7; margin-bottom:2px; }
+.flujo-item .fi-nombre { font-size:12px; font-weight:600; }
+.flujo-sep { color:#90CAF9; font-size:18px; padding:0 6px; }
+.paso { background:#fff; border:1px solid #BBDEFB; border-radius:10px; padding:20px 24px; margin-bottom:20px; }
+.paso-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.paso-num { background:#1565C0; color:#fff; font-size:13px; font-weight:700; padding:4px 12px; border-radius:14px; }
+.paso-titulo { font-size:14px; font-weight:700; color:#0D47A1; }
+.paso p { font-size:13.5px; margin-bottom:10px; }
+.file-label { display:inline-block; background:#E3F2FD; color:#0D47A1; font-family:'Courier New',monospace; font-size:12px; padding:4px 12px; border-radius:6px 6px 0 0; border:1px solid #BBDEFB; border-bottom:none; font-weight:600; margin-top:10px; }
+.file-label.nuevo { background:#E8F5E9; color:#1B5E20; border-color:#A5D6A7; }
+.file-label.modif { background:#FFF8E1; color:#92400E; border-color:#FFE082; }
+.code-wrap { border:1px solid #BBDEFB; border-radius:0 8px 8px 8px; overflow:hidden; margin-bottom:12px; background:#fff; }
+.code-wrap.nuevo { border-color:#A5D6A7; }
+.code-wrap.modif { border-color:#FFE082; }
+.code-wrap canvas { display:block; max-width:100%; }
+.folder-tree { background:#fff; border:1px solid #BBDEFB; border-radius:8px; padding:16px 20px; margin:12px 0; font-family:'Courier New',monospace; font-size:13px; line-height:2.1; }
+.folder-tree .d { color:#1565C0; font-weight:700; }
+.folder-tree .f-nuevo { color:#2E7D32; font-weight:700; background:#E8F5E9; padding:1px 4px; border-radius:3px; }
+.folder-tree .f-modif { color:#92400E; font-weight:700; background:#FFF8E1; padding:1px 4px; border-radius:3px; }
+.folder-tree .cm { color:#9E9E9E; font-style:italic; }
+.tabla-gen { width:100%; border-collapse:collapse; font-size:13px; margin:12px 0; }
+.tabla-gen th { background:#1565C0; color:#fff; padding:9px 14px; text-align:left; font-size:12px; }
+.tabla-gen td { padding:9px 14px; border-bottom:1px solid #E3F2FD; vertical-align:top; }
+.tabla-gen tr:nth-child(even) td { background:#F8FBFF; }
+.tabla-gen code { background:#E3F2FD; color:#0D47A1; padding:1px 6px; border-radius:3px; font-size:12px; }
+.actividades { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.actividades th { background:#1565C0; color:#fff; padding:10px 14px; text-align:left; font-weight:600; font-size:12px; }
+.actividades td { padding:9px 14px; border-bottom:1px solid #E3F2FD; vertical-align:top; }
+.actividades tr:nth-child(even) td { background:#F8FBFF; }
+.actividades tr:last-child td { border-bottom:none; }
+.tipo-badge { font-size:11px; padding:3px 8px; border-radius:10px; font-weight:600; white-space:nowrap; }
+.tipo-codigo { background:#E3F2FD; color:#0D47A1; }
+.tipo-prueba { background:#E8F5E9; color:#1B5E20; }
+.tipo-thunder { background:#FFF3E0; color:#E65100; }
+.reflexion-lista { list-style:none; padding:0; counter-reset:ref; }
+.reflexion-lista li { counter-increment:ref; padding:10px 14px 10px 44px; position:relative; background:#F8FBFF; border:1px solid #BBDEFB; border-radius:8px; margin-bottom:8px; font-size:13.5px; }
+.reflexion-lista li::before { content:counter(ref); position:absolute; left:12px; top:50%; transform:translateY(-50%); background:#1565C0; color:#fff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
+.rubrica { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.rubrica th { background:#0D47A1; color:#fff; padding:10px 14px; text-align:left; font-weight:600; font-size:12px; }
+.rubrica td { padding:9px 14px; border-bottom:1px solid #E3F2FD; }
+.rubrica tr:nth-child(even) td { background:#F8FBFF; }
+.rubrica .total td { background:#1565C0; color:#fff; font-weight:700; }
+.pts { font-weight:700; color:#0D47A1; }
+.entregable-lista { list-style:none; padding:0; }
+.entregable-lista li { padding:8px 14px 8px 36px; position:relative; font-size:13.5px; border-bottom:1px solid #F0F4FF; }
+.entregable-lista li:last-child { border-bottom:none; }
+.entregable-lista li::before { content:'📄'; position:absolute; left:8px; }
+.footer { background:#0D47A1; color:#fff; text-align:center; padding:14px 40px; font-size:12px; margin-top:40px; }
+code { background:#E3F2FD; color:#0D47A1; padding:1px 5px; border-radius:3px; font-size:12px; font-family:'Courier New',monospace; }
+.roles-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin:14px 0; }
+.rol-card { border-radius:8px; overflow:hidden; }
+.rol-hdr { padding:8px 12px; font-size:12px; font-weight:700; text-align:center; }
+.rol-body { padding:10px 12px; font-size:12px; line-height:1.8; border:1px solid #BBDEFB; border-top:none; border-radius:0 0 8px 8px; background:#F8FBFF; }
+.rol-hdr.admin   { background:#1565C0; color:#fff; }
+.rol-hdr.usuario { background:#43A047; color:#fff; }
+.rol-hdr.invitado{ background:#757575; color:#fff; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-inst">Ingeniería de Desarrollo y Gestión de Software</div>
+      <div class="header-carrera">Desarrollo Web Integral y Seguridad</div>
+    </div>
+    <div class="header-badge">Práctica 9</div>
+  </div>
+  <div class="header-main">
+    <div class="header-practica">Fase 4 — Módulos CRUD · continuación</div>
+    <div class="header-titulo">Módulo de Proyectos con JOIN y permisos de solo lectura</div>
+    <div class="header-meta">
+      <span>⏱ Duración: 2.5 horas</span>
+      <span>🔗 JOIN · relaciones · RBAC extendido a Personas</span>
+      <span>📦 Entregable: Proyectos completo + Personas con permisos correctos</span>
+    </div>
+  </div>
+  <div class="header-strip"></div>
+</div>
+
+<div class="content">
+
+  <div class="toc">
+    <div class="toc-title">Tabla de contenidos</div>
+    <ol>
+      <li><a href="#donde">¿Dónde estamos en el proyecto?</a></li>
+      <li><a href="#conceptos">Conceptos clave: JOIN y permisos por operación</a></li>
+      <li><a href="#objetivos">Objetivos de la práctica</a></li>
+      <li><a href="#estructura">Nueva estructura del proyecto</a></li>
+      <li><a href="#desarrollo">Desarrollo paso a paso</a></li>
+      <li><a href="#actividades">Actividades</a></li>
+      <li><a href="#reflexion">Preguntas de reflexión</a></li>
+      <li><a href="#entregable">Entregable</a></li>
+      <li><a href="#rubrica">Criterios de evaluación</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. DÓNDE ESTAMOS -->
+  <div class="seccion" id="donde">
+    <div class="seccion-titulo"><span class="seccion-num">1</span> ¿Dónde estamos en el proyecto?</div>
+
+    <div class="contexto-card">
+      <p>En la Práctica 8 implementaste RBAC (control de acceso por roles) en el módulo de Usuarios: solo <code>admin</code> puede crear y eliminar cuentas, y los demás roles tienen acceso limitado. Sin embargo, el módulo de <strong>Personas</strong> se quedó sin esa protección — cualquier usuario autenticado, sin importar su rol, puede crear, editar y eliminar personas. Eso es un hueco de seguridad real.</p>
+      <p>En esta práctica resolvemos dos cosas a la vez: <strong>cerramos ese hueco</strong> aplicando el mismo patrón de RBAC a Personas, y <strong>construimos el módulo de Proyectos</strong> — el primero que usa una relación real entre tablas con <code>JOIN</code>, mostrando el nombre del responsable en lugar de un id sin sentido.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0;">
+      <div style="border:2px solid #FFCDD2;border-radius:8px;overflow:hidden;">
+        <div style="background:#FFEBEE;padding:8px 14px;font-size:12px;font-weight:700;color:#B71C1C;">⚠️ Problema detectado en P08</div>
+        <div style="padding:14px;font-size:13px;line-height:2;">
+          Personas: <strong>sin</strong> control de roles<br>
+          Un usuario invitado puede crear/editar/eliminar<br>
+          Solo Usuarios tenía RBAC aplicado
+        </div>
+      </div>
+      <div style="border:2px solid #A5D6A7;border-radius:8px;overflow:hidden;">
+        <div style="background:#E8F5E9;padding:8px 14px;font-size:12px;font-weight:700;color:#1B5E20;">✅ Lo que arreglamos y agregamos en P09</div>
+        <div style="padding:14px;font-size:13px;line-height:2;">
+          Personas: RBAC aplicado — invitado solo lee<br>
+          Proyectos: módulo nuevo con JOIN a personas<br>
+          Mismo patrón de protección en ambos módulos
+        </div>
+      </div>
+    </div>
+
+    <div class="flujo">
+      <div class="flujo-item listo"><div class="fi-num">P01–P07</div><div class="fi-nombre">BD · API · Auth</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item listo"><div class="fi-num">P08</div><div class="fi-nombre">Usuarios + Roles</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item activo"><div class="fi-num">P09</div><div class="fi-nombre">Proyectos + RBAC fix</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item futuro"><div class="fi-num">P10</div><div class="fi-nombre">Tareas</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item futuro"><div class="fi-num">P11–P13</div><div class="fi-nombre">Avanzado</div></div>
+    </div>
+  </div>
+
+  <!-- 2. CONCEPTOS -->
+  <div class="seccion" id="conceptos">
+    <div class="seccion-titulo"><span class="seccion-num">2</span> Conceptos clave: JOIN y permisos por operación</div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🔗</span> ¿Qué es un JOIN y por qué lo necesitamos aquí?</div>
+      <div class="concepto-body">
+        <p>La tabla <code>proyectos</code> tiene una columna <code>responsable_id</code> que guarda solamente un número — el id de la persona responsable. Si el frontend mostrara la tabla tal cual, verías "Responsable: 3" en lugar de "Responsable: María Torres". Un <strong>JOIN</strong> es la instrucción SQL que une dos tablas relacionadas en una sola consulta, trayendo los datos legibles en lugar del id crudo.</p>
+        <div class="analogia"><strong>Analogía:</strong> Imagina una lista de asistencia que solo tiene números de matrícula. Es información real, pero inútil para leer rápido. El JOIN es como cruzar esa lista con el directorio de alumnos para que en lugar de "2024001" veas "Ana García López" — misma información, pero legible.</div>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🧩</span> Anatomía de la consulta JOIN</div>
+      <div class="concepto-body">
+        <p>La consulta que usaremos tiene esta estructura:</p>
+        <table class="tabla-gen">
+          <thead><tr><th>Parte de la consulta</th><th>¿Qué hace?</th></tr></thead>
+          <tbody>
+            <tr><td><code>SELECT pr.*, per.nombre AS responsable</code></td><td>Trae todas las columnas de proyectos, y además el nombre de la persona (con un alias para no confundirlo)</td></tr>
+            <tr><td><code>FROM proyectos pr</code></td><td>La tabla principal de la consulta, con el alias <code>pr</code></td></tr>
+            <tr><td><code>JOIN personas per ON pr.responsable_id = per.id</code></td><td>Une cada proyecto con la persona cuyo <code>id</code> coincide con <code>responsable_id</code></td></tr>
+          </tbody>
+        </table>
+        <div class="nota"><strong>¿Por qué usamos alias (<code>pr</code>, <code>per</code>)?</strong> Cuando combinas dos tablas, ambas pueden tener columnas con el mismo nombre (por ejemplo <code>id</code> existe en las dos). Los alias evitan ambigüedad y hacen la consulta más corta de escribir.</div>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">🛡️</span> El problema que arreglamos: permisos por operación, no por módulo</div>
+      <div class="concepto-body">
+        <p>En P08 aprendiste a restringir un endpoint completo a ciertos roles. Pero hay un matiz importante que no se cubrió: <strong>dentro del mismo módulo, diferentes operaciones pueden necesitar diferentes permisos</strong>. Leer datos (GET) suele ser menos sensible que modificarlos (POST/PUT/DELETE).</p>
+        <p>Por eso en Personas vamos a aplicar permisos <strong>distintos por método HTTP</strong>, no uno solo para todo el módulo:</p>
+        <table class="tabla-gen">
+          <thead><tr><th>Operación</th><th>Roles permitidos</th><th>¿Por qué?</th></tr></thead>
+          <tbody>
+            <tr><td>GET — ver lista y detalle</td><td>admin, usuario, invitado</td><td>Consultar información no es una acción riesgosa</td></tr>
+            <tr><td>POST — crear</td><td>admin, usuario</td><td>Modificar datos requiere mayor responsabilidad</td></tr>
+            <tr><td>PUT — editar</td><td>admin, usuario</td><td>Mismo criterio que crear</td></tr>
+            <tr><td>DELETE — eliminar</td><td>admin, usuario</td><td>Mismo criterio que crear</td></tr>
+          </tbody>
+        </table>
+        <div class="profesional"><strong>💡 Este mismo patrón se repetirá en Proyectos.</strong> El middleware <code>verificarRol</code> que ya construiste en P08 no cambia — simplemente lo usamos con diferentes combinaciones de roles según cada ruta. Esa es la ventaja de haberlo construido como una <em>factory</em> reutilizable.</div>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header"><span class="concepto-icon">👥</span> Roles y permisos actualizados — vista completa</div>
+      <div class="concepto-body">
+        <p>Con esta práctica, el cuadro de permisos del sistema completo queda así:</p>
+        <div class="roles-grid">
+          <div class="rol-card">
+            <div class="rol-hdr admin">👑 admin</div>
+            <div class="rol-body">
+              ✅ Todo en Personas<br>
+              ✅ Todo en Usuarios<br>
+              ✅ Todo en Proyectos<br>
+              ✅ Acceso completo
+            </div>
+          </div>
+          <div class="rol-card">
+            <div class="rol-hdr usuario">👤 usuario</div>
+            <div class="rol-body">
+              ✅ Ver/crear/editar/eliminar Personas<br>
+              ✅ Ver/crear/editar/eliminar Proyectos<br>
+              ✅ Ver su propio perfil<br>
+              ❌ No administra Usuarios
+            </div>
+          </div>
+          <div class="rol-card">
+            <div class="rol-hdr invitado">👁️ invitado</div>
+            <div class="rol-body">
+              ✅ Solo ver Personas<br>
+              ✅ Solo ver Proyectos<br>
+              ❌ No crea, edita ni elimina nada<br>
+              ❌ No accede a Usuarios
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. OBJETIVOS -->
+  <div class="seccion" id="objetivos">
+    <div class="seccion-titulo"><span class="seccion-num">3</span> Objetivos de la práctica</div>
+    <ul class="obj-lista">
+      <li>Agregar <code>verificarRol</code> a <code>personas.routes.js</code> para que invitado solo pueda consultar.</li>
+      <li>Ocultar en <code>PersonasPage.jsx</code> los botones de crear/editar/eliminar cuando el rol es invitado.</li>
+      <li>Crear <code>proyectos.controller.js</code> con CRUD completo y consulta JOIN a personas.</li>
+      <li>Crear <code>proyectos.routes.js</code> aplicando el mismo esquema de permisos que Personas.</li>
+      <li>Registrar el módulo de proyectos en <code>server.js</code>.</li>
+      <li>Crear <code>proyectos.api.js</code> en el frontend.</li>
+      <li>Crear <code>ProyectosPage.jsx</code> mostrando el nombre del responsable, con filtros por estado y prioridad.</li>
+      <li>Crear <code>ProyectoFormPage.jsx</code> con selector de responsable (cargado desde personas).</li>
+      <li>Actualizar Navbar y App.jsx con el nuevo módulo.</li>
+      <li>Probar con Thunder Client que invitado recibe <code>403</code> al intentar modificar Personas o Proyectos.</li>
+    </ul>
+  </div>
+
+  <!-- 4. ESTRUCTURA -->
+  <div class="seccion" id="estructura">
+    <div class="seccion-titulo"><span class="seccion-num">4</span> Nueva estructura del proyecto</div>
+    <p>Archivos en <span style="background:#E8F5E9;color:#1B5E20;font-family:monospace;font-size:12px;padding:1px 4px;border-radius:3px;font-weight:700;">verde</span> son nuevos y los que están en <span style="background:#FFF8E1;color:#92400E;font-family:monospace;font-size:12px;padding:1px 4px;border-radius:3px;font-weight:700;">amarillo</span> se modifican.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div>
+        <p style="font-size:12px;font-weight:700;color:#0D47A1;margin-bottom:6px;">Backend</p>
+        <div class="folder-tree">
+          <span class="d">backend/</span><br>
+          ├── <span class="f-modif">server.js</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← registrar proyectosRoutes</span><br>
+          ├── <span class="d">controllers/</span><br>
+          │&nbsp;&nbsp;&nbsp;├── auth.controller.js&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+          │&nbsp;&nbsp;&nbsp;├── personas.controller.js&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+          │&nbsp;&nbsp;&nbsp;├── usuarios.controller.js&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+          │&nbsp;&nbsp;&nbsp;└── <span class="f-nuevo">proyectos.controller.js</span>&nbsp;<span class="cm">← CRUD con JOIN</span><br>
+          ├── <span class="d">routes/</span><br>
+          │&nbsp;&nbsp;&nbsp;├── auth.routes.js&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+          │&nbsp;&nbsp;&nbsp;├── <span class="f-modif">personas.routes.js</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← agregar verificarRol</span><br>
+          │&nbsp;&nbsp;&nbsp;├── usuarios.routes.js&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+          │&nbsp;&nbsp;&nbsp;└── <span class="f-nuevo">proyectos.routes.js</span>&nbsp;&nbsp;&nbsp;<span class="cm">← rutas del módulo</span><br>
+          └── <span class="d">middlewares/</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;├── auth.middleware.js&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;└── rol.middleware.js&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios, se reutiliza</span>
+        </div>
+      </div>
+      <div>
+        <p style="font-size:12px;font-weight:700;color:#0D47A1;margin-bottom:6px;">Frontend</p>
+        <div class="folder-tree">
+          <span class="d">frontend/src/</span><br>
+          ├── <span class="f-modif">App.jsx</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← agregar rutas de proyectos</span><br>
+          ├── <span class="f-modif">components/Navbar.jsx</span>&nbsp;&nbsp;<span class="cm">← agregar enlace Proyectos</span><br>
+          ├── <span class="d">api/</span><br>
+          │&nbsp;&nbsp;&nbsp;├── auth.api.js&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+          │&nbsp;&nbsp;&nbsp;├── personas.api.js&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+          │&nbsp;&nbsp;&nbsp;├── usuarios.api.js&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+          │&nbsp;&nbsp;&nbsp;└── <span class="f-nuevo">proyectos.api.js</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← llamadas HTTP proyectos</span><br>
+          └── <span class="d">pages/</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;├── <span class="f-modif">PersonasPage.jsx</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← ocultar botones invitado</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;├── PersonaFormPage.jsx&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;├── UsuariosPage.jsx&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;├── UsuarioFormPage.jsx&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;├── <span class="f-nuevo">ProyectosPage.jsx</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← listado con JOIN</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;└── <span class="f-nuevo">ProyectoFormPage.jsx</span>&nbsp;&nbsp;<span class="cm">← crear y editar proyecto</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. DESARROLLO -->
+  <div class="seccion" id="desarrollo">
+    <div class="seccion-titulo"><span class="seccion-num">5</span> Desarrollo paso a paso</div>
+
+    <!-- PASO 1 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 1</span><span class="paso-titulo">Corregir <code>personas.routes.js</code> — invitado solo lee</span></div>
+      <p>Este es el arreglo del problema detectado. Aplicamos exactamente el mismo patrón que ya usaste en <code>usuarios.routes.js</code> en P08, pero con una combinación de roles distinta: el GET es para los tres roles, las demás operaciones solo para admin y usuario.</p>
+      <div class="file-label modif">backend/routes/personas.routes.js — reemplazar contenido completo</div>
+      <div class="code-wrap modif"><canvas id="c_personas_routes"></canvas></div>
+      <div class="info"><strong>✅ Nota importante:</strong> No tocamos <code>personas.controller.js</code> ni <code>rol.middleware.js</code> — el arreglo completo vive en este único archivo de rutas, exactamente como debe ser. La lógica del controlador no necesita saber nada sobre roles.</div>
+    </div>
+
+    <!-- PASO 2 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 2</span><span class="paso-titulo">Ocultar botones en <code>PersonasPage.jsx</code> para invitado</span></div>
+      <p>El backend ya rechaza la petición con <code>403</code> si invitado intenta modificar algo — pero además queremos que el frontend ni siquiera muestre esos botones, para una mejor experiencia de usuario.</p>
+      <div class="file-label modif">frontend/src/pages/PersonasPage.jsx — reemplazar contenido completo</div>
+      <div class="code-wrap modif"><canvas id="c_personas_page"></canvas></div>
+      <div class="peligro"><strong>⚠️ Recuerda:</strong> ocultar el botón en React es solo una mejora visual. La protección real está en el backend (Paso 1). Si alguien manipula el HTML desde DevTools y hace la petición directamente, el servidor la rechaza igual.</div>
+    </div>
+
+    <!-- PASO 3 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 3</span><span class="paso-titulo">Crear <code>proyectos.controller.js</code> con JOIN</span></div>
+      <p>El controlador de proyectos sigue el mismo patrón que ya conoces, con la diferencia de que <code>getAll</code> y <code>getById</code> usan JOIN para traer el nombre del responsable en lugar de solo su id.</p>
+      <div class="file-label nuevo">backend/controllers/proyectos.controller.js — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_proyectos_ctrl"></canvas></div>
+      <ul class="obj-lista" style="margin-top:12px;">
+        <li><strong>getAll</strong> — JOIN con personas, ordenado por fecha de inicio descendente.</li>
+        <li><strong>create / update</strong> — reciben <code>responsable_id</code> como número, igual que cualquier FK.</li>
+        <li><strong>remove</strong> — soft delete con <code>activo = 0</code>, mismo patrón que Personas y Usuarios.</li>
+      </ul>
+    </div>
+
+    <!-- PASO 4 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 4</span><span class="paso-titulo">Crear <code>proyectos.routes.js</code> con el mismo esquema de permisos</span></div>
+      <p>Reutilizamos <code>verificarRol</code> tal cual — sin modificarlo — con la misma combinación de roles que aplicaste a Personas en el Paso 1.</p>
+      <div class="file-label nuevo">backend/routes/proyectos.routes.js — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_proyectos_routes"></canvas></div>
+    </div>
+
+    <!-- PASO 5 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 5</span><span class="paso-titulo">Registrar el módulo en <code>server.js</code></span></div>
+      <div class="file-label modif">backend/server.js — agregar las líneas marcadas</div>
+      <div class="code-wrap modif"><canvas id="c_server"></canvas></div>
+    </div>
+
+    <!-- PASO 6 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 6</span><span class="paso-titulo">Crear <code>proyectos.api.js</code> en el frontend</span></div>
+      <div class="file-label nuevo">frontend/src/api/proyectos.api.js — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_proyectos_api"></canvas></div>
+    </div>
+
+    <!-- PASO 7 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 7</span><span class="paso-titulo">Crear <code>ProyectosPage.jsx</code> con filtros y permisos por rol</span></div>
+      <p>La tabla muestra el nombre del responsable (gracias al JOIN), badges de color para estado y prioridad, y filtros simples. Los botones de crear/editar/eliminar se ocultan para invitado con la misma lógica del Paso 2.</p>
+      <div class="file-label nuevo">frontend/src/pages/ProyectosPage.jsx — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_proyectos_page"></canvas></div>
+    </div>
+
+    <!-- PASO 8 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 8</span><span class="paso-titulo">Crear <code>ProyectoFormPage.jsx</code> con selector de responsable</span></div>
+      <p>El formulario carga la lista de personas para el selector de responsable — mismo patrón que ya usaste en <code>UsuarioFormPage.jsx</code> de P08.</p>
+      <div class="file-label nuevo">frontend/src/pages/ProyectoFormPage.jsx — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_proyecto_form"></canvas></div>
+    </div>
+
+    <!-- PASO 9 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 9</span><span class="paso-titulo">Actualizar <code>Navbar.jsx</code> y <code>App.jsx</code></span></div>
+      <div class="file-label modif">frontend/src/components/Navbar.jsx — agregar enlace Proyectos</div>
+      <div class="code-wrap modif"><canvas id="c_navbar"></canvas></div>
+      <div class="file-label modif">frontend/src/App.jsx — agregar rutas de proyectos</div>
+      <div class="code-wrap modif"><canvas id="c_app"></canvas></div>
+      <div class="info"><strong>✅ Nota:</strong> a diferencia del enlace "Usuarios" (solo admin), el enlace "Proyectos" se muestra para <strong>todos los roles autenticados</strong> — incluido invitado, porque sí puede consultar el módulo, solo no modificarlo.</div>
+    </div>
+
+    <!-- PASO 10 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 10</span><span class="paso-titulo">Probar con Thunder Client — verificar el arreglo de permisos</span></div>
+
+      <div class="subseccion-titulo">Prueba 1 — Invitado puede leer Personas</div>
+      <div class="file-label">Thunder Client — GET http://localhost:3000/api/personas — sesión invitado</div>
+      <div class="info"><strong>✅ Esperado:</strong> <code>200</code> con la lista completa de personas.</div>
+
+      <div class="subseccion-titulo" style="margin-top:18px;">Prueba 2 — Invitado NO puede crear Personas</div>
+      <div class="file-label">Thunder Client — POST http://localhost:3000/api/personas — sesión invitado</div>
+      <div class="info"><strong>✅ Esperado:</strong> <code>403</code> con mensaje "No tienes permiso para realizar esta acción".</div>
+
+      <div class="subseccion-titulo" style="margin-top:18px;">Prueba 3 — Invitado NO puede eliminar Personas</div>
+      <div class="file-label">Thunder Client — DELETE http://localhost:3000/api/personas/2 — sesión invitado</div>
+      <div class="info"><strong>✅ Esperado:</strong> <code>403</code>.</div>
+
+      <div class="subseccion-titulo" style="margin-top:18px;">Prueba 4 — Listar proyectos con JOIN</div>
+      <div class="file-label">Thunder Client — GET http://localhost:3000/api/proyectos — cualquier sesión</div>
+      <div class="code-wrap"><canvas id="c_t1"></canvas></div>
+      <div class="info"><strong>✅ Esperado:</strong> cada proyecto incluye <code>responsable</code> con el nombre, no solo el id.</div>
+
+      <div class="subseccion-titulo" style="margin-top:18px;">Prueba 5 — Crear proyecto</div>
+      <div class="file-label">Thunder Client — POST http://localhost:3000/api/proyectos — Body JSON</div>
+      <div class="code-wrap"><canvas id="c_t2"></canvas></div>
+      <div class="info"><strong>✅ Esperado:</strong> <code>201</code>.</div>
+
+      <div class="subseccion-titulo" style="margin-top:18px;">Prueba 6 — Invitado NO puede crear proyectos</div>
+      <div class="file-label">Thunder Client — POST http://localhost:3000/api/proyectos — sesión invitado</div>
+      <div class="info"><strong>✅ Esperado:</strong> <code>403</code>.</div>
+    </div>
+  </div>
+
+  <!-- 6. ACTIVIDADES -->
+  <div class="seccion" id="actividades">
+    <div class="seccion-titulo"><span class="seccion-num">6</span> Actividades</div>
+    <table class="actividades">
+      <thead><tr><th>Núm.</th><th>Actividad</th><th>Tipo</th></tr></thead>
+      <tbody>
+        <tr><td>A1</td><td>Realiza las 6 pruebas de Thunder Client del Paso 10. Toma captura de cada respuesta con su código HTTP.</td><td><span class="tipo-badge tipo-thunder">Thunder Client</span></td></tr>
+        <tr><td>A2</td><td>Inicia sesión con tu usuario invitado en el frontend. Verifica que en Personas y Proyectos no aparecen los botones de crear/editar/eliminar, solo la tabla de consulta. Toma captura.</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+        <tr><td>A3</td><td>Inicia sesión con un usuario de rol "usuario" (no admin). Verifica que sí puede crear y editar proyectos y personas, pero el enlace "Usuarios" sigue sin aparecer. Toma captura.</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+        <tr><td>A4</td><td>Agrega un filtro en <code>ProyectosPage.jsx</code> que permita filtrar la tabla por estado (planeación / en_progreso / finalizado) usando un <code>&lt;select&gt;</code> y <code>useState</code>.</td><td><span class="tipo-badge tipo-codigo">Código</span></td></tr>
+        <tr><td>A5</td><td>Verifica en phpMyAdmin que al eliminar un proyecto, el campo <code>activo</code> cambia a 0 y el registro NO desaparece de la tabla. Toma captura.</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 7. REFLEXIÓN -->
+  <div class="seccion" id="reflexion">
+    <div class="seccion-titulo"><span class="seccion-num">7</span> Preguntas de reflexión</div>
+    <ol class="reflexion-lista">
+      <li>El error de P08 fue que Personas se quedó sin RBAC mientras Usuarios sí lo tenía. ¿Por qué crees que es fácil que esto pase en un proyecto real con varios módulos? ¿Qué práctica de desarrollo ayudaría a prevenirlo?</li>
+      <li>¿Por qué separamos los permisos por método HTTP (GET vs POST/PUT/DELETE) en lugar de dar acceso completo o ninguno a todo el módulo?</li>
+      <li>En el JOIN de proyectos, usamos alias <code>pr</code> y <code>per</code>. ¿Qué pasaría si quitaras esos alias y dejaras <code>SELECT *, personas.nombre</code> directamente? Investiga qué error o ambigüedad podría surgir.</li>
+      <li>El botón "Eliminar" desaparece para invitado en el frontend, pero el backend también lo rechaza con 403. ¿Por qué ambas protecciones son necesarias? Da un ejemplo de cómo alguien podría saltarse solo la protección del frontend.</li>
+      <li>¿Por qué <code>verificarRol</code> no tuvo que modificarse para usarlo en Proyectos y en el Personas corregido? ¿Qué característica de cómo lo diseñaste en P08 permite esta reutilización?</li>
+    </ol>
+  </div>
+
+  <!-- 8. ENTREGABLE -->
+  <div class="seccion" id="entregable">
+    <div class="seccion-titulo"><span class="seccion-num">8</span> Entregable</div>
+    <ul class="entregable-lista">
+      <li>Carpetas <code>backend/</code> y <code>frontend/</code> comprimidas en ZIP sin <code>node_modules/</code>.</li>
+      <li>Capturas de las 6 pruebas de Thunder Client (A1).</li>
+      <li>Captura del frontend con sesión invitado mostrando solo botones de consulta (A2).</li>
+      <li>Captura del frontend con sesión usuario mostrando permisos correctos (A3).</li>
+      <li>Código de A4 (filtro por estado) implementado.</li>
+      <li>Captura de phpMyAdmin verificando el soft delete de proyectos (A5).</li>
+      <li>Respuestas a las 5 preguntas de reflexión.</li>
+    </ul>
+    <div class="peligro"><strong>⚠️ No incluyas <code>.env</code> ni <code>node_modules/</code></strong> en el ZIP.</div>
+  </div>
+
+  <!-- 9. RÚBRICA -->
+  <div class="seccion" id="rubrica">
+    <div class="seccion-titulo"><span class="seccion-num">9</span> Criterios de evaluación</div>
+    <table class="rubrica">
+      <thead><tr><th>Criterio</th><th>Descripción</th><th>Puntos</th></tr></thead>
+      <tbody>
+        <tr><td>Personas con RBAC corregido</td><td>GET abierto a todos, POST/PUT/DELETE solo admin y usuario. Verificado con Thunder Client.</td><td class="pts">20</td></tr>
+        <tr><td>CRUD de proyectos con JOIN</td><td>Los 5 endpoints funcionan. El JOIN trae el nombre del responsable correctamente.</td><td class="pts">25</td></tr>
+        <tr><td>Permisos en Proyectos</td><td>Mismo esquema de roles que Personas, aplicado correctamente desde el diseño.</td><td class="pts">15</td></tr>
+        <tr><td>Frontend — Personas y Proyectos</td><td>Botones ocultos para invitado en ambos módulos. Tabla de proyectos muestra responsable.</td><td class="pts">20</td></tr>
+        <tr><td>Actividades A4 y A5</td><td>Filtro por estado y verificación de soft delete implementados.</td><td class="pts">20</td></tr>
+      </tbody>
+      <tr class="total"><td colspan="2">Total</td><td>100</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<div class="footer">
+  Ingeniería de Desarrollo y Gestión de Software &nbsp;·&nbsp; Práctica 9 de 13 &nbsp;·&nbsp; Fase 4: Módulos CRUD — continuación
+</div>
+
+<script>
+const KW='#7B40F2',ST='#C0392B',CM='#27AE60',FN='#16A085',PL='#1a1a2e',IM='#8E44AD',NM='#E67E22';
+const FONT='15px "Courier New", monospace';
+const LH=24,PX=18,PY=14;
+
+function draw(id,lines){
+  const cv=document.getElementById(id);if(!cv)return;
+  const dpr=window.devicePixelRatio||1;
+  const tmp=document.createElement('canvas');const tc=tmp.getContext('2d');tc.font=FONT;
+  let maxW=0;
+  lines.forEach(l=>{const w=tc.measureText(l.map(s=>s[1]).join('')).width;if(w>maxW)maxW=w;});
+  const W=Math.ceil(maxW+PX*2),H=lines.length*LH+PY*2;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.width=W+'px';cv.style.height=H+'px';
+  const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);
+  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,H);
+  ctx.font=FONT;ctx.textBaseline='alphabetic';
+  lines.forEach((segs,i)=>{
+    const y=PY+i*LH+LH*0.75;let x=PX;
+    segs.forEach(([color,text])=>{ctx.fillStyle=color;ctx.fillText(text,x,y);x+=tc.measureText(text).width;});
+  });
+}
+
+const B={
+
+c_personas_routes:[
+  [[IM,'import'],[PL,' { Router } '],[IM,'from'],[PL,' '],[ST,"'express'"],[PL,';']],
+  [[IM,'import'],[PL,' { getAll, getById, create, update, remove }']],
+  [[PL,'  '],[IM,'from'],[PL,' '],[ST,"'../controllers/personas.controller.js'"],[PL,';']],
+  [[IM,'import'],[PL,' { verificarToken } '],[IM,'from'],[PL,' '],[ST,"'../middlewares/auth.middleware.js'"],[PL,';']],
+  [[IM,'import'],[PL,' { verificarRol }   '],[IM,'from'],[PL,' '],[ST,"'../middlewares/rol.middleware.js'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'const'],[PL,' router = '],[FN,'Router'],[PL,'();']],
+  [[PL,'']],
+  [[CM,'// GET → los 3 roles pueden consultar']],
+  [[PL,'router.'],[FN,'get'],[PL,'('],[ST,"'/'"],[PL,',    verificarToken,']],
+  [[PL,'  '],[FN,'verificarRol'],[PL,'('],[ST,"'admin'"],[PL,','],[ST,"'usuario'"],[PL,','],[ST,"'invitado'"],[PL,'), getAll);']],
+  [[PL,'router.'],[FN,'get'],[PL,'('],[ST,"'/:id'"],[PL,', verificarToken,']],
+  [[PL,'  '],[FN,'verificarRol'],[PL,'('],[ST,"'admin'"],[PL,','],[ST,"'usuario'"],[PL,','],[ST,"'invitado'"],[PL,'), getById);']],
+  [[PL,'']],
+  [[CM,'// POST / PUT / DELETE → solo admin y usuario, invitado NO']],
+  [[PL,'router.'],[FN,'post'],[PL,'('],[ST,"'/'"],[PL,',    verificarToken,']],
+  [[PL,'  '],[FN,'verificarRol'],[PL,'('],[ST,"'admin'"],[PL,','],[ST,"'usuario'"],[PL,'), create);']],
+  [[PL,'router.'],[FN,'put'],[PL,'('],[ST,"'/:id'"],[PL,', verificarToken,']],
+  [[PL,'  '],[FN,'verificarRol'],[PL,'('],[ST,"'admin'"],[PL,','],[ST,"'usuario'"],[PL,'), update);']],
+  [[PL,'router.'],[FN,'delete'],[PL,'('],[ST,"'/:id'"],[PL,', verificarToken,']],
+  [[PL,'  '],[FN,'verificarRol'],[PL,'('],[ST,"'admin'"],[PL,','],[ST,"'usuario'"],[PL,'), remove);']],
+  [[PL,'']],
+  [[KW,'export default'],[PL,' router;']],
+],
+
+c_personas_page:[
+  [[IM,'import'],[PL,' { useState, useEffect } '],[IM,'from'],[PL,' '],[ST,"'react'"],[PL,';']],
+  [[IM,'import'],[PL,' { useNavigate }          '],[IM,'from'],[PL,' '],[ST,"'react-router-dom'"],[PL,';']],
+  [[IM,'import'],[PL,' { useAuth }              '],[IM,'from'],[PL,' '],[ST,"'../context/AuthContext'"],[PL,';']],
+  [[IM,'import'],[PL,' { getPersonas, eliminarPersona } '],[IM,'from'],[PL,' '],[ST,"'../api/personas.api'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'function'],[PL,' '],[FN,'PersonasPage'],[PL,'() {']],
+  [[PL,'  '],[KW,'const'],[PL,' [personas, setPersonas] = '],[FN,'useState'],[PL,'([]);']],
+  [[PL,'  '],[KW,'const'],[PL,' [cargando, setCargando] = '],[FN,'useState'],[PL,'('],[KW,'true'],[PL,');']],
+  [[PL,'  '],[KW,'const'],[PL,' navigate = '],[FN,'useNavigate'],[PL,'();']],
+  [[PL,'  '],[KW,'const'],[PL,' { usuario } = '],[FN,'useAuth'],[PL,'();'],[CM,'  ← leer rol']],
+  [[PL,'']],
+  [[CM,'  // ¿el rol actual puede modificar? admin y usuario sí, invitado no']],
+  [[PL,'  '],[KW,'const'],[PL,' puedeEditar = usuario.rol !== '],[ST,"'invitado'"],[PL,';']],
+  [[PL,'']],
+  [[FN,'  useEffect'],[PL,'(() => {']],
+  [[PL,'    '],[FN,'getPersonas'],[PL,'().'],[FN,'then'],[PL,'(d => '],[FN,'setPersonas'],[PL,'(d)).']],
+  [[PL,'      '],[KW,'finally'],[PL,'(() => '],[FN,'setCargando'],[PL,'('],[KW,'false'],[PL,'));']],
+  [[PL,'  }, []);']],
+  [[PL,'']],
+  [[KW,'  async function'],[PL,' '],[FN,'handleEliminar'],[PL,'(id, nombre) {']],
+  [[PL,'    '],[KW,'if'],[PL,' (!confirm(`¿Eliminar a "${nombre}"?`)) '],[KW,'return'],[PL,';']],
+  [[PL,'    '],[KW,'await'],[PL,' '],[FN,'eliminarPersona'],[PL,'(id);']],
+  [[PL,'    '],[FN,'getPersonas'],[PL,'().'],[FN,'then'],[PL,'(d => '],[FN,'setPersonas'],[PL,'(d));']],
+  [[PL,'  }']],
+  [[PL,'']],
+  [[PL,'  '],[KW,'if'],[PL,' (cargando) '],[KW,'return'],[PL,' <div className='],[ST,'"container mt-5 text-center"'],[PL,'>']],
+  [[PL,'    <div className='],[ST,'"spinner-border text-primary"'],[PL,'></div></div>;']],
+  [[PL,'']],
+  [[PL,'  '],[KW,'return'],[PL,' (']],
+  [[PL,'    <div className='],[ST,'"container mt-4"'],[PL,'>']],
+  [[PL,'      <div className='],[ST,'"d-flex justify-content-between align-items-center mb-3"'],[PL,'>']],
+  [[PL,'        <h5 className='],[ST,'"text-primary mb-0"'],[PL,'>Personas</h5>']],
+  [[PL,'        {puedeEditar && ('],[CM,'  ← botón solo si NO es invitado']],
+  [[PL,'          <button className='],[ST,'"btn btn-primary btn-sm"'],[PL,'']],
+  [[PL,'            onClick={() => '],[FN,'navigate'],[PL,'('],[ST,"'/personas/nueva'"],[PL,')}>']],
+  [[PL,'            ➕ Nueva persona']],
+  [[PL,'          </button>']],
+  [[PL,'        )}']],
+  [[PL,'      </div>']],
+  [[PL,'      <table className='],[ST,'"table table-bordered table-hover align-middle"'],[PL,'>']],
+  [[PL,'        <thead className='],[ST,'"table-primary"'],[PL,'><tr>']],
+  [[PL,'          <th>#</th><th>Nombre</th><th>Correo</th><th>Puesto</th>']],
+  [[PL,'          {puedeEditar && <th>Acciones</th>}']],
+  [[PL,'        </tr></thead>']],
+  [[PL,'        <tbody>']],
+  [[PL,'          {personas.'],[FN,'map'],[PL,'(p => (']],
+  [[PL,'            <tr key={p.id}>']],
+  [[PL,'              <td>{p.id}</td><td>{p.nombre}</td>']],
+  [[PL,'              <td>{p.correo}</td><td>{p.puesto}</td>']],
+  [[PL,'              {puedeEditar && (']],
+  [[PL,'                <td>']],
+  [[PL,'                  <button className='],[ST,'"btn btn-outline-primary btn-sm me-1"'],[PL,'']],
+  [[PL,'                    onClick={() => '],[FN,'navigate'],[PL,'(`/personas/editar/${p.id}`)}>✏️</button>']],
+  [[PL,'                  <button className='],[ST,'"btn btn-outline-danger btn-sm"'],[PL,'']],
+  [[PL,'                    onClick={() => '],[FN,'handleEliminar'],[PL,'(p.id, p.nombre)}>🗑️</button>']],
+  [[PL,'                </td>']],
+  [[PL,'              )}']],
+  [[PL,'            </tr>']],
+  [[PL,'          ))}']],
+  [[PL,'        </tbody>']],
+  [[PL,'      </table>']],
+  [[PL,'    </div>']],
+  [[PL,'  );']],
+  [[PL,'}']],
+  [[PL,'']],
+  [[KW,'export default'],[PL,' PersonasPage;']],
+],
+
+c_proyectos_ctrl:[
+  [[IM,'import'],[PL,' pool '],[IM,'from'],[PL,' '],[ST,"'../db.js'"],[PL,';']],
+  [[PL,'']],
+  [[CM,'// GET /api/proyectos — lista con JOIN al responsable']],
+  [[KW,'export const'],[PL,' getAll = '],[KW,'async'],[PL,' (req, res) => {']],
+  [[PL,'  '],[KW,'try'],[PL,' {']],
+  [[PL,'    '],[KW,'const'],[PL,' [rows] = '],[KW,'await'],[PL,' pool.'],[FN,'query'],[PL,'(`']],
+  [[PL,'      SELECT pr.*, per.nombre AS responsable']],
+  [[PL,'      FROM   proyectos pr']],
+  [[PL,'      JOIN   personas per ON pr.responsable_id = per.id']],
+  [[PL,'      WHERE  pr.activo = 1']],
+  [[PL,'      ORDER  BY pr.fecha_inicio DESC']],
+  [[PL,'    `);']],
+  [[PL,'    res.'],[FN,'json'],[PL,'(rows);']],
+  [[PL,'  } '],[KW,'catch'],[PL,' (err) { res.'],[FN,'status'],[PL,'(500).'],[FN,'json'],[PL,'({ error: err.message }); }']],
+  [[PL,'};']],
+  [[PL,'']],
+  [[CM,'// GET /api/proyectos/:id']],
+  [[KW,'export const'],[PL,' getById = '],[KW,'async'],[PL,' (req, res) => {']],
+  [[PL,'  '],[KW,'try'],[PL,' {']],
+  [[PL,'    '],[KW,'const'],[PL,' [rows] = '],[KW,'await'],[PL,' pool.'],[FN,'query'],[PL,'(`']],
+  [[PL,'      SELECT pr.*, per.nombre AS responsable']],
+  [[PL,'      FROM   proyectos pr JOIN personas per ON pr.responsable_id = per.id']],
+  [[PL,'      WHERE  pr.id = ?`, [req.params.id]);']],
+  [[PL,'    '],[KW,'if'],[PL,' (rows.length === 0)']],
+  [[PL,'      '],[KW,'return'],[PL,' res.'],[FN,'status'],[PL,'(404).'],[FN,'json'],[PL,'({ error: '],[ST,"'Proyecto no encontrado'"],[PL,' });']],
+  [[PL,'    res.'],[FN,'json'],[PL,'(rows[0]);']],
+  [[PL,'  } '],[KW,'catch'],[PL,' (err) { res.'],[FN,'status'],[PL,'(500).'],[FN,'json'],[PL,'({ error: err.message }); }']],
+  [[PL,'};']],
+  [[PL,'']],
+  [[CM,'// POST /api/proyectos']],
+  [[KW,'export const'],[PL,' create = '],[KW,'async'],[PL,' (req, res) => {']],
+  [[PL,'  '],[KW,'try'],[PL,' {']],
+  [[PL,'    '],[KW,'const'],[PL,' { nombre, descripcion, responsable_id, estado, prioridad,']],
+  [[PL,'             fecha_inicio, fecha_fin } = req.body;']],
+  [[PL,'    '],[KW,'const'],[PL,' [result] = '],[KW,'await'],[PL,' pool.'],[FN,'query'],[PL,'(']],
+  [[PL,'      '],[ST,"'INSERT INTO proyectos'"]],
+  [[PL,'      '],[ST,"'(nombre, descripcion, responsable_id, estado, prioridad,'"]],
+  [[PL,'      '],[ST,"' fecha_inicio, fecha_fin) VALUES (?,?,?,?,?,?,?)'"],[PL,',']],
+  [[PL,'      [nombre, descripcion, responsable_id, estado || '],[ST,"'planeacion'"],[PL,',']],
+  [[PL,'       prioridad || '],[ST,"'media'"],[PL,', fecha_inicio, fecha_fin]']],
+  [[PL,'    );']],
+  [[PL,'    res.'],[FN,'status'],[PL,'(201).'],[FN,'json'],[PL,'({ mensaje: '],[ST,"'Proyecto creado'"],[PL,', id: result.insertId });']],
+  [[PL,'  } '],[KW,'catch'],[PL,' (err) { res.'],[FN,'status'],[PL,'(500).'],[FN,'json'],[PL,'({ error: err.message }); }']],
+  [[PL,'};']],
+  [[PL,'']],
+  [[CM,'// PUT /api/proyectos/:id']],
+  [[KW,'export const'],[PL,' update = '],[KW,'async'],[PL,' (req, res) => {']],
+  [[PL,'  '],[KW,'try'],[PL,' {']],
+  [[PL,'    '],[KW,'const'],[PL,' { nombre, descripcion, responsable_id, estado, prioridad,']],
+  [[PL,'             fecha_inicio, fecha_fin } = req.body;']],
+  [[PL,'    '],[KW,'await'],[PL,' pool.'],[FN,'query'],[PL,'(`']],
+  [[PL,'      UPDATE proyectos SET nombre=?, descripcion=?, responsable_id=?,']],
+  [[PL,'        estado=?, prioridad=?, fecha_inicio=?, fecha_fin=?']],
+  [[PL,'      WHERE id=?`,']],
+  [[PL,'      [nombre, descripcion, responsable_id, estado, prioridad,']],
+  [[PL,'       fecha_inicio, fecha_fin, req.params.id]']],
+  [[PL,'    );']],
+  [[PL,'    res.'],[FN,'json'],[PL,'({ mensaje: '],[ST,"'Proyecto actualizado'"],[PL,' });']],
+  [[PL,'  } '],[KW,'catch'],[PL,' (err) { res.'],[FN,'status'],[PL,'(500).'],[FN,'json'],[PL,'({ error: err.message }); }']],
+  [[PL,'};']],
+  [[PL,'']],
+  [[CM,'// DELETE /api/proyectos/:id — soft delete']],
+  [[KW,'export const'],[PL,' remove = '],[KW,'async'],[PL,' (req, res) => {']],
+  [[PL,'  '],[KW,'try'],[PL,' {']],
+  [[PL,'    '],[KW,'await'],[PL,' pool.'],[FN,'query'],[PL,'('],[ST,"'UPDATE proyectos SET activo=0 WHERE id=?'"],[PL,', [req.params.id]);']],
+  [[PL,'    res.'],[FN,'json'],[PL,'({ mensaje: '],[ST,"'Proyecto eliminado'"],[PL,' });']],
+  [[PL,'  } '],[KW,'catch'],[PL,' (err) { res.'],[FN,'status'],[PL,'(500).'],[FN,'json'],[PL,'({ error: err.message }); }']],
+  [[PL,'};']],
+],
+
+c_proyectos_routes:[
+  [[IM,'import'],[PL,' { Router } '],[IM,'from'],[PL,' '],[ST,"'express'"],[PL,';']],
+  [[IM,'import'],[PL,' { getAll, getById, create, update, remove }']],
+  [[PL,'  '],[IM,'from'],[PL,' '],[ST,"'../controllers/proyectos.controller.js'"],[PL,';']],
+  [[IM,'import'],[PL,' { verificarToken } '],[IM,'from'],[PL,' '],[ST,"'../middlewares/auth.middleware.js'"],[PL,';']],
+  [[IM,'import'],[PL,' { verificarRol }   '],[IM,'from'],[PL,' '],[ST,"'../middlewares/rol.middleware.js'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'const'],[PL,' router = '],[FN,'Router'],[PL,'();']],
+  [[PL,'']],
+  [[CM,'// Mismo esquema que personas.routes.js — reutiliza verificarRol']],
+  [[PL,'router.'],[FN,'get'],[PL,'('],[ST,"'/'"],[PL,',    verificarToken,']],
+  [[PL,'  '],[FN,'verificarRol'],[PL,'('],[ST,"'admin'"],[PL,','],[ST,"'usuario'"],[PL,','],[ST,"'invitado'"],[PL,'), getAll);']],
+  [[PL,'router.'],[FN,'get'],[PL,'('],[ST,"'/:id'"],[PL,', verificarToken,']],
+  [[PL,'  '],[FN,'verificarRol'],[PL,'('],[ST,"'admin'"],[PL,','],[ST,"'usuario'"],[PL,','],[ST,"'invitado'"],[PL,'), getById);']],
+  [[PL,'router.'],[FN,'post'],[PL,'('],[ST,"'/'"],[PL,',    verificarToken,']],
+  [[PL,'  '],[FN,'verificarRol'],[PL,'('],[ST,"'admin'"],[PL,','],[ST,"'usuario'"],[PL,'), create);']],
+  [[PL,'router.'],[FN,'put'],[PL,'('],[ST,"'/:id'"],[PL,', verificarToken,']],
+  [[PL,'  '],[FN,'verificarRol'],[PL,'('],[ST,"'admin'"],[PL,','],[ST,"'usuario'"],[PL,'), update);']],
+  [[PL,'router.'],[FN,'delete'],[PL,'('],[ST,"'/:id'"],[PL,', verificarToken,']],
+  [[PL,'  '],[FN,'verificarRol'],[PL,'('],[ST,"'admin'"],[PL,','],[ST,"'usuario'"],[PL,'), remove);']],
+  [[PL,'']],
+  [[KW,'export default'],[PL,' router;']],
+],
+
+c_server:[
+  [[IM,'import'],[PL,' personasRoutes  '],[IM,'from'],[PL,' '],[ST,"'./routes/personas.routes.js'"],[PL,';']],
+  [[IM,'import'],[PL,' usuariosRoutes  '],[IM,'from'],[PL,' '],[ST,"'./routes/usuarios.routes.js'"],[PL,';']],
+  [[IM,'import'],[PL,' proyectosRoutes '],[IM,'from'],[PL,' '],[ST,"'./routes/proyectos.routes.js'"],[PL,';'],[CM,'  ← agregar']],
+  [[PL,'']],
+  [[CM,'// ... resto de configuración igual que antes ...']],
+  [[PL,'']],
+  [[PL,'app.'],[FN,'use'],[PL,'('],[ST,"'/api/personas'"],[PL,' , verificarToken, personasRoutes);']],
+  [[PL,'app.'],[FN,'use'],[PL,'('],[ST,"'/api/usuarios'"],[PL,' , verificarToken, usuariosRoutes);']],
+  [[PL,'app.'],[FN,'use'],[PL,'('],[ST,"'/api/proyectos'"],[PL,', verificarToken, proyectosRoutes);'],[CM,'  ← agregar']],
+],
+
+c_proyectos_api:[
+  [[IM,'import'],[PL,' axios '],[IM,'from'],[PL,' '],[ST,"'axios'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'const'],[PL,' api = axios.'],[FN,'create'],[PL,'({']],
+  [[PL,'  baseURL:         '],[ST,"'http://localhost:3000/api'"],[PL,',']],
+  [[PL,'  withCredentials: '],[KW,'true']],
+  [[PL,'});']],
+  [[PL,'']],
+  [[KW,'export const'],[PL,' getProyectos = '],[KW,'async'],[PL,' () =>']],
+  [[PL,'  (await api.'],[FN,'get'],[PL,'('],[ST,"'/proyectos'"],[PL,')).data;']],
+  [[PL,'']],
+  [[KW,'export const'],[PL,' getProyectoById = '],[KW,'async'],[PL,' (id) =>']],
+  [[PL,'  (await api.'],[FN,'get'],[PL,'(`/proyectos/${id}`)).data;']],
+  [[PL,'']],
+  [[KW,'export const'],[PL,' crearProyecto = '],[KW,'async'],[PL,' (datos) =>']],
+  [[PL,'  (await api.'],[FN,'post'],[PL,'('],[ST,"'/proyectos'"],[PL,', datos)).data;']],
+  [[PL,'']],
+  [[KW,'export const'],[PL,' actualizarProyecto = '],[KW,'async'],[PL,' (id, datos) =>']],
+  [[PL,'  (await api.'],[FN,'put'],[PL,'(`/proyectos/${id}`, datos)).data;']],
+  [[PL,'']],
+  [[KW,'export const'],[PL,' eliminarProyecto = '],[KW,'async'],[PL,' (id) =>']],
+  [[PL,'  (await api.'],[FN,'delete'],[PL,'(`/proyectos/${id}`)).data;']],
+],
+
+c_proyectos_page:[
+  [[IM,'import'],[PL,' { useState, useEffect } '],[IM,'from'],[PL,' '],[ST,"'react'"],[PL,';']],
+  [[IM,'import'],[PL,' { useNavigate }          '],[IM,'from'],[PL,' '],[ST,"'react-router-dom'"],[PL,';']],
+  [[IM,'import'],[PL,' { useAuth }              '],[IM,'from'],[PL,' '],[ST,"'../context/AuthContext'"],[PL,';']],
+  [[IM,'import'],[PL,' { getProyectos, eliminarProyecto } '],[IM,'from'],[PL,' '],[ST,"'../api/proyectos.api'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'function'],[PL,' '],[FN,'ProyectosPage'],[PL,'() {']],
+  [[PL,'  '],[KW,'const'],[PL,' [proyectos, setProyectos] = '],[FN,'useState'],[PL,'([]);']],
+  [[PL,'  '],[KW,'const'],[PL,' [cargando, setCargando] = '],[FN,'useState'],[PL,'('],[KW,'true'],[PL,');']],
+  [[PL,'  '],[KW,'const'],[PL,' navigate = '],[FN,'useNavigate'],[PL,'();']],
+  [[PL,'  '],[KW,'const'],[PL,' { usuario } = '],[FN,'useAuth'],[PL,'();']],
+  [[PL,'  '],[KW,'const'],[PL,' puedeEditar = usuario.rol !== '],[ST,"'invitado'"],[PL,';']],
+  [[PL,'']],
+  [[FN,'  useEffect'],[PL,'(() => {']],
+  [[PL,'    '],[FN,'getProyectos'],[PL,'().'],[FN,'then'],[PL,'(d => '],[FN,'setProyectos'],[PL,'(d)).']],
+  [[PL,'      '],[KW,'finally'],[PL,'(() => '],[FN,'setCargando'],[PL,'('],[KW,'false'],[PL,'));']],
+  [[PL,'  }, []);']],
+  [[PL,'']],
+  [[KW,'  async function'],[PL,' '],[FN,'handleEliminar'],[PL,'(id, nombre) {']],
+  [[PL,'    '],[KW,'if'],[PL,' (!confirm(`¿Eliminar "${nombre}"?`)) '],[KW,'return'],[PL,';']],
+  [[PL,'    '],[KW,'await'],[PL,' '],[FN,'eliminarProyecto'],[PL,'(id);']],
+  [[PL,'    '],[FN,'getProyectos'],[PL,'().'],[FN,'then'],[PL,'(d => '],[FN,'setProyectos'],[PL,'(d));']],
+  [[PL,'  }']],
+  [[PL,'']],
+  [[CM,'  // colores por estado y prioridad para los badges']],
+  [[KW,'  const'],[PL,' colorEstado = e => ({']],
+  [[PL,'    planeacion:   '],[ST,"'secondary'"],[PL,', en_progreso: '],[ST,"'primary'"],[PL,',']],
+  [[PL,'    finalizado:   '],[ST,"'success'"]],
+  [[PL,'  }[e] || '],[ST,"'secondary'"],[PL,');']],
+  [[PL,'']],
+  [[PL,'  '],[KW,'if'],[PL,' (cargando) '],[KW,'return'],[PL,' <div className='],[ST,'"container mt-5 text-center"'],[PL,'>']],
+  [[PL,'    <div className='],[ST,'"spinner-border text-primary"'],[PL,'></div></div>;']],
+  [[PL,'']],
+  [[PL,'  '],[KW,'return'],[PL,' (']],
+  [[PL,'    <div className='],[ST,'"container mt-4"'],[PL,'>']],
+  [[PL,'      <div className='],[ST,'"d-flex justify-content-between align-items-center mb-3"'],[PL,'>']],
+  [[PL,'        <h5 className='],[ST,'"text-primary mb-0"'],[PL,'>Proyectos</h5>']],
+  [[PL,'        {puedeEditar && (']],
+  [[PL,'          <button className='],[ST,'"btn btn-primary btn-sm"'],[PL,'']],
+  [[PL,'            onClick={() => '],[FN,'navigate'],[PL,'('],[ST,"'/proyectos/nuevo'"],[PL,')}>']],
+  [[PL,'            ➕ Nuevo proyecto']],
+  [[PL,'          </button>']],
+  [[PL,'        )}']],
+  [[PL,'      </div>']],
+  [[PL,'      <table className='],[ST,'"table table-bordered table-hover align-middle"'],[PL,'>']],
+  [[PL,'        <thead className='],[ST,'"table-primary"'],[PL,'><tr>']],
+  [[PL,'          <th>#</th><th>Nombre</th><th>Responsable</th>']],
+  [[PL,'          <th>Estado</th><th>Prioridad</th>']],
+  [[PL,'          {puedeEditar && <th>Acciones</th>}']],
+  [[PL,'        </tr></thead>']],
+  [[PL,'        <tbody>']],
+  [[PL,'          {proyectos.'],[FN,'map'],[PL,'(p => (']],
+  [[PL,'            <tr key={p.id}>']],
+  [[PL,'              <td>{p.id}</td><td>{p.nombre}</td>']],
+  [[CM,'              {/* p.responsable viene del JOIN */}']],
+  [[PL,'              <td>{p.responsable}</td>']],
+  [[PL,'              <td><span className={`badge bg-${colorEstado(p.estado)}`}>']],
+  [[PL,'                {p.estado}</span></td>']],
+  [[PL,'              <td>{p.prioridad}</td>']],
+  [[PL,'              {puedeEditar && (']],
+  [[PL,'                <td>']],
+  [[PL,'                  <button className='],[ST,'"btn btn-outline-primary btn-sm me-1"'],[PL,'']],
+  [[PL,'                    onClick={() => '],[FN,'navigate'],[PL,'(`/proyectos/editar/${p.id}`)}>✏️</button>']],
+  [[PL,'                  <button className='],[ST,'"btn btn-outline-danger btn-sm"'],[PL,'']],
+  [[PL,'                    onClick={() => '],[FN,'handleEliminar'],[PL,'(p.id, p.nombre)}>🗑️</button>']],
+  [[PL,'                </td>']],
+  [[PL,'              )}']],
+  [[PL,'            </tr>']],
+  [[PL,'          ))}']],
+  [[PL,'        </tbody>']],
+  [[PL,'      </table>']],
+  [[PL,'    </div>']],
+  [[PL,'  );']],
+  [[PL,'}']],
+  [[PL,'']],
+  [[KW,'export default'],[PL,' ProyectosPage;']],
+],
+
+c_proyecto_form:[
+  [[IM,'import'],[PL,' { useState, useEffect } '],[IM,'from'],[PL,' '],[ST,"'react'"],[PL,';']],
+  [[IM,'import'],[PL,' { useParams, useNavigate } '],[IM,'from'],[PL,' '],[ST,"'react-router-dom'"],[PL,';']],
+  [[IM,'import'],[PL,' { getProyectoById, crearProyecto, actualizarProyecto }']],
+  [[PL,'  '],[IM,'from'],[PL,' '],[ST,"'../api/proyectos.api'"],[PL,';']],
+  [[IM,'import'],[PL,' { getPersonas } '],[IM,'from'],[PL,' '],[ST,"'../api/personas.api'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'function'],[PL,' '],[FN,'ProyectoFormPage'],[PL,'() {']],
+  [[PL,'  '],[KW,'const'],[PL,' { id } = '],[FN,'useParams'],[PL,'();']],
+  [[PL,'  '],[KW,'const'],[PL,' navigate = '],[FN,'useNavigate'],[PL,'();']],
+  [[PL,'  '],[KW,'const'],[PL,' [personas, setPersonas] = '],[FN,'useState'],[PL,'([]);']],
+  [[PL,'  '],[KW,'const'],[PL,' [form, setForm] = '],[FN,'useState'],[PL,'({']],
+  [[PL,'    nombre: '],[ST,"''"],[PL,', descripcion: '],[ST,"''"],[PL,', responsable_id: '],[ST,"''"],[PL,',']],
+  [[PL,'    estado: '],[ST,"'planeacion'"],[PL,', prioridad: '],[ST,"'media'"],[PL,',']],
+  [[PL,'    fecha_inicio: '],[ST,"''"],[PL,', fecha_fin: '],[ST,"''"],[PL,'']],
+  [[PL,'  });']],
+  [[PL,'']],
+  [[FN,'  useEffect'],[PL,'(() => {']],
+  [[PL,'    '],[FN,'getPersonas'],[PL,'().'],[FN,'then'],[PL,'(d => '],[FN,'setPersonas'],[PL,'(d));']],
+  [[PL,'    '],[KW,'if'],[PL,' (id) '],[FN,'getProyectoById'],[PL,'(id).'],[FN,'then'],[PL,'(d => '],[FN,'setForm'],[PL,'(d));']],
+  [[PL,'  }, [id]);']],
+  [[PL,'']],
+  [[KW,'  const'],[PL,' handleChange = e =>']],
+  [[PL,'    '],[FN,'setForm'],[PL,'({ ...form, [e.target.name]: e.target.value });']],
+  [[PL,'']],
+  [[KW,'  async function'],[PL,' '],[FN,'handleSubmit'],[PL,'(e) {']],
+  [[PL,'    e.'],[FN,'preventDefault'],[PL,'();']],
+  [[PL,'    '],[KW,'if'],[PL,' (id) '],[KW,'await'],[PL,' '],[FN,'actualizarProyecto'],[PL,'(id, form);']],
+  [[PL,'    '],[KW,'else'],[PL,'    '],[KW,'await'],[PL,' '],[FN,'crearProyecto'],[PL,'(form);']],
+  [[PL,'    '],[FN,'navigate'],[PL,'('],[ST,"'/proyectos'"],[PL,');']],
+  [[PL,'  }']],
+  [[PL,'']],
+  [[PL,'  '],[KW,'return'],[PL,' (']],
+  [[PL,'    <div className='],[ST,'"container mt-4"'],[PL,' style={{ maxWidth: '],[ST,"'600px'"],[PL,' }}>']],
+  [[PL,'      <h5 className='],[ST,'"text-primary mb-3"'],[PL,'>']],
+  [[PL,'        {id ? '],[ST,"'✏️ Editar proyecto'"],[PL,' : '],[ST,"'➕ Nuevo proyecto'"],[PL,'}']],
+  [[PL,'      </h5>']],
+  [[PL,'      <form onSubmit={handleSubmit}>']],
+  [[PL,'        <div className='],[ST,'"mb-3"'],[PL,'>']],
+  [[PL,'          <label className='],[ST,'"form-label fw-semibold"'],[PL,'>Nombre *</label>']],
+  [[PL,'          <input className='],[ST,'"form-control"'],[PL,' name='],[ST,'"nombre"'],[PL,'']],
+  [[PL,'            value={form.nombre} onChange={handleChange} required />']],
+  [[PL,'        </div>']],
+  [[PL,'        <div className='],[ST,'"mb-3"'],[PL,'>']],
+  [[PL,'          <label className='],[ST,'"form-label fw-semibold"'],[PL,'>Responsable *</label>']],
+  [[PL,'          <select className='],[ST,'"form-select"'],[PL,' name='],[ST,'"responsable_id"'],[PL,'']],
+  [[PL,'            value={form.responsable_id} onChange={handleChange} required>']],
+  [[PL,'            <option value='],[ST,'""'],[PL,'>Selecciona...</option>']],
+  [[PL,'            {personas.'],[FN,'map'],[PL,'(p =>']],
+  [[PL,'              <option key={p.id} value={p.id}>{p.nombre}</option>)}']],
+  [[PL,'          </select>']],
+  [[PL,'        </div>']],
+  [[PL,'        <div className='],[ST,'"row"'],[PL,'>']],
+  [[PL,'          <div className='],[ST,'"col-6 mb-3"'],[PL,'>']],
+  [[PL,'            <label className='],[ST,'"form-label fw-semibold"'],[PL,'>Estado</label>']],
+  [[PL,'            <select className='],[ST,'"form-select"'],[PL,' name='],[ST,'"estado"'],[PL,'']],
+  [[PL,'              value={form.estado} onChange={handleChange}>']],
+  [[PL,'              <option value='],[ST,'"planeacion"'],[PL,'>Planeación</option>']],
+  [[PL,'              <option value='],[ST,'"en_progreso"'],[PL,'>En progreso</option>']],
+  [[PL,'              <option value='],[ST,'"finalizado"'],[PL,'>Finalizado</option>']],
+  [[PL,'            </select>']],
+  [[PL,'          </div>']],
+  [[PL,'          <div className='],[ST,'"col-6 mb-3"'],[PL,'>']],
+  [[PL,'            <label className='],[ST,'"form-label fw-semibold"'],[PL,'>Prioridad</label>']],
+  [[PL,'            <select className='],[ST,'"form-select"'],[PL,' name='],[ST,'"prioridad"'],[PL,'']],
+  [[PL,'              value={form.prioridad} onChange={handleChange}>']],
+  [[PL,'              <option value='],[ST,'"baja"'],[PL,'>Baja</option>']],
+  [[PL,'              <option value='],[ST,'"media"'],[PL,'>Media</option>']],
+  [[PL,'              <option value='],[ST,'"alta"'],[PL,'>Alta</option>']],
+  [[PL,'            </select>']],
+  [[PL,'          </div>']],
+  [[PL,'        </div>']],
+  [[PL,'        <div className='],[ST,'"d-flex gap-2"'],[PL,'>']],
+  [[PL,'          <button type='],[ST,'"submit"'],[PL,' className='],[ST,'"btn btn-primary"'],[PL,'>']],
+  [[PL,'            {id ? '],[ST,"'Guardar cambios'"],[PL,' : '],[ST,"'Crear proyecto'"],[PL,'}']],
+  [[PL,'          </button>']],
+  [[PL,'          <button type='],[ST,'"button"'],[PL,' className='],[ST,'"btn btn-outline-secondary"'],[PL,'']],
+  [[PL,'            onClick={() => '],[FN,'navigate'],[PL,'('],[ST,"'/proyectos'"],[PL,')}>Cancelar</button>']],
+  [[PL,'        </div>']],
+  [[PL,'      </form>']],
+  [[PL,'    </div>']],
+  [[PL,'  );']],
+  [[PL,'}']],
+  [[PL,'']],
+  [[KW,'export default'],[PL,' ProyectoFormPage;']],
+],
+
+c_navbar:[
+  [[CM,'// Dentro de Navbar.jsx, dentro de {usuario && (...)}']],
+  [[CM,'// agregar el enlace de Proyectos — visible para TODOS los roles']],
+  [[PL,'']],
+  [[PL,'<Link to='],[ST,"'/personas'"],[PL,' className='],[ST,'"text-white-50 text-decoration-none"'],[PL,'>']],
+  [[PL,'  Personas']],
+  [[PL,'</Link>']],
+  [[PL,'<Link to='],[ST,"'/proyectos'"],[PL,' className='],[ST,'"text-white-50 text-decoration-none"'],[PL,'>']],
+  [[PL,'  Proyectos'],[CM,'  ← visible para admin, usuario E invitado']],
+  [[PL,'</Link>']],
+  [[PL,'{usuario.rol === '],[ST,"'admin'"],[PL,' && (']],
+  [[PL,'  <Link to='],[ST,"'/usuarios'"],[PL,'>Usuarios</Link>'],[CM,'  ← solo admin']],
+  [[PL,')}']],
+],
+
+c_app:[
+  [[IM,'import'],[PL,' ProyectosPage    '],[IM,'from'],[PL,' '],[ST,"'./pages/ProyectosPage'"],[PL,';']],
+  [[IM,'import'],[PL,' ProyectoFormPage '],[IM,'from'],[PL,' '],[ST,"'./pages/ProyectoFormPage'"],[PL,';']],
+  [[PL,'']],
+  [[CM,'// Dentro de <Routes> agregar:']],
+  [[PL,'<Route path='],[ST,"'/proyectos'"],[PL,'']],
+  [[PL,'  element={<PrivateRoute><ProyectosPage /></PrivateRoute>} />']],
+  [[PL,'<Route path='],[ST,"'/proyectos/nuevo'"],[PL,'']],
+  [[PL,'  element={<PrivateRoute><ProyectoFormPage /></PrivateRoute>} />']],
+  [[PL,'<Route path='],[ST,"'/proyectos/editar/:id'"],[PL,'']],
+  [[PL,'  element={<PrivateRoute><ProyectoFormPage /></PrivateRoute>} />']],
+],
+
+c_t1:[
+  [[CM,'// Respuesta esperada — cada objeto trae "responsable"']],
+  [[PL,'[']],
+  [[PL,'  {']],
+  [[PL,'    id: 1, nombre: '],[ST,'"Rediseño del portal"'],[PL,',']],
+  [[PL,'    responsable: '],[ST,'"Ana García López"'],[PL,',']],
+  [[PL,'    estado: '],[ST,'"en_progreso"'],[PL,', prioridad: '],[ST,'"alta"']],
+  [[PL,'  }']],
+  [[PL,']']],
+],
+
+c_t2:[
+  [[CM,'// Body → JSON']],
+  [[PL,'{']],
+  [[PL,'  '],[ST,'"nombre"'],[PL,'         : '],[ST,'"Migración de servidores"'],[PL,',']],
+  [[PL,'  '],[ST,'"descripcion"'],[PL,'    : '],[ST,'"Mover a infraestructura nueva"'],[PL,',']],
+  [[PL,'  '],[ST,'"responsable_id"'],[PL,' : 2,']],
+  [[PL,'  '],[ST,'"estado"'],[PL,'         : '],[ST,'"planeacion"'],[PL,',']],
+  [[PL,'  '],[ST,'"prioridad"'],[PL,'      : '],[ST,'"alta"'],[PL,',']],
+  [[PL,'  '],[ST,'"fecha_inicio"'],[PL,'   : '],[ST,'"2026-07-01"']],
+  [[PL,'}']],
+],
+
+};
+
+document.fonts.ready.then(()=>{
+  for(const [id,lines] of Object.entries(B)) draw(id,lines);
+});
+</script>
+</body>
+</html>
