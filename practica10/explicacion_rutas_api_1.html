@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rutas del Backend vs API del Frontend — Sistema Administrativo</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#1a1a2e;font-size:14px;line-height:1.7;}
+
+/* HEADER */
+.hdr{background:#1565C0;color:#fff;}
+.hdr-top{background:#0D47A1;padding:16px 40px;display:flex;justify-content:space-between;align-items:center;}
+.hdr-inst{font-size:11px;opacity:.8;text-transform:uppercase;letter-spacing:.04em;}
+.hdr-carrera{font-size:13px;font-weight:700;margin-top:2px;}
+.hdr-badge{background:#fff;color:#0D47A1;font-weight:700;font-size:12px;padding:5px 14px;border-radius:20px;}
+.hdr-main{padding:18px 40px 22px;}
+.hdr-titulo{font-size:22px;font-weight:700;margin-bottom:6px;}
+.hdr-meta{font-size:12px;opacity:.8;}
+.hdr-strip{height:5px;background:#42A5F5;}
+
+.content{max-width:900px;margin:0 auto;padding:32px 40px 60px;}
+
+/* SECCIONES */
+.seccion{margin-bottom:40px;}
+.sec-titulo{font-size:16px;font-weight:700;color:#0D47A1;border-bottom:2px solid #BBDEFB;padding-bottom:8px;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.sec-num{background:#1565C0;color:#fff;font-size:12px;font-weight:700;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+p{margin-bottom:10px;font-size:14px;}
+
+/* ANALOGÍA RESTAURANTE */
+.restaurante{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border-radius:12px;overflow:hidden;border:1px solid #E0E0E0;margin:16px 0;}
+.rest-col{display:flex;flex-direction:column;}
+.rest-hdr{padding:12px 16px;font-size:13px;font-weight:700;text-align:center;}
+.rest-hdr.cliente{background:#EDE7F6;color:#4A148C;}
+.rest-hdr.mesero{background:#E3F2FD;color:#0D47A1;}
+.rest-hdr.cocina{background:#E8F5E9;color:#1B5E20;}
+.rest-body{padding:14px 16px;font-size:12px;line-height:1.9;border-top:1px solid #E0E0E0;flex:1;background:#FAFAFA;}
+.rest-body.cliente{border-right:1px solid #E0E0E0;}
+.rest-body.mesero{border-right:1px solid #E0E0E0;}
+.rest-icon{font-size:28px;text-align:center;padding:10px 0;}
+
+/* FLECHA FLUJO */
+.flujo-flechas{display:flex;align-items:center;justify-content:center;gap:0;margin:16px 0;flex-wrap:nowrap;}
+.flujo-box{border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;text-align:center;flex:1;min-width:0;}
+.flujo-box.react{background:#EDE7F6;color:#4A148C;border:1px solid #CE93D8;}
+.flujo-box.api{background:#E3F2FD;color:#0D47A1;border:1px solid #90CAF9;}
+.flujo-box.routes{background:#FFF3E0;color:#E65100;border:1px solid #FFCC80;}
+.flujo-box.ctrl{background:#E8F5E9;color:#1B5E20;border:1px solid #A5D6A7;}
+.flujo-sep{font-size:20px;color:#BBDEFB;padding:0 6px;flex-shrink:0;}
+.flujo-sub{font-size:10px;opacity:.75;font-weight:400;margin-top:2px;}
+
+/* TARJETAS COMPARATIVA */
+.comparativa{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0;}
+.comp-card{border-radius:10px;overflow:hidden;border:1px solid #E0E0E0;}
+.comp-hdr{padding:12px 16px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.comp-hdr.back{background:#FFF3E0;color:#E65100;}
+.comp-hdr.front{background:#EDE7F6;color:#4A148C;}
+.comp-body{padding:14px 16px;background:#FAFAFA;font-size:13px;line-height:1.8;}
+.comp-body li{margin-left:16px;margin-bottom:4px;}
+
+/* CÓDIGO CANVAS */
+.file-label{display:inline-block;font-family:'Courier New',monospace;font-size:12px;padding:4px 12px;border-radius:6px 6px 0 0;border:1px solid;border-bottom:none;font-weight:600;margin-top:12px;}
+.file-label.back{background:#FFF3E0;color:#E65100;border-color:#FFCC80;}
+.file-label.front{background:#EDE7F6;color:#4A148C;border-color:#CE93D8;}
+.file-label.thunder{background:#E8F5E9;color:#1B5E20;border-color:#A5D6A7;}
+.file-label.comp{background:#E3F2FD;color:#0D47A1;border-color:#90CAF9;}
+.code-wrap{border-radius:0 8px 8px 8px;overflow:hidden;margin-bottom:14px;border:1px solid;}
+.code-wrap.back{border-color:#FFCC80;}
+.code-wrap.front{border-color:#CE93D8;}
+.code-wrap.thunder{border-color:#A5D6A7;}
+.code-wrap.comp{border-color:#90CAF9;}
+.code-wrap canvas{display:block;max-width:100%;}
+
+/* TABLA */
+.tabla{width:100%;border-collapse:collapse;font-size:13px;margin:16px 0;border-radius:8px;overflow:hidden;}
+.tabla th{background:#1565C0;color:#fff;padding:10px 14px;text-align:left;font-size:12px;}
+.tabla td{padding:10px 14px;border-bottom:1px solid #E3F2FD;vertical-align:top;}
+.tabla tr:nth-child(even) td{background:#F8FBFF;}
+.tabla code{background:#E3F2FD;color:#0D47A1;padding:1px 5px;border-radius:3px;font-size:12px;font-family:'Courier New',monospace;}
+
+/* CAJAS INFO */
+.info{background:#E8F5E9;border-left:4px solid #43A047;border-radius:0 8px 8px 0;padding:12px 16px;margin:14px 0;font-size:13px;}
+.nota{background:#FFF8E1;border-left:4px solid #F59E0B;border-radius:0 8px 8px 0;padding:12px 16px;margin:14px 0;font-size:13px;}
+.clave{background:#E3F2FD;border-left:4px solid #1565C0;border-radius:0 8px 8px 0;padding:12px 16px;margin:14px 0;font-size:13px;}
+
+/* THUNDER */
+.thunder-card{background:#fff;border:2px solid #A5D6A7;border-radius:10px;overflow:hidden;margin:16px 0;}
+.thunder-hdr{background:#E8F5E9;padding:10px 16px;font-size:13px;font-weight:700;color:#1B5E20;display:flex;align-items:center;gap:8px;}
+.thunder-body{padding:16px;}
+.thunder-row{display:grid;grid-template-columns:120px 1fr;gap:10px;margin-bottom:10px;align-items:center;}
+.thunder-lbl{font-size:12px;font-weight:700;color:#888;text-transform:uppercase;}
+.thunder-val{font-family:'Courier New',monospace;font-size:13px;background:#F8FBFF;border:1px solid #BBDEFB;border-radius:6px;padding:6px 12px;color:#0D47A1;}
+.thunder-val.post{background:#FFF3E0;border-color:#FFCC80;color:#E65100;}
+.thunder-val.get{background:#E8F5E9;border-color:#A5D6A7;color:#1B5E20;}
+
+/* RESUMEN FINAL */
+.resumen{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:16px 0;}
+.res-card{border-radius:8px;padding:14px 16px;font-size:12px;line-height:1.8;text-align:center;}
+.res-card.back{background:#FFF3E0;border:1px solid #FFCC80;}
+.res-card.front{background:#EDE7F6;border:1px solid #CE93D8;}
+.res-card.thunder{background:#E8F5E9;border:1px solid #A5D6A7;}
+.res-card .res-icon{font-size:28px;margin-bottom:6px;}
+.res-card .res-titulo{font-weight:700;font-size:13px;margin-bottom:6px;}
+.res-card.back .res-titulo{color:#E65100;}
+.res-card.front .res-titulo{color:#4A148C;}
+.res-card.thunder .res-titulo{color:#1B5E20;}
+
+.footer{background:#0D47A1;color:#fff;text-align:center;padding:14px;font-size:12px;margin-top:40px;}
+code{background:#E3F2FD;color:#0D47A1;padding:1px 5px;border-radius:3px;font-size:12px;font-family:'Courier New',monospace;}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-top">
+    <div>
+      <div class="hdr-inst">Ingeniería de Desarrollo y Gestión de Software</div>
+      <div class="hdr-carrera">Desarrollo Web Profesional · Sistema Administrativo</div>
+    </div>
+    <div class="hdr-badge">Material de apoyo</div>
+  </div>
+  <div class="hdr-main">
+    <div class="hdr-titulo">Rutas del backend vs API del frontend — ¿cuál es la diferencia?</div>
+    <div class="hdr-meta">Routes · Controllers · API.js · axios · Thunder Client · consumir una API</div>
+  </div>
+  <div class="hdr-strip"></div>
+</div>
+
+<div class="content">
+
+  <!-- 1. ANALOGÍA -->
+  <div class="seccion">
+    <div class="sec-titulo"><span class="sec-num">1</span> La analogía del restaurante</div>
+
+    <p>Para entender la diferencia entre las rutas del backend y los archivos de API del frontend, imagina que el sistema es un restaurante.</p>
+
+    <div class="restaurante">
+      <div class="rest-col">
+        <div class="rest-hdr cliente">🧑‍💻 Tú — el cliente</div>
+        <div class="rest-body cliente">
+          <div class="rest-icon">🧑‍💻</div>
+          Entras al restaurante.<br>
+          Pides lo que quieres.<br>
+          No sabes cómo se cocina.<br><br>
+          <strong>En el sistema:</strong><br>
+          Eres el usuario que hace<br>
+          clic en la pantalla de React.
+        </div>
+      </div>
+      <div class="rest-col">
+        <div class="rest-hdr mesero">📋 El mesero</div>
+        <div class="rest-body mesero">
+          <div class="rest-icon">📋</div>
+          Toma tu pedido.<br>
+          Va a la cocina a pedirlo.<br>
+          Te trae la respuesta.<br><br>
+          <strong>En el sistema:</strong><br>
+          Son los archivos<br>
+          <code>*.api.js</code> del frontend.
+        </div>
+      </div>
+      <div class="rest-col">
+        <div class="rest-hdr cocina">👨‍🍳 La cocina</div>
+        <div class="rest-body cocina">
+          <div class="rest-icon">👨‍🍳</div>
+          Recibe el pedido.<br>
+          Lo procesa y prepara.<br>
+          Devuelve el platillo.<br><br>
+          <strong>En el sistema:</strong><br>
+          Son las rutas y controladores<br>
+          del backend (<code>*.routes.js</code>).
+        </div>
+      </div>
+    </div>
+
+    <div class="clave">
+      <strong>📌 Idea central:</strong> El cliente nunca va a la cocina directamente — siempre pasa por el mesero. De la misma forma, React nunca habla directamente con la base de datos — siempre pasa por los archivos <code>*.api.js</code> que a su vez llaman al backend.
+    </div>
+  </div>
+
+  <!-- 2. RUTAS DEL BACKEND -->
+  <div class="seccion">
+    <div class="sec-titulo"><span class="sec-num">2</span> Las rutas del backend — <code>routes/*.routes.js</code></div>
+
+    <p>Las rutas del backend son instrucciones que le dicen a Express: <strong>"cuando llegue una petición HTTP con este método y esta URL, llama a esta función"</strong>. Viven en el servidor — el usuario nunca las ve en el navegador.</p>
+
+    <div class="comparativa" style="grid-template-columns:1fr;">
+      <div class="comp-card">
+        <div class="comp-hdr back">⚙️ backend/routes/personas.routes.js</div>
+        <div class="comp-body">
+          Cada línea define una <strong>puerta de entrada</strong> al servidor:
+          <ul style="margin-top:8px;">
+            <li><code>GET /</code> → cuando alguien pide la lista de personas, llama a <code>getAll()</code></li>
+            <li><code>GET /:id</code> → cuando alguien pide una persona por id, llama a <code>getById()</code></li>
+            <li><code>POST /</code> → cuando alguien quiere crear una persona, llama a <code>create()</code></li>
+            <li><code>PUT /:id</code> → cuando alguien quiere editar, llama a <code>update()</code></li>
+            <li><code>DELETE /:id</code> → cuando alguien quiere eliminar, llama a <code>remove()</code></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="file-label back">backend/routes/personas.routes.js</div>
+    <div class="code-wrap back"><canvas id="c_back_routes"></canvas></div>
+
+    <div class="nota"><strong>¿Dónde viven?</strong> En el servidor Node.js que corre en el puerto 3000. El navegador nunca accede a estos archivos directamente — Express los ejecuta internamente cuando llega una petición HTTP.</div>
+  </div>
+
+  <!-- 3. API DEL FRONTEND -->
+  <div class="seccion">
+    <div class="sec-titulo"><span class="sec-num">3</span> Los archivos de API del frontend — <code>api/*.api.js</code></div>
+
+    <p>Estos archivos viven en React (en el navegador) y su único trabajo es <strong>enviar peticiones HTTP al backend</strong> usando axios. Son el puente entre la pantalla y el servidor.</p>
+
+    <div class="file-label front">frontend/src/api/personas.api.js</div>
+    <div class="code-wrap front"><canvas id="c_front_api"></canvas></div>
+
+    <div class="info"><strong>¿Para qué sirve separarlo en un archivo aparte?</strong> Para no repetir la URL del backend en cada componente. Si mañana la URL cambia de <code>/api/personas</code> a <code>/api/v2/personas</code>, solo cambias una línea en <code>personas.api.js</code> — no en cada página de React que usa personas.</div>
+
+    <p>Cuando una página de React necesita datos, llama a estas funciones:</p>
+
+    <div class="file-label comp">frontend/src/pages/PersonasPage.jsx — cómo consume la API</div>
+    <div class="code-wrap comp"><canvas id="c_consume"></canvas></div>
+  </div>
+
+  <!-- 4. RELACIÓN ENTRE AMBOS -->
+  <div class="seccion">
+    <div class="sec-titulo"><span class="sec-num">4</span> Cómo se relacionan — el flujo completo</div>
+
+    <p>Cada función del <code>*.api.js</code> del frontend corresponde exactamente a una ruta del backend. Mira la relación uno a uno:</p>
+
+    <table class="tabla">
+      <thead><tr><th>Frontend llama (api.js)</th><th>HTTP que viaja</th><th>Backend recibe (routes.js)</th><th>Controlador ejecuta</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>getPersonas()</code></td>
+          <td><code>GET /api/personas</code></td>
+          <td><code>router.get('/', ...)</code></td>
+          <td><code>getAll(req,res)</code></td>
+        </tr>
+        <tr>
+          <td><code>getPersonaById(3)</code></td>
+          <td><code>GET /api/personas/3</code></td>
+          <td><code>router.get('/:id', ...)</code></td>
+          <td><code>getById(req,res)</code></td>
+        </tr>
+        <tr>
+          <td><code>crearPersona(datos)</code></td>
+          <td><code>POST /api/personas</code></td>
+          <td><code>router.post('/', ...)</code></td>
+          <td><code>create(req,res)</code></td>
+        </tr>
+        <tr>
+          <td><code>actualizarPersona(3,datos)</code></td>
+          <td><code>PUT /api/personas/3</code></td>
+          <td><code>router.put('/:id', ...)</code></td>
+          <td><code>update(req,res)</code></td>
+        </tr>
+        <tr>
+          <td><code>eliminarPersona(3)</code></td>
+          <td><code>DELETE /api/personas/3</code></td>
+          <td><code>router.delete('/:id', ...)</code></td>
+          <td><code>remove(req,res)</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>El flujo siempre sigue este camino, en este orden:</p>
+
+    <div class="flujo-flechas">
+      <div class="flujo-box react">
+        🖥️ PersonasPage.jsx
+        <div class="flujo-sub">llama a getPersonas()</div>
+      </div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-box api">
+        📋 personas.api.js
+        <div class="flujo-sub">axios.get('/api/personas')</div>
+      </div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-box routes">
+        🚪 personas.routes.js
+        <div class="flujo-sub">router.get('/', getAll)</div>
+      </div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-box ctrl">
+        👨‍🍳 personas.controller.js
+        <div class="flujo-sub">getAll() consulta MySQL</div>
+      </div>
+    </div>
+
+    <div class="clave">
+      <strong>📌 Regla de oro:</strong> cada vez que en React llamas a una función de <code>*.api.js</code>, esa función envía una petición HTTP que viaja por internet (o por tu red local) hasta el servidor, donde una ruta del backend la recibe y la procesa. Los dos archivos (<code>*.api.js</code> y <code>*.routes.js</code>) siempre trabajan en pareja — uno en cada extremo de la misma conexión.
+    </div>
+  </div>
+
+  <!-- 5. QUÉ ES CONSUMIR UNA API -->
+  <div class="seccion">
+    <div class="sec-titulo"><span class="sec-num">5</span> ¿Qué significa "consumir una API"?</div>
+
+    <p><strong>Consumir una API</strong> significa que tu aplicación (el frontend) le pide datos o acciones a otro sistema (el backend) usando HTTP. Tú no tienes acceso directo a la base de datos desde React — le preguntas al servidor y él te responde.</p>
+
+    <div class="comparativa">
+      <div class="comp-card">
+        <div class="comp-hdr back" style="background:#FFEBEE;color:#B71C1C;">❌ Sin consumir API</div>
+        <div class="comp-body">
+          React accedería directamente a MySQL.<br>
+          Cualquiera podría ver las credenciales<br>
+          de la base de datos en el navegador.<br>
+          No habría control de acceso ni roles.<br>
+          <strong>Esto nunca se hace en producción.</strong>
+        </div>
+      </div>
+      <div class="comp-card">
+        <div class="comp-hdr front" style="background:#E8F5E9;color:#1B5E20;">✅ Consumiendo la API</div>
+        <div class="comp-body">
+          React le pide los datos al backend.<br>
+          El backend verifica JWT, roles y permisos.<br>
+          Solo devuelve lo que el usuario puede ver.<br>
+          Las credenciales de BD nunca salen del servidor.<br>
+          <strong>Así funciona todo sistema web real.</strong>
+        </div>
+      </div>
+    </div>
+
+    <p>Cada vez que en <code>PersonasPage.jsx</code> aparece esto, <strong>estás consumiendo la API</strong>:</p>
+
+    <div class="file-label comp">useEffect en PersonasPage.jsx — aquí se consume la API</div>
+    <div class="code-wrap comp"><canvas id="c_consumir"></canvas></div>
+  </div>
+
+  <!-- 6. THUNDER CLIENT -->
+  <div class="seccion">
+    <div class="sec-titulo"><span class="sec-num">6</span> Thunder Client — el mesero manual para pruebas</div>
+
+    <p>Thunder Client hace exactamente lo que hace <code>*.api.js</code>, pero <strong>de forma manual y visual</strong>. Lo usas para probar que el backend funciona bien <strong>antes</strong> de conectar el frontend.</p>
+
+    <div class="thunder-card">
+      <div class="thunder-hdr">⚡ Prueba: GET — listar todas las personas</div>
+      <div class="thunder-body">
+        <div class="thunder-row">
+          <div class="thunder-lbl">Método</div>
+          <div class="thunder-val get">GET</div>
+        </div>
+        <div class="thunder-row">
+          <div class="thunder-lbl">URL</div>
+          <div class="thunder-val">http://localhost:3000/api/personas</div>
+        </div>
+        <div class="thunder-row">
+          <div class="thunder-lbl">Headers</div>
+          <div class="thunder-val">Content-Type: application/json</div>
+        </div>
+        <div class="thunder-row">
+          <div class="thunder-lbl">Body</div>
+          <div class="thunder-val">(vacío — GET no lleva body)</div>
+        </div>
+        <div class="thunder-row">
+          <div class="thunder-lbl">Equivale a</div>
+          <div class="thunder-val" style="background:#EDE7F6;border-color:#CE93D8;color:#4A148C;">getPersonas() en personas.api.js</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="thunder-card">
+      <div class="thunder-hdr">⚡ Prueba: POST — crear una persona nueva</div>
+      <div class="thunder-body">
+        <div class="thunder-row">
+          <div class="thunder-lbl">Método</div>
+          <div class="thunder-val post">POST</div>
+        </div>
+        <div class="thunder-row">
+          <div class="thunder-lbl">URL</div>
+          <div class="thunder-val">http://localhost:3000/api/personas</div>
+        </div>
+        <div class="thunder-row">
+          <div class="thunder-lbl">Headers</div>
+          <div class="thunder-val">Content-Type: application/json</div>
+        </div>
+        <div class="thunder-row">
+          <div class="thunder-lbl">Body (JSON)</div>
+          <div class="thunder-val post">{ "nombre": "Sofía Reyes", "correo": "sofia@empresa.com" }</div>
+        </div>
+        <div class="thunder-row">
+          <div class="thunder-lbl">Equivale a</div>
+          <div class="thunder-val" style="background:#EDE7F6;border-color:#CE93D8;color:#4A148C;">crearPersona(datos) en personas.api.js</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nota"><strong>¿Por qué usamos Thunder Client si ya tenemos el frontend?</strong> Porque cuando algo falla, necesitas saber si el error está en el backend o en el frontend. Si Thunder Client responde bien, el problema es del frontend. Si Thunder Client también falla, el problema es del backend. Es la herramienta de diagnóstico del desarrollador.</div>
+  </div>
+
+  <!-- 7. RESUMEN -->
+  <div class="seccion">
+    <div class="sec-titulo"><span class="sec-num">7</span> Resumen — los tres elementos clave</div>
+
+    <div class="resumen">
+      <div class="res-card back">
+        <div class="res-icon">⚙️</div>
+        <div class="res-titulo">routes/*.routes.js</div>
+        Vive en el <strong>servidor</strong><br>
+        Define qué URLs acepta<br>
+        Usa Express Router<br>
+        Conecta URL → controlador<br><br>
+        <strong>Es la cocina</strong>
+      </div>
+      <div class="res-card front">
+        <div class="res-icon">📋</div>
+        <div class="res-titulo">api/*.api.js</div>
+        Vive en el <strong>navegador</strong><br>
+        Llama a las URLs del backend<br>
+        Usa axios con withCredentials<br>
+        Lo usan los componentes React<br><br>
+        <strong>Es el mesero</strong>
+      </div>
+      <div class="res-card thunder">
+        <div class="res-icon">⚡</div>
+        <div class="res-titulo">Thunder Client</div>
+        Es una herramienta visual<br>
+        Simula lo que haría api.js<br>
+        Sirve para probar el backend<br>
+        Sin necesitar el frontend<br><br>
+        <strong>Es el mesero manual</strong>
+      </div>
+    </div>
+
+    <table class="tabla">
+      <thead><tr><th>Pregunta</th><th>routes/*.routes.js</th><th>api/*.api.js</th></tr></thead>
+      <tbody>
+        <tr><td>¿Dónde vive?</td><td>Servidor Node.js (puerto 3000)</td><td>Navegador / React (puerto 5173)</td></tr>
+        <tr><td>¿Qué usa?</td><td>Express Router</td><td>axios</td></tr>
+        <tr><td>¿Quién lo llama?</td><td>Las peticiones HTTP que llegan</td><td>Los componentes React (páginas)</td></tr>
+        <tr><td>¿Qué devuelve?</td><td>Una respuesta JSON al cliente</td><td>Los datos al componente que lo llamó</td></tr>
+        <tr><td>¿Lo ve el usuario?</td><td>No — es código del servidor</td><td>No — es código invisible del navegador</td></tr>
+        <tr><td>Analogía</td><td>El menú de la cocina</td><td>La comanda del mesero</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<div class="footer">
+  Ingeniería de Desarrollo y Gestión de Software &nbsp;·&nbsp; Material de apoyo — Rutas y API
+</div>
+
+<script>
+const KW='#7B40F2',ST='#C0392B',CM='#27AE60',FN='#16A085',PL='#1a1a2e',IM='#8E44AD';
+const FONT='15px "Courier New", monospace';
+const LH=24,PX=18,PY=14;
+
+function draw(id,lines){
+  const cv=document.getElementById(id);if(!cv)return;
+  const dpr=window.devicePixelRatio||1;
+  const tmp=document.createElement('canvas');const tc=tmp.getContext('2d');tc.font=FONT;
+  let maxW=0;
+  lines.forEach(l=>{const w=tc.measureText(l.map(s=>s[1]).join('')).width;if(w>maxW)maxW=w;});
+  const W=Math.ceil(maxW+PX*2),H=lines.length*LH+PY*2;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.width=W+'px';cv.style.height=H+'px';
+  const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);
+  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,H);
+  ctx.font=FONT;ctx.textBaseline='alphabetic';
+  lines.forEach((segs,i)=>{
+    const y=PY+i*LH+LH*0.75;let x=PX;
+    segs.forEach(([c,t])=>{ctx.fillStyle=c;ctx.fillText(t,x,y);x+=tc.measureText(t).width;});
+  });
+}
+
+const B={
+
+c_back_routes:[
+  [[CM,'// Este archivo vive en el SERVIDOR (Node.js)']],
+  [[CM,'// Define qué URLs acepta Express y qué función llama']],
+  [[IM,'import'],[PL,' { Router } '],[IM,'from'],[PL,' '],[ST,"'express'"],[PL,';']],
+  [[IM,'import'],[PL,' { getAll, getById, create, update, remove }']],
+  [[PL,'  '],[IM,'from'],[PL,' '],[ST,"'../controllers/personas.controller.js'"],[PL,';']],
+  [[IM,'import'],[PL,' { verificarToken } '],[IM,'from'],[PL,' '],[ST,"'../middlewares/auth.middleware.js'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'const'],[PL,' router = '],[FN,'Router'],[PL,'();']],
+  [[PL,'']],
+  [[CM,'// Cada línea es una "puerta de entrada" al servidor']],
+  [[CM,'// GET /api/personas         → devuelve la lista']],
+  [[PL,'router.'],[FN,'get'],[PL,'('],[ST,"'/'"],[PL,',    verificarToken, getAll);']],
+  [[CM,'// GET /api/personas/3       → devuelve la persona con id 3']],
+  [[PL,'router.'],[FN,'get'],[PL,'('],[ST,"'/:id'"],[PL,', verificarToken, getById);']],
+  [[CM,'// POST /api/personas        → crea una nueva persona']],
+  [[PL,'router.'],[FN,'post'],[PL,'('],[ST,"'/'"],[PL,',    verificarToken, create);']],
+  [[CM,'// PUT /api/personas/3       → edita la persona con id 3']],
+  [[PL,'router.'],[FN,'put'],[PL,'('],[ST,"'/:id'"],[PL,', verificarToken, update);']],
+  [[CM,'// DELETE /api/personas/3    → elimina la persona con id 3']],
+  [[PL,'router.'],[FN,'delete'],[PL,'('],[ST,"'/:id'"],[PL,', verificarToken, remove);']],
+  [[PL,'']],
+  [[KW,'export default'],[PL,' router;']],
+],
+
+c_front_api:[
+  [[CM,'// Este archivo vive en el NAVEGADOR (React)']],
+  [[CM,'// Contiene las funciones que llaman al backend con axios']],
+  [[IM,'import'],[PL,' axios '],[IM,'from'],[PL,' '],[ST,"'axios'"],[PL,';']],
+  [[PL,'']],
+  [[CM,'// Configuración base — siempre envía la cookie']],
+  [[KW,'const'],[PL,' api = axios.'],[FN,'create'],[PL,'({']],
+  [[PL,'  baseURL:         '],[ST,"'http://localhost:3000/api'"],[PL,',']],
+  [[PL,'  withCredentials: '],[KW,'true']],
+  [[PL,'});']],
+  [[PL,'']],
+  [[CM,'// getPersonas() → manda GET a /api/personas']],
+  [[KW,'export const'],[PL,' getPersonas = '],[KW,'async'],[PL,' () =>']],
+  [[PL,'  (await api.'],[FN,'get'],[PL,'('],[ST,"'/personas'"],[PL,')).data;']],
+  [[PL,'']],
+  [[CM,'// crearPersona() → manda POST a /api/personas con los datos']],
+  [[KW,'export const'],[PL,' crearPersona = '],[KW,'async'],[PL,' (datos) =>']],
+  [[PL,'  (await api.'],[FN,'post'],[PL,'('],[ST,"'/personas'"],[PL,', datos)).data;']],
+  [[PL,'']],
+  [[CM,'// actualizarPersona() → manda PUT a /api/personas/3']],
+  [[KW,'export const'],[PL,' actualizarPersona = '],[KW,'async'],[PL,' (id, datos) =>']],
+  [[PL,'  (await api.'],[FN,'put'],[PL,'(`/personas/${id}`, datos)).data;']],
+  [[PL,'']],
+  [[CM,'// eliminarPersona() → manda DELETE a /api/personas/3']],
+  [[KW,'export const'],[PL,' eliminarPersona = '],[KW,'async'],[PL,' (id) =>']],
+  [[PL,'  (await api.'],[FN,'delete'],[PL,'(`/personas/${id}`)).data;']],
+],
+
+c_consume:[
+  [[CM,'// PersonasPage.jsx — así se "consume" la API desde React']],
+  [[IM,'import'],[PL,' { getPersonas } '],[IM,'from'],[PL,' '],[ST,"'../api/personas.api'"],[PL,';']],
+  [[PL,'']],
+  [[CM,'// Al montar el componente, pide los datos al backend']],
+  [[FN,'useEffect'],[PL,'(() => {']],
+  [[PL,'  '],[FN,'getPersonas'],[PL,'()']],
+  [[PL,'    .'],[FN,'then'],[PL,'(datos => '],[FN,'setPersonas'],[PL,'(datos))']],
+  [[PL,'}, []);']],
+  [[PL,'']],
+  [[CM,'// Lo que ocurre por debajo cuando llamas a getPersonas():']],
+  [[CM,'// 1. personas.api.js envía GET http://localhost:3000/api/personas']],
+  [[CM,'// 2. personas.routes.js recibe la petición']],
+  [[CM,'// 3. personas.controller.js ejecuta getAll() y consulta MySQL']],
+  [[CM,'// 4. MySQL devuelve los datos']],
+  [[CM,'// 5. res.json(rows) regresa el JSON a React']],
+  [[CM,'// 6. .then(datos => setPersonas(datos)) pone los datos en pantalla']],
+],
+
+c_consumir:[
+  [[CM,'// Esto es "consumir la API" — 3 líneas que desencadenan todo el flujo']],
+  [[FN,'useEffect'],[PL,'(() => {']],
+  [[PL,'  '],[FN,'getPersonas'],[PL,'()           '],[CM,'← llama a personas.api.js']],
+  [[PL,'    .'],[FN,'then'],[PL,'(d => '],[FN,'setPersonas'],[PL,'(d)) '],[CM,'← guarda en estado React']],
+  [[PL,'    .'],[KW,'finally'],[PL,'(() => '],[FN,'setCargando'],[PL,'('],[KW,'false'],[PL,'))']],
+  [[PL,'}, []);']],
+  [[PL,'']],
+  [[CM,'// El usuario ve la tabla actualizada automáticamente']],
+  [[CM,'// React conectó con el backend sin que el usuario hiciera nada']],
+],
+
+};
+
+document.fonts.ready.then(()=>{
+  for(const [id,lines] of Object.entries(B)) draw(id,lines);
+});
+</script>
+</body>
+</html>
