@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Repaso — Desarrollo Web Full Stack</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#F6F8FB;
+  --surface:#FFFFFF;
+  --surface2:#F8FAFC;
+  --surface3:#EEF5FF;
+  --border:#D9E2EC;
+  --border-strong:#B8C7D9;
+  --accent:#2563EB;
+  --accent2:#0F766E;
+  --accent-soft:#EAF2FF;
+  --green:#15803D;
+  --green-bg:#ECFDF3;
+  --red:#B42318;
+  --red-bg:#FEF3F2;
+  --yellow:#B7791F;
+  --yellow-bg:#FFFAEB;
+  --text:#172033;
+  --muted:#64748B;
+  --code-bg:#F3F6FA;
+  --shadow:0 18px 46px rgba(15,23,42,.08);
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+
+.app-header{background:linear-gradient(135deg,#0F3A66,#2563EB);border-bottom:1px solid rgba(255,255,255,.18);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 12px 30px rgba(37,99,235,.18);}
+.app-logo{display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;}
+.logo-icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.logo-text{font-size:14px;font-weight:700;color:#fff;}
+.logo-sub{font-size:11px;color:rgba(255,255,255,.78);margin-top:2px;}
+.progress-container{display:flex;align-items:center;gap:12px;}
+.progress-label{font-size:12px;color:rgba(255,255,255,.78);}
+.progress-bar{width:200px;height:6px;background:rgba(255,255,255,.22);border-radius:999px;overflow:hidden;}
+.progress-fill{height:100%;background:#fff;border-radius:999px;transition:width .4s ease;}
+.score-badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;color:#fff;min-width:64px;text-align:center;}
+
+.main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:34px 20px;}
+.screen{display:none;width:100%;max-width:780px;animation:fadeIn .3s ease;}
+.screen.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+.welcome-card,.results-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:48px;text-align:center;box-shadow:var(--shadow);}
+.welcome-icon{width:72px;height:72px;margin:0 auto 22px;border-radius:18px;background:linear-gradient(135deg,var(--accent),#0F3A66);color:#fff;display:flex;align-items:center;justify-content:center;}
+.welcome-icon svg{width:36px;height:36px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.welcome-title{font-size:28px;font-weight:700;margin-bottom:10px;color:#0F3A66;}
+.welcome-sub{font-size:15px;color:var(--muted);margin-bottom:32px;line-height:1.6;}
+.topics-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:32px;text-align:left;}
+.topic-chip{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-size:12px;color:#334155;display:flex;align-items:center;gap:10px;}
+.chip-icon{width:28px;height:28px;border-radius:8px;background:var(--accent-soft);color:var(--accent);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+.chip-icon svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}
+.btn-start{background:linear-gradient(135deg,var(--accent),#0F3A66);color:#fff;border:none;border-radius:10px;padding:14px 40px;font-size:15px;font-weight:700;cursor:pointer;transition:transform .15s,box-shadow .15s;box-shadow:0 12px 24px rgba(37,99,235,.22);}
+.btn-start:hover{transform:translateY(-1px);box-shadow:0 14px 28px rgba(37,99,235,.25);}
+
+.q-header{margin-bottom:24px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 24px;box-shadow:0 12px 30px rgba(15,23,42,.05);}
+.q-topic{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;}
+.q-level{display:inline-block;font-size:10px;padding:4px 8px;border-radius:999px;font-weight:700;margin-left:8px;text-transform:uppercase;}
+.q-level.basico{background:var(--green-bg);color:var(--green);}
+.q-level.intermedio{background:var(--yellow-bg);color:var(--yellow);}
+.q-level.avanzado{background:var(--red-bg);color:var(--red);}
+.q-num{font-size:12px;color:var(--muted);margin:10px 0 6px;}
+.q-text{font-size:18px;font-weight:700;line-height:1.5;color:var(--text);}
+.q-code{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin:16px 0 0;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7;color:#1E3A5F;overflow-x:auto;white-space:pre;}
+.q-code .kw{color:#7C3AED;}
+.q-code .st{color:#047857;}
+.q-code .fn{color:#1D4ED8;}
+.q-code .cm{color:#64748B;}
+.q-code .nm{color:#B45309;}
+
+.scenario{background:var(--surface3);border:1px solid #CFE0F7;border-left:4px solid var(--accent);border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0 0;font-size:13px;color:#24364E;line-height:1.6;}
+.scenario .label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:6px;}
+
+.options{display:flex;flex-direction:column;gap:10px;margin-top:18px;}
+.opt{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px;cursor:pointer;font-size:14px;color:var(--text);transition:all .15s;display:flex;align-items:center;gap:12px;text-align:left;box-shadow:0 8px 20px rgba(15,23,42,.035);}
+.opt:hover:not(.disabled){border-color:var(--accent);background:#F8FBFF;box-shadow:0 10px 24px rgba(37,99,235,.08);}
+.opt.correct{border-color:#86C99A;background:var(--green-bg);color:var(--green);}
+.opt.wrong{border-color:#FDA29B;background:var(--red-bg);color:var(--red);}
+.opt.disabled{cursor:default;}
+.opt-letter{width:28px;height:28px;border-radius:8px;background:#EEF2F7;color:#334155;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;transition:background .15s,color .15s;}
+.opt.correct .opt-letter{background:var(--green);color:#fff;}
+.opt.wrong .opt-letter{background:var(--red);color:#fff;}
+.opt:hover:not(.disabled) .opt-letter{background:var(--accent);color:#fff;}
+
+.explanation{margin-top:16px;background:#F8FBFF;border:1px solid #CFE0F7;border-left:4px solid var(--accent);border-radius:0 10px 10px 0;padding:14px 18px;font-size:13px;color:#475569;line-height:1.6;display:none;}
+.explanation.show{display:block;}
+.explanation strong{color:var(--text);}
+.explanation code{background:var(--code-bg);padding:1px 5px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#1D4ED8;}
+
+.q-nav{display:flex;justify-content:space-between;align-items:center;margin-top:24px;}
+.btn-nav{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 24px;font-size:13px;font-weight:700;color:#24364E;cursor:pointer;transition:all .15s;}
+.btn-nav:hover{border-color:var(--accent);color:var(--accent);}
+.btn-nav.primary{background:linear-gradient(135deg,var(--accent),#0F3A66);border:none;color:#fff;}
+.btn-nav.primary:hover{opacity:.95;}
+.btn-nav:disabled{opacity:.45;cursor:default;}
+.result-indicator{font-size:13px;color:var(--muted);font-weight:700;}
+.result-indicator.ok{color:var(--green);}
+.result-indicator.fail{color:var(--red);}
+
+.score-ring{width:120px;height:120px;border-radius:50%;margin:0 auto 24px;display:flex;align-items:center;justify-content:center;flex-direction:column;border:5px solid var(--border);}
+.score-ring.high{border-color:var(--green);}
+.score-ring.mid{border-color:var(--yellow);}
+.score-ring.low{border-color:var(--red);}
+.score-pct{font-size:32px;font-weight:800;}
+.score-pct.high{color:var(--green);}
+.score-pct.mid{color:var(--yellow);}
+.score-pct.low{color:var(--red);}
+.score-label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;}
+.results-title{font-size:22px;font-weight:800;margin-bottom:8px;color:#0F3A66;}
+.results-sub{font-size:14px;color:var(--muted);margin-bottom:32px;}
+.review-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:28px;}
+.review-dot{height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;}
+.review-dot.ok{background:var(--green-bg);color:var(--green);border:1px solid #86C99A;}
+.review-dot.fail{background:var(--red-bg);color:var(--red);border:1px solid #FDA29B;}
+.results-actions{display:flex;gap:12px;justify-content:center;}
+.missed-section{margin-top:28px;text-align:left;}
+.missed-card{background:#F8FBFF;border:1px solid #CFE0F7;border-radius:12px;padding:18px;}
+.missed-card.success{background:var(--green-bg);border-color:#86C99A;text-align:center;}
+.missed-card h3{font-size:15px;font-weight:800;color:#0F3A66;margin-bottom:6px;}
+.missed-card p{font-size:13px;color:var(--muted);line-height:1.5;}
+.missed-list{display:flex;flex-direction:column;gap:10px;margin-top:14px;}
+.missed-item{background:#fff;border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;padding:12px 14px;}
+.missed-meta{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:5px;}
+.missed-question{font-size:13px;font-weight:700;color:var(--text);line-height:1.45;margin-bottom:6px;}
+.missed-answer{font-size:12px;color:#475569;line-height:1.45;}
+.missed-answer strong{color:#0F3A66;}
+
+.topic-banner{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;gap:16px;box-shadow:0 10px 24px rgba(15,23,42,.04);}
+.topic-icon{width:42px;height:42px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;}
+.topic-icon svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}
+.topic-info{text-align:left;}
+.topic-info h3{font-size:15px;font-weight:800;color:var(--text);}
+.topic-info p{font-size:12px;color:var(--muted);margin-top:2px;}
+
+@media (max-width:720px){
+  .app-header{padding:14px 18px;align-items:flex-start;gap:14px;flex-direction:column;}
+  .progress-container{width:100%;}
+  .progress-bar{flex:1;width:auto;}
+  .welcome-card,.results-card{padding:34px 22px;border-radius:14px;}
+  .topics-grid{grid-template-columns:1fr;}
+  .q-header{padding:20px 18px;}
+  .q-nav{gap:14px;align-items:flex-start;flex-direction:column;}
+  .btn-nav{width:100%;}
+}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="app-logo">
+    <div class="logo-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 9l-4 3 4 3"/><path d="M16 9l4 3-4 3"/><path d="M14 5l-4 14"/></svg></div>
+    <div>
+      <div class="logo-text">Repaso — Desarrollo Web Full Stack</div>
+      <div class="logo-sub">React · Node.js · Express · MySQL · JWT · RBAC</div>
+    </div>
+  </div>
+  <div class="progress-container">
+    <span class="progress-label" id="progressLabel">0 / 20</span>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="score-badge" id="scoreBadge">0 pts</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- WELCOME -->
+  <div class="screen active" id="screen-welcome">
+    <div class="welcome-card">
+      <div class="welcome-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 9l-4 3 4 3"/><path d="M16 9l4 3-4 3"/><path d="M14 5l-4 14"/></svg></div>
+      <div class="welcome-title">Repaso — Desarrollo Web Full Stack</div>
+      <div class="welcome-sub">20 preguntas que cubren todo el ciclo de construcción del Sistema Administrativo.<br>Frontend, backend, base de datos y arquitectura.</div>
+      <div class="topics-grid">
+        <div class="topic-chip"><span class="chip-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="1.8"/><ellipse cx="12" cy="12" rx="9" ry="3.8"/><ellipse cx="12" cy="12" rx="9" ry="3.8" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="3.8" transform="rotate(120 12 12)"/></svg></span> React 18 · hooks · estado</div>
+        <div class="topic-chip"><span class="chip-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19h12"/><path d="M8 19V7a3 3 0 0 1 6 0v1"/><path d="M14 8h3v3"/><path d="M17 8l-5 5"/></svg></span> React Router DOM</div>
+        <div class="topic-chip"><span class="chip-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="6" rx="2"/><rect x="4" y="13" width="16" height="6" rx="2"/><path d="M8 8h.01"/><path d="M8 16h.01"/><path d="M12 8h4"/><path d="M12 16h4"/></svg></span> Node.js · Express · MVC</div>
+        <div class="topic-chip"><span class="chip-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6"/><path d="M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg></span> MySQL · JOIN · relaciones</div>
+        <div class="topic-chip"><span class="chip-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8h10"/><path d="M7 12h6"/><path d="M7 16h8"/><rect x="4" y="4" width="16" height="16" rx="3"/></svg></span> API REST · axios · HTTP</div>
+        <div class="topic-chip"><span class="chip-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2h6.5A2.5 2.5 0 0 1 21 9.5v7A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5v-9z"/></svg></span> Estructura de archivos</div>
+        <div class="topic-chip"><span class="chip-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v6h-6"/></svg></span> CRUD completo end-to-end</div>
+        <div class="topic-chip"><span class="chip-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12.5A8 8 0 1 1 11.5 4c.1 2.2 1.8 3.9 4 4 .1 2.2 1.8 4 4 4 .2 0 .3 0 .5-.1z"/><circle cx="8.5" cy="11" r=".8"/><circle cx="11" cy="16" r=".8"/><circle cx="14" cy="12.5" r=".8"/></svg></span> Cookies · sesiones</div>
+      </div>
+      <button class="btn-start" onclick="startQuiz()">Comenzar repaso</button>
+    </div>
+  </div>
+
+  <!-- QUESTION -->
+  <div class="screen" id="screen-question">
+    <div class="q-header">
+      <div>
+        <span class="q-topic" id="qTopic"></span>
+        <span class="q-level" id="qLevel"></span>
+      </div>
+      <div class="q-num" id="qNum"></div>
+      <div class="q-text" id="qText"></div>
+      <div class="q-code" id="qCode" style="display:none"></div>
+    </div>
+    <div class="options" id="options"></div>
+    <div class="explanation" id="explanation"></div>
+    <div class="q-nav">
+      <div class="result-indicator" id="resultIndicator"></div>
+      <button class="btn-nav primary" id="btnNext" onclick="nextQuestion()" disabled>Siguiente</button>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="screen" id="screen-results">
+    <div class="results-card">
+      <div class="score-ring" id="scoreRing">
+        <div class="score-pct" id="scorePct"></div>
+        <div class="score-label">puntaje</div>
+      </div>
+      <div class="results-title" id="resultsTitle"></div>
+      <div class="results-sub" id="resultsSub"></div>
+      <div class="review-grid" id="reviewGrid"></div>
+      <div class="results-actions">
+        <button class="btn-nav" onclick="location.reload()">Repetir</button>
+      </div>
+      <div class="missed-section" id="missedSection"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const questions = [
+  {
+    topic:"React — useState",level:"basico",
+    text:"¿Qué ocurre cuando llamas a setPersonas(data) en un componente de React?",
+    code:null,
+    options:[
+      "Actualiza la variable pero el componente no vuelve a renderizarse",
+      "Actualiza el estado y React vuelve a renderizar el componente automáticamente",
+      "Guarda el valor en localStorage para persistirlo entre recargas",
+      "Envía los datos al backend directamente"
+    ],
+    correct:1,
+    explanation:"<strong>useState</strong> es reactivo: cada vez que llamas al setter (<code>setPersonas</code>), React detecta el cambio y vuelve a ejecutar la función del componente para actualizar la pantalla. Esto es lo que hace que la tabla aparezca sola cuando llegan los datos."
+  },
+  {
+    topic:"React — useEffect",level:"basico",
+    text:"¿Cuándo se ejecuta el useEffect con arreglo vacío []?",
+    code:`useEffect(() => {
+  getPersonas().then(d => setPersonas(d));
+}, []);   // ← arreglo vacío`,
+    options:[
+      "Cada vez que el usuario hace clic en cualquier botón",
+      "Solo cuando cambia el valor de personas",
+      "Una sola vez, justo después de que el componente aparece en pantalla",
+      "Cada vez que la página se recarga"
+    ],
+    correct:2,
+    explanation:"El arreglo vacío <code>[]</code> le dice a React: <strong>ejecuta este efecto solo al montar el componente</strong>. Es el lugar correcto para pedir datos al backend la primera vez que aparece una página."
+  },
+  {
+    topic:"React Router",level:"basico",
+    text:"¿Cuál es la diferencia entre <Link> y <a> en React Router?",
+    options:[
+      "<Link> es exactamente igual que <a>, solo cambia el nombre",
+      "<Link> navega sin recargar la página; <a> hace una recarga completa del navegador",
+      "<a> es más rápido porque es HTML nativo",
+      "<Link> solo funciona para rutas externas"
+    ],
+    correct:1,
+    explanation:"<code>&lt;Link&gt;</code> de React Router usa la API de historia del navegador para cambiar la URL <strong>sin recargar</strong>. Usar <code>&lt;a href&gt;</code> dentro de una SPA reinicia toda la aplicación, perdiendo el estado."
+  },
+  {
+    topic:"React — props y componentes",level:"intermedio",
+    text:"¿Por qué PersonaFormPage llama a getPersonaById(id) solo cuando id existe?",
+    code:`useEffect(() => {
+  if (id) getPersonaById(id).then(d => setForm(d));
+}, [id]);`,
+    options:[
+      "Porque getPersonaById es una función asíncrona y necesita guardarse",
+      "Porque si no hay id es modo crear — no hay registro que cargar",
+      "Porque el backend rechaza peticiones sin id con error 500",
+      "Para evitar que useEffect se ejecute dos veces"
+    ],
+    correct:1,
+    explanation:"El mismo componente <code>PersonaFormPage</code> sirve para <strong>crear</strong> (sin <code>:id</code> en la URL) y para <strong>editar</strong> (con <code>:id</code>). Si no hay id, el formulario empieza vacío. Si hay id, se pre-llena con los datos del registro."
+  },
+  {
+    topic:"API REST — HTTP",level:"basico",
+    text:"¿Qué método HTTP se usa para actualizar un recurso completo en REST?",
+    options:[
+      "GET — para obtener y actualizar al mismo tiempo",
+      "POST — para enviar datos al servidor",
+      "PUT — para reemplazar el recurso completo",
+      "PATCH — para cualquier tipo de actualización"
+    ],
+    correct:2,
+    explanation:"<strong>PUT</strong> reemplaza el recurso completo: necesitas enviar todos los campos. <strong>PATCH</strong> modifica parcialmente: envías solo los campos que cambian. En el Sistema Administrativo usamos PATCH específicamente para cambiar el estado de una tarea sin tocar los demás campos."
+  },
+  {
+    topic:"Express — rutas",level:"basico",
+    text:"¿Qué hace el parámetro :id en una ruta de Express?",
+    code:`router.get('/:id', verificarToken, getById);
+// GET /api/personas/5  →  req.params.id === '5'`,
+    options:[
+      "Define que la ruta acepta exactamente el texto ':id'",
+      "Captura el segmento de la URL como variable disponible en req.params.id",
+      "Genera un id automático para el nuevo registro",
+      "Solo funciona con números; letras causan error"
+    ],
+    correct:1,
+    explanation:"Los <strong>parámetros de ruta</strong> en Express capturan el valor dinámico de la URL. Si la petición es <code>GET /api/personas/5</code>, entonces <code>req.params.id</code> vale <code>'5'</code> (como string — por eso en el query se usa directamente en el array de parámetros de mysql2)."
+  },
+  {
+    topic:"MySQL — JOIN",level:"intermedio",
+    text:"¿Por qué la consulta de proyectos usa JOIN en lugar de dos SELECT separados?",
+    code:`SELECT pr.*, per.nombre AS responsable
+FROM   proyectos pr
+JOIN   personas per ON pr.responsable_id = per.id`,
+    options:[
+      "Porque MySQL no permite dos SELECT en el mismo archivo",
+      "Para traer datos relacionados en una sola petición, más eficiente y legible",
+      "Porque responsable_id no existe en la tabla proyectos",
+      "Para evitar usar await dos veces en el controlador"
+    ],
+    correct:1,
+    explanation:"Un <strong>JOIN</strong> une dos tablas en una sola consulta. La alternativa (dos SELECT) implicaría primero traer el proyecto, luego buscar la persona por id — el doble de peticiones a la BD. Con JOIN el resultado llega listo con el nombre del responsable incluido."
+  },
+  {
+    topic:"MySQL — estructura",level:"basico",
+    text:"¿Qué es un FOREIGN KEY y para qué sirve en la tabla puestos?",
+    code:`FOREIGN KEY (departamento_id) REFERENCES departamentos(id)`,
+    options:[
+      "Un índice que acelera las búsquedas por departamento_id",
+      "Una restricción que garantiza que departamento_id siempre apunte a un departamento existente",
+      "Una clave primaria alternativa para la tabla puestos",
+      "Un campo que se rellena automáticamente con el id del último departamento creado"
+    ],
+    correct:1,
+    explanation:"La <strong>clave foránea</strong> es una restricción de integridad: MySQL rechazará cualquier intento de insertar un puesto con un <code>departamento_id</code> que no exista en la tabla <code>departamentos</code>. Esto evita registros huérfanos y mantiene los datos consistentes."
+  },
+  {
+    topic:"Express — MVC",level:"intermedio",
+    text:"En la arquitectura MVC del proyecto, ¿cuál es la responsabilidad del controlador?",
+    options:[
+      "Definir las URLs que acepta el servidor y a qué función llamar",
+      "Conectar con la base de datos y gestionar el pool de conexiones",
+      "Contener la lógica de negocio: recibir la petición, consultar la BD y devolver la respuesta",
+      "Renderizar las vistas HTML para el usuario"
+    ],
+    correct:2,
+    explanation:"En MVC del proyecto: <strong>Routes</strong> = mapeo URL→función. <strong>Controller</strong> = lógica (consulta la BD, procesa, responde). <strong>Model</strong> = en este caso es la BD directamente via <code>pool.query()</code>. El controlador es el chef que prepara el platillo; la ruta es el menú que dice qué puede pedirse."
+  },
+  {
+    topic:"axios — frontend",level:"basico",
+    text:"¿Por qué todos los archivos *.api.js usan withCredentials: true?",
+    code:`const api = axios.create({
+  baseURL: 'http://localhost:3000/api',
+  withCredentials: true   // ← esto
+});`,
+    options:[
+      "Para que axios envíe el token JWT en el header Authorization",
+      "Para que el navegador incluya automáticamente las cookies en cada petición cross-origin",
+      "Para activar el modo seguro HTTPS en desarrollo",
+      "Para que axios acepte respuestas con código 4xx sin lanzar error"
+    ],
+    correct:1,
+    explanation:"Por defecto los navegadores <strong>no envían cookies</strong> en peticiones a dominios/puertos distintos. <code>withCredentials: true</code> habilita ese envío. Como el token JWT vive en una cookie httpOnly, sin esta opción el backend nunca vería la cookie y devolvería 401 en todas las rutas privadas."
+  },
+  {
+    topic:"React — AuthContext",level:"intermedio",
+    text:"¿Por qué AuthContext llama a verificarSesion() al montarse, en lugar de leer el token directamente?",
+    code:`useEffect(() => {
+  verificarSesion()
+    .then(data => setUsuario(data.usuario))
+    .catch(() => setUsuario(null))
+    .finally(() => setCargando(false));
+}, []);`,
+    options:[
+      "Porque el token JWT está en localStorage y hay que desencriptarlo primero",
+      "Porque la cookie es httpOnly — JavaScript no puede leerla, así que pregunta al servidor si la sesión sigue válida",
+      "Para sincronizar el estado de React con el estado de Express",
+      "Porque useEffect no puede leer variables globales directamente"
+    ],
+    correct:1,
+    explanation:"La cookie es <strong>httpOnly</strong> — JavaScript no puede acceder a ella directamente (esa es precisamente su ventaja de seguridad). La única forma de saber si la sesión es válida es preguntarle al servidor: <code>GET /api/auth/me</code> devuelve los datos del usuario si la cookie es válida, o 401 si no lo es."
+  },
+  {
+    topic:"React — PrivateRoute",level:"basico",
+    text:"¿Qué devuelve PrivateRoute cuando el usuario no está autenticado?",
+    code:`function PrivateRoute({ children }) {
+  const { usuario } = useAuth();
+  if (!usuario) return <Navigate to="/login" replace />;
+  return children;
+}`,
+    options:[
+      "Un mensaje de error 401 en pantalla",
+      "null — no renderiza nada",
+      "Una redirección automática a /login",
+      "El componente children pero con los datos en blanco"
+    ],
+    correct:2,
+    explanation:"<code>&lt;Navigate to='/login' replace /&gt;</code> redirige al usuario a la pantalla de login sin agregar una entrada al historial de navegación (<code>replace</code> reemplaza la entrada actual). El usuario no puede llegar a la ruta protegida hasta que <code>usuario</code> tenga un valor."
+  },
+  {
+    topic:"Express — middleware",level:"intermedio",
+    text:"¿En qué orden se ejecutan los middlewares en esta ruta y por qué importa?",
+    code:`router.post('/', verificarToken, verificarRol('admin'), create);`,
+    options:[
+      "En cualquier orden — Express los ejecuta en paralelo",
+      "verificarToken → verificarRol → create: primero autenticación, luego autorización, luego lógica",
+      "create → verificarRol → verificarToken: primero la lógica, luego la seguridad",
+      "Solo se ejecuta el último (create); los anteriores son decoradores opcionales"
+    ],
+    correct:1,
+    explanation:"Express ejecuta los middlewares <strong>de izquierda a derecha</strong>, uno por uno vía <code>next()</code>. El orden es crítico: primero verificas que hay sesión (<code>verificarToken</code>), luego que el rol tiene permiso (<code>verificarRol</code>), y solo si pasa ambos filtros ejecutas la lógica del controlador (<code>create</code>)."
+  },
+  {
+    topic:"MySQL — soft delete",level:"basico",
+    text:"¿Cuál es la diferencia entre soft delete y hard delete?",
+    options:[
+      "Soft delete es más rápido porque no accede al disco",
+      "Hard delete borra el registro permanentemente; soft delete cambia activo=0 y el registro sigue existiendo",
+      "Soft delete funciona solo en tablas con menos de 1000 registros",
+      "No hay diferencia práctica, son dos nombres para la misma operación"
+    ],
+    correct:1,
+    explanation:"<strong>Soft delete</strong> (<code>UPDATE SET activo=0</code>) preserva el registro y sus relaciones. <strong>Hard delete</strong> (<code>DELETE FROM</code>) lo borra permanentemente. En sistemas reales se prefiere soft delete para mantener historial, auditoría y porque las FK pueden impedir borrar registros referenciados."
+  },
+  {
+    topic:"React — formularios",level:"intermedio",
+    text:"¿Qué hace el operador spread en el manejador de cambios de formulario?",
+    code:`const handleChange = e =>
+  setForm({ ...form, [e.target.name]: e.target.value });`,
+    options:[
+      "Crea una copia del objeto form y reemplaza solo el campo que cambió",
+      "Envía el formulario al backend inmediatamente",
+      "Reinicia todos los campos del formulario a sus valores iniciales",
+      "Convierte el evento a un objeto JSON para enviarlo con axios"
+    ],
+    correct:0,
+    explanation:"<code>{ ...form }</code> copia todos los campos actuales del formulario. <code>[e.target.name]: e.target.value</code> sobreescribe solo el campo que el usuario acaba de editar. Sin el spread, el setter borraría todos los demás campos — cada cambio dejaría el form con un solo campo."
+  },
+  {
+    topic:"Express — códigos HTTP",level:"basico",
+    text:"¿Cuál es el código HTTP correcto para responder cuando se crea un recurso exitosamente?",
+    options:[
+      "200 OK — la respuesta estándar para cualquier operación exitosa",
+      "201 Created — indica que el recurso fue creado exitosamente",
+      "204 No Content — cuando la respuesta no tiene cuerpo",
+      "202 Accepted — cuando el servidor acepta la petición"
+    ],
+    correct:1,
+    explanation:"<strong>201 Created</strong> es semánticamente correcto para respuestas a POST que crean un nuevo recurso. <strong>200 OK</strong> se usa para GET, PUT y DELETE exitosos. Esta distinción ayuda a los clientes de la API a saber exactamente qué ocurrió sin leer el cuerpo de la respuesta."
+  },
+  {
+    topic:"React — estado global",level:"intermedio",
+    text:"¿Por qué useAuth() funciona en cualquier componente sin pasar props?",
+    options:[
+      "Porque React almacena el usuario en una variable global de JavaScript",
+      "Porque AuthContext envuelve toda la app en main.jsx y useAuth() lee ese contexto compartido",
+      "Porque axios intercepta las respuestas y guarda el usuario automáticamente",
+      "Porque useState en AuthContext es compartido entre todos los archivos importados"
+    ],
+    correct:1,
+    explanation:"<code>&lt;AuthProvider&gt;</code> envuelve toda la app en <code>main.jsx</code>. El Contexto de React permite que cualquier componente descendiente lea el valor sin necesidad de pasarlo como prop. Es como una variable global pero controlada y reactiva: cuando cambia <code>usuario</code> en el contexto, todos los componentes que lo lean se actualizan."
+  },
+  {
+    topic:"MySQL — alias JOIN",level:"avanzado",
+    text:"¿Por qué la consulta de evaluaciones necesita alias distintos?",
+    code:`SELECT e.*,
+       per.nombre  AS persona_evaluada,
+       u.usuario   AS evaluador
+FROM   evaluaciones e
+JOIN   personas  per ON e.persona_id   = per.id
+JOIN   usuarios  u   ON e.evaluador_id = u.id`,
+    options:[
+      "Porque personas y usuarios son la misma tabla y MySQL se confundiría",
+      "Porque tanto personas como usuarios tienen columnas con nombres similares y los alias evitan ambigüedad",
+      "Para que el resultado tenga más columnas en la respuesta JSON",
+      "Los alias son opcionales; funcionaría igual sin ellos"
+    ],
+    correct:1,
+    explanation:"Sin alias, si ambas tablas tienen una columna <code>nombre</code>, MySQL no sabría cuál incluir o la segunda sobreescribiría a la primera en el resultado. Los <strong>alias</strong> (<code>AS persona_evaluada</code>, <code>AS evaluador</code>) dan nombres únicos y descriptivos a cada campo en el JSON de respuesta."
+  },
+  {
+    topic:"Express — CORS",level:"avanzado",
+    text:"¿Por qué el CORS del proyecto no puede usar origin: '*' cuando se usan cookies?",
+    code:`app.use(cors({
+  origin: 'http://localhost:5173',  // específico
+  credentials: true
+}));`,
+    options:[
+      "Porque origin:'*' solo funciona en producción, no en desarrollo",
+      "El estándar de seguridad del navegador prohíbe enviar cookies a un origen wildcard — se necesita un origen específico",
+      "Porque Express no soporta wildcards en la configuración de CORS",
+      "Para que el frontend en puerto 5173 no pueda acceder al backend en puerto 3000"
+    ],
+    correct:1,
+    explanation:"Por especificación del navegador: cuando <code>credentials: true</code>, el servidor <strong>debe</strong> especificar un origen concreto — no se permite <code>*</code>. Si usaras <code>origin:'*'</code> con <code>credentials:true</code>, el navegador rechazaría la respuesta por razones de seguridad, haciendo que las cookies nunca se enviaran."
+  },
+  {
+    topic:"React — actualización sin recarga",level:"avanzado",
+    text:"¿Por qué handleCambiarEstado actualiza el estado local en lugar de volver a llamar getTareas()?",
+    code:`setTareas(prev => prev.map(t =>
+  t.id === id ? { ...t, estado: nuevoEstado } : t
+));`,
+    options:[
+      "Porque getTareas() no existe después de cambiar el estado",
+      "Para evitar una petición HTTP innecesaria — actualiza solo el objeto afectado en memoria",
+      "Porque map() es más rápido que una petición a la red en todos los casos",
+      "Porque el backend no devuelve la lista actualizada tras el PATCH"
+    ],
+    correct:1,
+    explanation:"Ya sabemos el resultado: el estado cambió a <code>nuevoEstado</code>. Volver a llamar a <code>getTareas()</code> haría una petición completa al backend para recibir la misma información que ya tenemos. Actualizar el estado local con <code>map()</code> es instantáneo y eficiente. Esta técnica se llama <strong>actualización optimista</strong>."
+  }
+];
+
+function shuffleOptions(){
+  questions.forEach(q=>{
+    const correctIndex=q.correct;
+    const grouped=q.options.map((text,index)=>({text,index}));
+    for(let i=grouped.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [grouped[i],grouped[j]]=[grouped[j],grouped[i]];
+    }
+    q.options=grouped.map(item=>item.text);
+    q.correct=grouped.findIndex(item=>item.index===correctIndex);
+  });
+}
+
+shuffleOptions();
+
+let current = 0;
+let score = 0;
+let answered = new Array(questions.length).fill(null);
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+}
+
+function startQuiz(){
+  showScreen('question');
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const q = questions[current];
+  document.getElementById('qTopic').textContent = q.topic;
+  const lvlEl = document.getElementById('qLevel');
+  lvlEl.textContent = q.level;
+  lvlEl.className = 'q-level ' + q.level;
+  document.getElementById('qNum').textContent = `Pregunta ${current+1} de ${questions.length}`;
+  document.getElementById('qText').textContent = q.text;
+
+  const codeEl = document.getElementById('qCode');
+  if(q.code){
+    codeEl.style.display='block';
+    codeEl.textContent = q.code;
+  } else {
+    codeEl.style.display='none';
+  }
+
+  const optContainer = document.getElementById('options');
+  optContainer.innerHTML='';
+  const letters = ['A','B','C','D'];
+  q.options.forEach((opt,i)=>{
+    const div = document.createElement('div');
+    div.className='opt';
+    div.innerHTML=`<div class="opt-letter">${letters[i]}</div><div>${opt}</div>`;
+    if(answered[current]===null){
+      div.onclick=()=>selectAnswer(i);
+    } else {
+      div.classList.add('disabled');
+      if(i===q.correct) div.classList.add('correct');
+      if(i===answered[current] && answered[current]!==q.correct) div.classList.add('wrong');
+    }
+    optContainer.appendChild(div);
+  });
+
+  const expEl = document.getElementById('explanation');
+  if(answered[current]!==null){
+    expEl.innerHTML = q.explanation;
+    expEl.classList.add('show');
+  } else {
+    expEl.classList.remove('show');
+  }
+
+  const ri = document.getElementById('resultIndicator');
+  if(answered[current]!==null){
+    if(answered[current]===q.correct){
+      ri.textContent='Correcto'; ri.className='result-indicator ok';
+    } else {
+      ri.textContent='Incorrecto'; ri.className='result-indicator fail';
+    }
+  } else {
+    ri.textContent=''; ri.className='result-indicator';
+  }
+
+  document.getElementById('btnNext').disabled = answered[current]===null;
+  updateProgress();
+}
+
+function selectAnswer(i){
+  if(answered[current]!==null) return;
+  const q = questions[current];
+  answered[current]=i;
+  if(i===q.correct) score++;
+
+  document.querySelectorAll('.opt').forEach((el,idx)=>{
+    el.classList.add('disabled');
+    el.onclick=null;
+    if(idx===q.correct) el.classList.add('correct');
+    if(idx===i && i!==q.correct) el.classList.add('wrong');
+  });
+
+  const expEl = document.getElementById('explanation');
+  expEl.innerHTML = q.explanation;
+  expEl.classList.add('show');
+
+  const ri = document.getElementById('resultIndicator');
+  if(i===q.correct){ri.textContent='Correcto';ri.className='result-indicator ok';}
+  else{ri.textContent='Incorrecto';ri.className='result-indicator fail';}
+
+  document.getElementById('btnNext').disabled=false;
+  updateProgress();
+}
+
+function nextQuestion(){
+  if(current < questions.length-1){
+    current++;
+    renderQuestion();
+  } else {
+    showResults();
+  }
+}
+
+function updateProgress(){
+  const done = answered.filter(a=>a!==null).length;
+  document.getElementById('progressLabel').textContent=`${done} / ${questions.length}`;
+  document.getElementById('progressFill').style.width=`${(done/questions.length)*100}%`;
+  document.getElementById('scoreBadge').textContent=`${score} pts`;
+}
+
+function showResults(){
+  showScreen('results');
+  const pct = Math.round((score/questions.length)*100);
+  const ring = document.getElementById('scoreRing');
+  const pctEl = document.getElementById('scorePct');
+  pctEl.textContent = pct+'%';
+  const cls = pct>=80?'high':pct>=60?'mid':'low';
+  ring.className='score-ring '+cls;
+  pctEl.className='score-pct '+cls;
+
+  document.getElementById('resultsTitle').textContent =
+    pct>=80?'¡Excelente dominio!':pct>=60?'Buen progreso — sigue repasando':'Hay temas que reforzar';
+  document.getElementById('resultsSub').textContent =
+    `Respondiste correctamente ${score} de ${questions.length} preguntas (${pct}%)`;
+
+  const grid = document.getElementById('reviewGrid');
+  grid.innerHTML='';
+  answered.forEach((a,i)=>{
+    const d=document.createElement('div');
+    const ok = a===questions[i].correct;
+    d.className='review-dot '+(ok?'ok':'fail');
+    d.textContent=(i+1);
+    d.title=questions[i].text;
+    grid.appendChild(d);
+  });
+
+  const missed=answered
+    .map((answer,index)=>({answer,index,question:questions[index]}))
+    .filter(item=>item.answer!==item.question.correct);
+  const missedSection=document.getElementById('missedSection');
+  missedSection.innerHTML='';
+  if(missed.length===0){
+    const card=document.createElement('div');
+    card.className='missed-card success';
+    const title=document.createElement('h3');
+    title.textContent='Sin temas pendientes';
+    const copy=document.createElement('p');
+    copy.textContent='Respondieron correctamente todas las preguntas.';
+    card.appendChild(title);
+    card.appendChild(copy);
+    missedSection.appendChild(card);
+  }else{
+    const card=document.createElement('div');
+    card.className='missed-card';
+    const title=document.createElement('h3');
+    title.textContent='Temas para investigar';
+    const copy=document.createElement('p');
+    copy.textContent='Revisen estas preguntas antes de repetir el repaso.';
+    const list=document.createElement('div');
+    list.className='missed-list';
+    missed.forEach(item=>{
+      const missedItem=document.createElement('div');
+      missedItem.className='missed-item';
+      const meta=document.createElement('div');
+      meta.className='missed-meta';
+      meta.textContent=`Pregunta ${item.index+1} · ${item.question.topic}`;
+      const question=document.createElement('div');
+      question.className='missed-question';
+      question.textContent=item.question.text;
+      const answer=document.createElement('div');
+      answer.className='missed-answer';
+      const strong=document.createElement('strong');
+      strong.textContent='Respuesta correcta:';
+      answer.appendChild(strong);
+      answer.append(' '+item.question.options[item.question.correct]);
+      missedItem.appendChild(meta);
+      missedItem.appendChild(question);
+      missedItem.appendChild(answer);
+      list.appendChild(missedItem);
+    });
+    card.appendChild(title);
+    card.appendChild(copy);
+    card.appendChild(list);
+    missedSection.appendChild(card);
+  }
+}
+</script>
+</body>
+</html>

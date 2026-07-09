@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Repaso — Seguridad Web y Autenticación</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#F6F8FB;
+  --surface:#FFFFFF;
+  --surface2:#F8FAFC;
+  --surface3:#EEF5FF;
+  --border:#D9E2EC;
+  --border-strong:#B8C7D9;
+  --accent:#2563EB;
+  --accent2:#0F766E;
+  --accent-soft:#EAF2FF;
+  --green:#15803D;
+  --green-bg:#ECFDF3;
+  --red:#B42318;
+  --red-bg:#FEF3F2;
+  --yellow:#B7791F;
+  --yellow-bg:#FFFAEB;
+  --text:#172033;
+  --muted:#64748B;
+  --code-bg:#F3F6FA;
+  --shadow:0 18px 46px rgba(15,23,42,.08);
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+
+.app-header{background:linear-gradient(135deg,#0F3A66,#2563EB);border-bottom:1px solid rgba(255,255,255,.18);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 12px 30px rgba(37,99,235,.18);}
+.app-logo{display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;}
+.logo-icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.logo-text{font-size:14px;font-weight:700;color:#fff;}
+.logo-sub{font-size:11px;color:rgba(255,255,255,.78);margin-top:2px;}
+.progress-container{display:flex;align-items:center;gap:12px;}
+.progress-label{font-size:12px;color:rgba(255,255,255,.78);}
+.progress-bar{width:200px;height:6px;background:rgba(255,255,255,.22);border-radius:999px;overflow:hidden;}
+.progress-fill{height:100%;background:#fff;border-radius:999px;transition:width .4s ease;}
+.score-badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;color:#fff;min-width:64px;text-align:center;}
+
+.main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:34px 20px;}
+.screen{display:none;width:100%;max-width:780px;animation:fadeIn .3s ease;}
+.screen.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+.welcome-card,.results-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:48px;text-align:center;box-shadow:var(--shadow);}
+.welcome-icon{width:72px;height:72px;margin:0 auto 22px;border-radius:18px;background:linear-gradient(135deg,var(--accent),#0F3A66);color:#fff;display:flex;align-items:center;justify-content:center;}
+.welcome-icon svg{width:36px;height:36px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.welcome-title{font-size:28px;font-weight:700;margin-bottom:10px;color:#0F3A66;}
+.welcome-sub{font-size:15px;color:var(--muted);margin-bottom:32px;line-height:1.6;}
+.topics-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:32px;text-align:left;}
+.topic-chip{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-size:12px;color:#334155;display:flex;align-items:center;gap:10px;}
+.chip-icon{width:28px;height:28px;border-radius:8px;background:var(--accent-soft);color:var(--accent);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+.chip-icon svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}
+.btn-start{background:linear-gradient(135deg,var(--accent),#0F3A66);color:#fff;border:none;border-radius:10px;padding:14px 40px;font-size:15px;font-weight:700;cursor:pointer;transition:transform .15s,box-shadow .15s;box-shadow:0 12px 24px rgba(37,99,235,.22);}
+.btn-start:hover{transform:translateY(-1px);box-shadow:0 14px 28px rgba(37,99,235,.25);}
+
+.q-header{margin-bottom:24px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 24px;box-shadow:0 12px 30px rgba(15,23,42,.05);}
+.q-topic{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;}
+.q-level{display:inline-block;font-size:10px;padding:4px 8px;border-radius:999px;font-weight:700;margin-left:8px;text-transform:uppercase;}
+.q-level.basico{background:var(--green-bg);color:var(--green);}
+.q-level.intermedio{background:var(--yellow-bg);color:var(--yellow);}
+.q-level.avanzado{background:var(--red-bg);color:var(--red);}
+.q-num{font-size:12px;color:var(--muted);margin:10px 0 6px;}
+.q-text{font-size:18px;font-weight:700;line-height:1.5;color:var(--text);}
+.q-code{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin:16px 0 0;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7;color:#1E3A5F;overflow-x:auto;white-space:pre;}
+.q-code .kw{color:#7C3AED;}
+.q-code .st{color:#047857;}
+.q-code .fn{color:#1D4ED8;}
+.q-code .cm{color:#64748B;}
+.q-code .nm{color:#B45309;}
+
+.scenario{background:var(--surface3);border:1px solid #CFE0F7;border-left:4px solid var(--accent);border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0 0;font-size:13px;color:#24364E;line-height:1.6;}
+.scenario .label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:6px;}
+
+.options{display:flex;flex-direction:column;gap:10px;margin-top:18px;}
+.opt{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px;cursor:pointer;font-size:14px;color:var(--text);transition:all .15s;display:flex;align-items:center;gap:12px;text-align:left;box-shadow:0 8px 20px rgba(15,23,42,.035);}
+.opt:hover:not(.disabled){border-color:var(--accent);background:#F8FBFF;box-shadow:0 10px 24px rgba(37,99,235,.08);}
+.opt.correct{border-color:#86C99A;background:var(--green-bg);color:var(--green);}
+.opt.wrong{border-color:#FDA29B;background:var(--red-bg);color:var(--red);}
+.opt.disabled{cursor:default;}
+.opt-letter{width:28px;height:28px;border-radius:8px;background:#EEF2F7;color:#334155;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;transition:background .15s,color .15s;}
+.opt.correct .opt-letter{background:var(--green);color:#fff;}
+.opt.wrong .opt-letter{background:var(--red);color:#fff;}
+.opt:hover:not(.disabled) .opt-letter{background:var(--accent);color:#fff;}
+
+.explanation{margin-top:16px;background:#F8FBFF;border:1px solid #CFE0F7;border-left:4px solid var(--accent);border-radius:0 10px 10px 0;padding:14px 18px;font-size:13px;color:#475569;line-height:1.6;display:none;}
+.explanation.show{display:block;}
+.explanation strong{color:var(--text);}
+.explanation code{background:var(--code-bg);padding:1px 5px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#1D4ED8;}
+
+.q-nav{display:flex;justify-content:space-between;align-items:center;margin-top:24px;}
+.btn-nav{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 24px;font-size:13px;font-weight:700;color:#24364E;cursor:pointer;transition:all .15s;}
+.btn-nav:hover{border-color:var(--accent);color:var(--accent);}
+.btn-nav.primary{background:linear-gradient(135deg,var(--accent),#0F3A66);border:none;color:#fff;}
+.btn-nav.primary:hover{opacity:.95;}
+.btn-nav:disabled{opacity:.45;cursor:default;}
+.result-indicator{font-size:13px;color:var(--muted);font-weight:700;}
+.result-indicator.ok{color:var(--green);}
+.result-indicator.fail{color:var(--red);}
+
+.score-ring{width:120px;height:120px;border-radius:50%;margin:0 auto 24px;display:flex;align-items:center;justify-content:center;flex-direction:column;border:5px solid var(--border);}
+.score-ring.high{border-color:var(--green);}
+.score-ring.mid{border-color:var(--yellow);}
+.score-ring.low{border-color:var(--red);}
+.score-pct{font-size:32px;font-weight:800;}
+.score-pct.high{color:var(--green);}
+.score-pct.mid{color:var(--yellow);}
+.score-pct.low{color:var(--red);}
+.score-label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;}
+.results-title{font-size:22px;font-weight:800;margin-bottom:8px;color:#0F3A66;}
+.results-sub{font-size:14px;color:var(--muted);margin-bottom:32px;}
+.review-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:28px;}
+.review-dot{height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;}
+.review-dot.ok{background:var(--green-bg);color:var(--green);border:1px solid #86C99A;}
+.review-dot.fail{background:var(--red-bg);color:var(--red);border:1px solid #FDA29B;}
+.results-actions{display:flex;gap:12px;justify-content:center;}
+.missed-section{margin-top:28px;text-align:left;}
+.missed-card{background:#F8FBFF;border:1px solid #CFE0F7;border-radius:12px;padding:18px;}
+.missed-card.success{background:var(--green-bg);border-color:#86C99A;text-align:center;}
+.missed-card h3{font-size:15px;font-weight:800;color:#0F3A66;margin-bottom:6px;}
+.missed-card p{font-size:13px;color:var(--muted);line-height:1.5;}
+.missed-list{display:flex;flex-direction:column;gap:10px;margin-top:14px;}
+.missed-item{background:#fff;border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;padding:12px 14px;}
+.missed-meta{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:5px;}
+.missed-question{font-size:13px;font-weight:700;color:var(--text);line-height:1.45;margin-bottom:6px;}
+.missed-answer{font-size:12px;color:#475569;line-height:1.45;}
+.missed-answer strong{color:#0F3A66;}
+
+.topic-banner{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;gap:16px;box-shadow:0 10px 24px rgba(15,23,42,.04);}
+.topic-icon{width:42px;height:42px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;}
+.topic-icon svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}
+.topic-info{text-align:left;}
+.topic-info h3{font-size:15px;font-weight:800;color:var(--text);}
+.topic-info p{font-size:12px;color:var(--muted);margin-top:2px;}
+
+@media (max-width:720px){
+  .app-header{padding:14px 18px;align-items:flex-start;gap:14px;flex-direction:column;}
+  .progress-container{width:100%;}
+  .progress-bar{flex:1;width:auto;}
+  .welcome-card,.results-card{padding:34px 22px;border-radius:14px;}
+  .topics-grid{grid-template-columns:1fr;}
+  .q-header{padding:20px 18px;}
+  .q-nav{gap:14px;align-items:flex-start;flex-direction:column;}
+  .btn-nav{width:100%;}
+}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="app-logo">
+    <div class="logo-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-2.8 8.5-7 10-4.2-1.5-7-5.5-7-10V6l7-3z"/><path d="M9 12l2 2 4-5"/></svg></div>
+    <div>
+      <div class="logo-text">Repaso — Seguridad Web y Autenticación</div>
+      <div class="logo-sub">JWT · bcrypt · cookies httpOnly · RBAC · CORS · OWASP</div>
+    </div>
+  </div>
+  <div class="progress-container">
+    <span class="progress-label" id="progressLabel">0 / 20</span>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="score-badge" id="scoreBadge">0 pts</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- WELCOME -->
+  <div class="screen active" id="screen-welcome">
+    <div class="welcome-card">
+      <div class="welcome-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-2.8 8.5-7 10-4.2-1.5-7-5.5-7-10V6l7-3z"/><path d="M9 12l2 2 4-5"/></svg></div>
+      <div class="welcome-title">Repaso — Seguridad Web</div>
+      <div class="welcome-sub">20 preguntas sobre los mecanismos de seguridad implementados en el Sistema Administrativo.<br>Autenticación, autorización, cifrado de contraseñas y protección de APIs.</div>
+      <div class="topics-grid">
+        <div class="topic-chip"><span class="chip-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="7.5" cy="14.5" r="3.5"/><path d="M11 14.5h9"/><path d="M16 14.5v3"/><path d="M19 14.5v2"/></svg></span> JWT — estructura y firma</div>
+        <div class="topic-chip"><span class="chip-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4L8 20"/><path d="M16 4l-2 16"/><path d="M5 9h15"/><path d="M4 15h15"/></svg></span> bcrypt — hash y salt</div>
+        <div class="topic-chip"><span class="chip-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12.5A8 8 0 1 1 11.5 4c.1 2.2 1.8 3.9 4 4 .1 2.2 1.8 4 4 4 .2 0 .3 0 .5-.1z"/><circle cx="8.5" cy="11" r=".8"/><circle cx="11" cy="16" r=".8"/><circle cx="14" cy="12.5" r=".8"/></svg></span> Cookies httpOnly vs localStorage</div>
+        <div class="topic-chip"><span class="chip-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-2.8 8.5-7 10-4.2-1.5-7-5.5-7-10V6l7-3z"/><path d="M9 12l2 2 4-5"/></svg></span> RBAC — control por roles</div>
+        <div class="topic-chip"><span class="chip-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.3 2.5 3.5 5.5 3.5 9s-1.2 6.5-3.5 9c-2.3-2.5-3.5-5.5-3.5-9S9.7 5.5 12 3z"/></svg></span> CORS — política de origen</div>
+        <div class="topic-chip"><span class="chip-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><path d="M12 14v2"/></svg></span> Autenticación vs Autorización</div>
+        <div class="topic-chip"><span class="chip-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l9 16H3L12 4z"/><path d="M12 9v5"/><path d="M12 17h.01"/></svg></span> Vulnerabilidades OWASP</div>
+        <div class="topic-chip"><span class="chip-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19h12"/><path d="M8 19V7a3 3 0 0 1 6 0v1"/><path d="M14 8h3v3"/><path d="M17 8l-5 5"/></svg></span> Middleware de seguridad</div>
+      </div>
+      <button class="btn-start" onclick="startQuiz()">Comenzar repaso</button>
+    </div>
+  </div>
+
+  <!-- QUESTION -->
+  <div class="screen" id="screen-question">
+    <div class="q-header">
+      <div>
+        <span class="q-topic" id="qTopic"></span>
+        <span class="q-level" id="qLevel"></span>
+      </div>
+      <div class="q-num" id="qNum"></div>
+      <div class="q-text" id="qText"></div>
+      <div id="qScenario" style="display:none"></div>
+      <div class="q-code" id="qCode" style="display:none"></div>
+    </div>
+    <div class="options" id="options"></div>
+    <div class="explanation" id="explanation"></div>
+    <div class="q-nav">
+      <div class="result-indicator" id="resultIndicator"></div>
+      <button class="btn-nav primary" id="btnNext" onclick="nextQuestion()" disabled>Siguiente</button>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="screen" id="screen-results">
+    <div class="results-card">
+      <div class="score-ring" id="scoreRing">
+        <div class="score-pct" id="scorePct"></div>
+        <div class="score-label">puntaje</div>
+      </div>
+      <div class="results-title" id="resultsTitle"></div>
+      <div class="results-sub" id="resultsSub"></div>
+      <div class="review-grid" id="reviewGrid"></div>
+      <div class="results-actions">
+        <button class="btn-nav" onclick="location.reload()">Repetir</button>
+      </div>
+      <div class="missed-section" id="missedSection"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const questions = [
+  {
+    topic:"Autenticación vs Autorización",level:"basico",
+    text:"Un alumno dice: 'el sistema ya sabe quién soy porque inicié sesión, entonces puedo hacer todo'. ¿Qué confusión está cometiendo?",
+    scenario:"María inició sesión con su cuenta de rol invitado e intenta eliminar una persona. El sistema le responde 403.",
+    code:null,
+    options:[
+      "Ninguna — si iniciaste sesión puedes hacer todo en el sistema",
+      "Confunde autenticación con autorización: saber quién eres no garantiza permisos para todas las acciones",
+      "El error es del servidor — debería dejarla si ya está autenticada",
+      "El rol invitado es un bug; todos los roles deberían tener los mismos permisos"
+    ],
+    correct:1,
+    explanation:"<strong>Autenticación</strong> = verificar quién eres (login). <strong>Autorización</strong> = verificar qué puedes hacer (RBAC). Son dos capas independientes. Una persona puede autenticarse correctamente y aun así no tener permiso para ciertas operaciones. El sistema siempre verifica las dos cosas."
+  },
+  {
+    topic:"bcrypt — hash",level:"basico",
+    text:"¿Por qué el sistema guarda $2b$10$wH7y... en la base de datos en lugar de la contraseña original?",
+    code:null,
+    options:[
+      "Para comprimir la contraseña y ahorrar espacio en disco",
+      "Porque bcrypt es un algoritmo de cifrado reversible que protege la contraseña",
+      "Porque bcrypt genera un hash unidireccional — nadie puede obtener la contraseña original a partir del hash",
+      "Para que la contraseña pueda transmitirse por la red sin riesgos"
+    ],
+    correct:2,
+    explanation:"<strong>bcrypt</strong> es un algoritmo de <strong>hash unidireccional</strong>: convierte la contraseña en una cadena de longitud fija que no puede revertirse. Si la BD es robada, el atacante solo obtiene hashes inútiles. Para verificar, se hashea la contraseña ingresada y se compara con el hash guardado — nunca se descifra."
+  },
+  {
+    topic:"bcrypt — salt",level:"intermedio",
+    text:"Dos usuarios tienen la misma contraseña 'Admin1234'. ¿Por qué sus hashes en la BD son completamente diferentes?",
+    code:`// Usuario 1: $2b$10$ABC...xyz
+// Usuario 2: $2b$10$DEF...uvw
+// Ambos tienen password: 'Admin1234'`,
+    options:[
+      "Porque bcrypt agrega un componente aleatorio (salt) único cada vez que hashea",
+      "Porque el sistema cifra la contraseña con el id del usuario antes de hashear",
+      "Es un error — deberían ser iguales si la contraseña es la misma",
+      "Porque bcrypt usa la fecha y hora como parte del cálculo"
+    ],
+    correct:0,
+    explanation:"El <strong>salt</strong> es un valor aleatorio que bcrypt genera automáticamente y mezcla con la contraseña antes de hashear. Esto garantiza que el mismo texto produzca hashes distintos cada vez. Evita los ataques de <strong>rainbow tables</strong> donde el atacante precalcula hashes de contraseñas comunes."
+  },
+  {
+    topic:"JWT — estructura",level:"basico",
+    text:"¿Qué tres partes tiene un token JWT y qué contiene cada una?",
+    code:`eyJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwidm9sIjoiYWRtaW4ifQ.xK8sD...`,
+    options:[
+      "Usuario, contraseña y firma — codificados en Base64",
+      "Header (algoritmo), Payload (datos del usuario) y Signature (verificación de integridad)",
+      "IP del cliente, timestamp y hash de la sesión",
+      "Nombre, email y rol — cifrados con AES-256"
+    ],
+    correct:1,
+    explanation:"Un JWT tiene 3 partes separadas por puntos: <strong>Header</strong> (algoritmo de firma, ej. HS256), <strong>Payload</strong> (datos: id, rol, expiración — codificados en Base64, NO cifrados, cualquiera puede leerlos), y <strong>Signature</strong> (HMAC del header+payload firmado con JWT_SECRET — garantiza que no fue modificado)."
+  },
+  {
+    topic:"JWT — seguridad",level:"intermedio",
+    text:"El payload de un JWT puede leerse sin conocer el JWT_SECRET. ¿Entonces por qué es seguro?",
+    options:[
+      "No es seguro — cualquiera puede leer y modificar el JWT",
+      "La seguridad está en la firma: si alguien modifica el payload, la firma deja de ser válida y el servidor lo detecta",
+      "Porque el payload se cifra adicionalmente con AES antes de enviarse",
+      "Porque el navegador bloquea el acceso al JWT almacenado en la cookie"
+    ],
+    correct:1,
+    explanation:"El JWT <strong>no está cifrado</strong> — está codificado (Base64 es reversible). La seguridad viene de la <strong>firma</strong>: para que un JWT sea válido, la firma debe coincidir con el header+payload hasheado con el JWT_SECRET. Si alguien modifica el payload (ej. cambia su rol a 'admin'), la firma ya no coincide y el servidor rechaza el token."
+  },
+  {
+    topic:"Cookie httpOnly",level:"basico",
+    text:"¿Por qué el sistema usa cookies httpOnly en lugar de guardar el JWT en localStorage?",
+    options:[
+      "Porque localStorage no puede almacenar strings de más de 4KB",
+      "Porque las cookies httpOnly no son accesibles desde JavaScript — protegen contra ataques XSS",
+      "Porque las cookies se envían automáticamente y localStorage requiere código extra",
+      "Porque httpOnly cifra el contenido de la cookie automáticamente"
+    ],
+    correct:1,
+    explanation:"Si el JWT está en <strong>localStorage</strong>, cualquier script JavaScript en la página puede leerlo — incluyendo scripts maliciosos inyectados (XSS). Una cookie <strong>httpOnly</strong> no es accesible desde JavaScript en absoluto: el navegador la envía automáticamente con cada petición pero ningún script puede leerla ni robarla."
+  },
+  {
+    topic:"Cookie httpOnly",level:"intermedio",
+    text:"Un estudiante abre DevTools > Application > Cookies y ve el token. ¿Puede copiarlo y usarlo desde JavaScript?",
+    scenario:"El alumno intenta ejecutar document.cookie en la consola del navegador para leer el token.",
+    options:[
+      "Sí — DevTools puede ver todas las cookies incluyendo httpOnly",
+      "No — aunque DevTools muestra la cookie, document.cookie no devuelve las marcadas como httpOnly",
+      "Sí — document.cookie devuelve todas las cookies del dominio",
+      "No — las cookies httpOnly no aparecen en DevTools tampoco"
+    ],
+    correct:1,
+    explanation:"DevTools muestra las cookies httpOnly en la pestaña Application como herramienta de diagnóstico para el desarrollador — pero <code>document.cookie</code> en JavaScript <strong>no las incluye</strong>. Las cookies httpOnly son invisibles para el código JavaScript, lo que es exactamente el objetivo de seguridad."
+  },
+  {
+    topic:"RBAC — roles",level:"basico",
+    text:"¿Qué responde el servidor cuando un usuario con rol 'invitado' intenta hacer POST a /api/personas?",
+    code:`// verificarRol en personas.routes.js:
+router.post('/', verificarToken,
+  verificarRol('admin','usuario'), create);`,
+    options:[
+      "200 OK — crea la persona y la ignora después",
+      "401 Unauthorized — porque el invitado no tiene sesión",
+      "403 Forbidden — tiene sesión válida pero su rol no tiene permiso",
+      "404 Not Found — la ruta no existe para invitados"
+    ],
+    correct:2,
+    explanation:"<strong>401</strong> significa sin sesión (no autenticado). <strong>403</strong> significa con sesión pero sin permiso (no autorizado). El invitado SÍ tiene sesión válida — el cookie y el JWT son válidos — pero su rol no está en la lista <code>['admin','usuario']</code> de <code>verificarRol</code>, por eso el middleware devuelve 403."
+  },
+  {
+    topic:"RBAC — implementación",level:"intermedio",
+    text:"¿Por qué verificarRol está implementado como una función que devuelve otra función?",
+    code:`export const verificarRol = (...rolesPermitidos) => {
+  return (req, res, next) => {
+    // lógica...
+  };
+};`,
+    options:[
+      "Es un requisito de Express — todos los middlewares deben ser funciones que devuelven funciones",
+      "Para poder pasarle parámetros (los roles) al middleware — algo que Express no permite directamente",
+      "Para que el middleware se ejecute en paralelo con verificarToken",
+      "Porque las arrow functions en JavaScript siempre devuelven otra función"
+    ],
+    correct:1,
+    explanation:"Express espera que un middleware sea <code>(req,res,next) => {}</code>. Para pasar parámetros (los roles permitidos) se usa el patrón <strong>factory</strong>: una función que recibe los parámetros y <strong>devuelve</strong> el middleware. Así puedes escribir <code>verificarRol('admin')</code> o <code>verificarRol('admin','usuario')</code> reutilizando el mismo código."
+  },
+  {
+    topic:"CORS — seguridad",level:"intermedio",
+    text:"¿Qué ocurre si el backend no configura CORS y el frontend intenta hacer una petición?",
+    scenario:"El backend corre en localhost:3000 y el frontend en localhost:5173. Sin configuración CORS.",
+    options:[
+      "Nada — el navegador permite peticiones entre puertos del mismo dominio sin restricción",
+      "El navegador bloquea la respuesta — la petición llega al servidor pero el navegador oculta la respuesta al frontend",
+      "El servidor rechaza la conexión antes de procesar cualquier petición",
+      "Las peticiones GET funcionan pero las POST son bloqueadas"
+    ],
+    correct:1,
+    explanation:"La política de mismo origen (SOP) es aplicada por el <strong>navegador</strong>, no por el servidor. La petición SÍ llega al servidor y se procesa, pero el navegador inspecciona los headers de respuesta y si no encuentra <code>Access-Control-Allow-Origin</code> correcto, <strong>oculta la respuesta</strong> al código JavaScript — el frontend nunca la ve."
+  },
+  {
+    topic:"JWT — expiración",level:"intermedio",
+    text:"¿Qué pasa cuando un JWT expira y el usuario intenta hacer una petición?",
+    code:`const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '8h' });`,
+    options:[
+      "El servidor regenera un nuevo token automáticamente y la petición continúa",
+      "jwt.verify() lanza un error, verificarToken lo captura y responde 401",
+      "La petición funciona — el payload del token sigue siendo válido aunque haya expirado",
+      "El navegador borra la cookie automáticamente antes de que expire"
+    ],
+    correct:1,
+    explanation:"<code>jwt.verify()</code> comprueba tanto la firma como la expiración (<code>exp</code> en el payload). Si el token expiró, lanza <code>TokenExpiredError</code>. El middleware <code>verificarToken</code> captura ese error en el <code>catch</code> y devuelve <code>401 Unauthorized</code>. El usuario necesita iniciar sesión de nuevo."
+  },
+  {
+    topic:"bcrypt — verificación",level:"basico",
+    text:"¿Cómo verifica el sistema que la contraseña ingresada es correcta si el hash no es reversible?",
+    code:`const ok = await bcrypt.compare(password, u.password_hash);`,
+    options:[
+      "Descifra el hash con la clave secreta y lo compara directamente",
+      "Hashea la contraseña ingresada con el mismo salt del hash almacenado y compara los resultados",
+      "Convierte ambas a Base64 y compara las cadenas resultantes",
+      "Envía el hash al cliente para que lo compare localmente"
+    ],
+    correct:1,
+    explanation:"El hash de bcrypt contiene el <strong>salt</strong> integrado en su estructura (<code>$2b$10$[salt][hash]</code>). <code>bcrypt.compare()</code> extrae ese salt, lo aplica a la contraseña ingresada, y compara el resultado con el hash almacenado. Si coinciden, la contraseña es correcta — sin necesidad de descifrar nada."
+  },
+  {
+    topic:"Vulnerabilidades — XSS",level:"avanzado",
+    text:"¿Cuál de estas prácticas del proyecto protege contra ataques XSS (Cross-Site Scripting)?",
+    options:[
+      "Usar HTTPS en producción",
+      "Validar el Content-Type de las peticiones en el backend",
+      "Guardar el JWT en una cookie httpOnly en lugar de localStorage",
+      "Usar bcrypt con 10 rondas de salt"
+    ],
+    correct:2,
+    explanation:"Un ataque <strong>XSS</strong> inyecta código JavaScript malicioso en la página para robar el token de sesión. Si el token está en <strong>localStorage</strong>, el script malicioso puede leerlo con <code>localStorage.getItem('token')</code>. Si está en una cookie <strong>httpOnly</strong>, el script no puede acceder a ella — la protección está en que JavaScript no puede leer ese tipo de cookie."
+  },
+  {
+    topic:"Vulnerabilidades — SQL Injection",level:"intermedio",
+    text:"¿Por qué el proyecto usa parámetros ? en las queries en lugar de concatenar strings?",
+    code:`// Seguro — parámetros preparados
+pool.query('SELECT * FROM usuarios WHERE usuario=?', [usuario]);
+
+// Vulnerable
+pool.query("SELECT * FROM usuarios WHERE usuario='" + usuario + "'");`,
+    options:[
+      "Los parámetros ? son más rápidos porque MySQL los cachea automáticamente",
+      "Para que el código sea más legible y fácil de mantener",
+      "Los parámetros preparados escapan automáticamente los valores — previenen SQL Injection",
+      "Porque mysql2 no soporta concatenación de strings en las queries"
+    ],
+    correct:2,
+    explanation:"<strong>SQL Injection</strong> ocurre cuando un atacante incluye SQL en los datos de entrada. Si el usuario escribe <code>' OR '1'='1</code>, una query concatenada lo ejecutaría como SQL. Los <strong>parámetros preparados</strong> (<code>?</code>) escapan automáticamente los valores — el driver los trata siempre como datos, nunca como código SQL."
+  },
+  {
+    topic:"CORS — credenciales",level:"avanzado",
+    text:"¿Por qué el servidor no puede usar origin:'*' cuando el frontend envía cookies?",
+    code:`// Esto NO funciona con cookies
+app.use(cors({ origin: '*', credentials: true }));
+
+// Esto SI funciona
+app.use(cors({ origin: 'http://localhost:5173', credentials: true }));`,
+    options:[
+      "Porque Express no soporta wildcards en la configuración de CORS",
+      "El estándar de seguridad del navegador prohíbe enviar cookies a un origen wildcard — requiere origen explícito",
+      "Porque * solo aplica para peticiones GET, no para peticiones con cookies",
+      "Para proteger la privacidad del usuario evitando que otros sitios lean las cookies"
+    ],
+    correct:1,
+    explanation:"La especificación CORS establece que cuando <code>credentials: true</code>, el header <code>Access-Control-Allow-Origin</code> <strong>no puede ser *</strong>. El navegador rechazará la respuesta con un error de CORS. Esto es una medida de seguridad: si fuera posible con *, cualquier sitio malicioso podría hacer peticiones con las cookies del usuario."
+  },
+  {
+    topic:"RBAC — frontend vs backend",level:"intermedio",
+    text:"El frontend oculta el botón 'Eliminar' para el rol invitado. ¿Eso es suficiente como medida de seguridad?",
+    scenario:"Un usuario con DevTools puede encontrar el endpoint DELETE y llamarlo directamente con Thunder Client o fetch() desde la consola.",
+    options:[
+      "Sí — si el botón no está visible, el usuario no puede invocar la acción",
+      "No — ocultar el botón es solo UX. La protección real es el verificarRol en el backend",
+      "Depende — si el usuario no sabe usar DevTools, es suficiente",
+      "Sí — las cookies httpOnly impiden que hagan peticiones desde fuera del navegador"
+    ],
+    correct:1,
+    explanation:"Ocultar elementos en el frontend es una mejora de <strong>experiencia de usuario</strong>, no de seguridad. Cualquier persona con conocimientos básicos puede hacer la petición directamente desde Thunder Client, curl o la consola del navegador. La <strong>única protección real</strong> es el middleware <code>verificarRol</code> en el servidor, que rechaza la petición independientemente de cómo llegue."
+  },
+  {
+    topic:"Sesión — /api/auth/me",level:"intermedio",
+    text:"¿Por qué AuthContext necesita llamar a /api/auth/me cuando el usuario recarga la página?",
+    options:[
+      "Para renovar el token JWT automáticamente antes de que expire",
+      "Porque React pierde todo su estado al recargar — llama al backend para saber si la cookie sigue siendo válida",
+      "Para sincronizar los datos del usuario con la base de datos",
+      "Para registrar en el servidor que el usuario sigue activo"
+    ],
+    correct:1,
+    explanation:"Al recargar la página, React <strong>pierde todo su estado</strong> incluyendo el objeto <code>usuario</code> en AuthContext. La cookie sigue en el navegador, pero React no sabe que existe. <code>GET /api/auth/me</code> pregunta al servidor: '¿la cookie que tienes es válida?'. Si sí, el servidor devuelve los datos del usuario y React restaura la sesión."
+  },
+  {
+    topic:"Vulnerabilidades — datos sensibles",level:"avanzado",
+    text:"¿Por qué el controlador de usuarios no incluye password_hash en el SELECT de getAll?",
+    code:`SELECT u.id, u.usuario, u.rol, u.activo,
+       per.nombre AS persona
+FROM   usuarios u
+JOIN   personas per ON u.persona_id = per.id
+-- password_hash NO se selecciona`,
+    options:[
+      "Porque password_hash es demasiado largo y ralentizaría la respuesta",
+      "Para evitar exponer datos de contraseñas al frontend, aunque estén hasheadas",
+      "Porque mysql2 no puede seleccionar campos de tipo TEXT en un JOIN",
+      "Porque el hash solo se necesita en el momento del login, no después"
+    ],
+    correct:1,
+    explanation:"Aunque los hashes de bcrypt no son reversibles, <strong>exponerlos innecesariamente</strong> es mala práctica. Un atacante con los hashes puede ejecutar ataques de diccionario offline sin límite de intentos. El principio de <strong>mínimo privilegio</strong> indica: nunca enviar al cliente más información de la necesaria. password_hash no se necesita en el frontend — no lo incluyas."
+  },
+  {
+    topic:"Logout — seguridad",level:"basico",
+    text:"¿Qué hace el endpoint POST /api/auth/logout para cerrar la sesión?",
+    code:`export const logout = (req, res) => {
+  res.clearCookie('token', { httpOnly: true, sameSite: 'strict' });
+  res.json({ mensaje: 'Sesión cerrada' });
+};`,
+    options:[
+      "Borra el JWT de la base de datos para invalidarlo permanentemente",
+      "Borra la cookie del navegador — el token deja de enviarse en futuras peticiones",
+      "Cambia el JWT_SECRET para invalidar todos los tokens activos",
+      "Devuelve un token vacío que sobreescribe el anterior"
+    ],
+    correct:1,
+    explanation:"<code>clearCookie</code> le dice al navegador que borre la cookie. Sin la cookie, el navegador no enviará el token en futuras peticiones y todas las rutas privadas devolverán 401. <strong>Limitación importante</strong>: el JWT en sí sigue siendo válido hasta su expiración — si alguien lo capturó antes del logout, podría usarlo. Para invalidación real se necesita una lista negra en BD (se verá en P12)."
+  },
+  {
+    topic:"OWASP — buenas prácticas",level:"avanzado",
+    text:"Un alumno quiere guardar el JWT_SECRET como 'abc123' en el .env. ¿Qué problema representa esto?",
+    code:`# .env - Vulnerable
+JWT_SECRET=abc123
+
+# .env - Correcto
+JWT_SECRET=X9#mK$2pL8vQz@nR5wYcBjTdE4hF6uA`,
+    options:[
+      "Ninguno — el JWT_SECRET solo lo conoce el servidor así que cualquier valor sirve",
+      "Una clave débil permite ataques de fuerza bruta para adivinar el secret y forjar JWTs válidos",
+      "Express solo acepta JWT_SECRET con más de 32 caracteres",
+      "La longitud del secret afecta el tamaño del token JWT generado"
+    ],
+    correct:1,
+    explanation:"El JWT_SECRET es la <strong>clave privada</strong> de todo el sistema de autenticación. Si un atacante la adivina (o la encuentra por fuerza bruta), puede crear tokens JWT válidos con cualquier id y rol — incluyendo admin — sin conocer ninguna contraseña. El secret debe ser largo, aleatorio e impredecible. Además, el <code>.env</code> nunca debe subirse a Git."
+  }
+];
+
+function shuffleOptions(){
+  questions.forEach(q=>{
+    const correctIndex=q.correct;
+    const grouped=q.options.map((text,index)=>({text,index}));
+    for(let i=grouped.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [grouped[i],grouped[j]]=[grouped[j],grouped[i]];
+    }
+    q.options=grouped.map(item=>item.text);
+    q.correct=grouped.findIndex(item=>item.index===correctIndex);
+  });
+}
+
+shuffleOptions();
+
+let current=0,score=0,answered=new Array(questions.length).fill(null);
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+}
+function startQuiz(){showScreen('question');renderQuestion();}
+
+function renderQuestion(){
+  const q=questions[current];
+  document.getElementById('qTopic').textContent=q.topic;
+  const lvlEl=document.getElementById('qLevel');
+  lvlEl.textContent=q.level; lvlEl.className='q-level '+q.level;
+  document.getElementById('qNum').textContent=`Pregunta ${current+1} de ${questions.length}`;
+  document.getElementById('qText').textContent=q.text;
+
+  const scEl=document.getElementById('qScenario');
+  if(q.scenario){
+    scEl.style.display='block';
+    scEl.innerHTML=`<div class="scenario"><div class="label">Caso</div>${q.scenario}</div>`;
+  } else { scEl.style.display='none'; }
+
+  const codeEl=document.getElementById('qCode');
+  if(q.code){codeEl.style.display='block';codeEl.textContent=q.code;}
+  else{codeEl.style.display='none';}
+
+  const optContainer=document.getElementById('options');
+  optContainer.innerHTML='';
+  const letters=['A','B','C','D'];
+  q.options.forEach((opt,i)=>{
+    const div=document.createElement('div');
+    div.className='opt';
+    div.innerHTML=`<div class="opt-letter">${letters[i]}</div><div>${opt}</div>`;
+    if(answered[current]===null){div.onclick=()=>selectAnswer(i);}
+    else{
+      div.classList.add('disabled');
+      if(i===q.correct) div.classList.add('correct');
+      if(i===answered[current]&&answered[current]!==q.correct) div.classList.add('wrong');
+    }
+    optContainer.appendChild(div);
+  });
+
+  const expEl=document.getElementById('explanation');
+  if(answered[current]!==null){expEl.innerHTML=q.explanation;expEl.classList.add('show');}
+  else{expEl.classList.remove('show');}
+
+  const ri=document.getElementById('resultIndicator');
+  if(answered[current]!==null){
+    if(answered[current]===q.correct){ri.textContent='Correcto';ri.className='result-indicator ok';}
+    else{ri.textContent='Incorrecto';ri.className='result-indicator fail';}
+  } else {ri.textContent='';ri.className='result-indicator';}
+
+  document.getElementById('btnNext').disabled=answered[current]===null;
+  updateProgress();
+}
+
+function selectAnswer(i){
+  if(answered[current]!==null) return;
+  const q=questions[current];
+  answered[current]=i;
+  if(i===q.correct) score++;
+
+  document.querySelectorAll('.opt').forEach((el,idx)=>{
+    el.classList.add('disabled'); el.onclick=null;
+    if(idx===q.correct) el.classList.add('correct');
+    if(idx===i&&i!==q.correct) el.classList.add('wrong');
+  });
+
+  const expEl=document.getElementById('explanation');
+  expEl.innerHTML=q.explanation; expEl.classList.add('show');
+
+  const ri=document.getElementById('resultIndicator');
+  if(i===q.correct){ri.textContent='Correcto';ri.className='result-indicator ok';}
+  else{ri.textContent='Incorrecto';ri.className='result-indicator fail';}
+
+  document.getElementById('btnNext').disabled=false;
+  updateProgress();
+}
+
+function nextQuestion(){
+  if(current<questions.length-1){current++;renderQuestion();}
+  else{showResults();}
+}
+
+function updateProgress(){
+  const done=answered.filter(a=>a!==null).length;
+  document.getElementById('progressLabel').textContent=`${done} / ${questions.length}`;
+  document.getElementById('progressFill').style.width=`${(done/questions.length)*100}%`;
+  document.getElementById('scoreBadge').textContent=`${score} pts`;
+}
+
+function showResults(){
+  showScreen('results');
+  const pct=Math.round((score/questions.length)*100);
+  const ring=document.getElementById('scoreRing');
+  const pctEl=document.getElementById('scorePct');
+  pctEl.textContent=pct+'%';
+  const cls=pct>=80?'high':pct>=60?'mid':'low';
+  ring.className='score-ring '+cls;
+  pctEl.className='score-pct '+cls;
+  document.getElementById('resultsTitle').textContent=
+    pct>=80?'Dominas la seguridad web':pct>=60?'Buen entendimiento — refuerza los conceptos avanzados':'Hay vulnerabilidades en tu comprensión';
+  document.getElementById('resultsSub').textContent=
+    `Respondiste correctamente ${score} de ${questions.length} preguntas (${pct}%)`;
+
+  const grid=document.getElementById('reviewGrid');
+  grid.innerHTML='';
+  answered.forEach((a,i)=>{
+    const d=document.createElement('div');
+    const ok=a===questions[i].correct;
+    d.className='review-dot '+(ok?'ok':'fail');
+    d.textContent=(i+1);
+    grid.appendChild(d);
+  });
+
+  const missed=answered
+    .map((answer,index)=>({answer,index,question:questions[index]}))
+    .filter(item=>item.answer!==item.question.correct);
+  const missedSection=document.getElementById('missedSection');
+  missedSection.innerHTML='';
+  if(missed.length===0){
+    const card=document.createElement('div');
+    card.className='missed-card success';
+    const title=document.createElement('h3');
+    title.textContent='Sin temas pendientes';
+    const copy=document.createElement('p');
+    copy.textContent='Respondieron correctamente todas las preguntas.';
+    card.appendChild(title);
+    card.appendChild(copy);
+    missedSection.appendChild(card);
+  }else{
+    const card=document.createElement('div');
+    card.className='missed-card';
+    const title=document.createElement('h3');
+    title.textContent='Temas para investigar';
+    const copy=document.createElement('p');
+    copy.textContent='Revisen estas preguntas antes de repetir el repaso.';
+    const list=document.createElement('div');
+    list.className='missed-list';
+    missed.forEach(item=>{
+      const missedItem=document.createElement('div');
+      missedItem.className='missed-item';
+      const meta=document.createElement('div');
+      meta.className='missed-meta';
+      meta.textContent=`Pregunta ${item.index+1} · ${item.question.topic}`;
+      const question=document.createElement('div');
+      question.className='missed-question';
+      question.textContent=item.question.text;
+      const answer=document.createElement('div');
+      answer.className='missed-answer';
+      const strong=document.createElement('strong');
+      strong.textContent='Respuesta correcta:';
+      answer.appendChild(strong);
+      answer.append(' '+item.question.options[item.question.correct]);
+      missedItem.appendChild(meta);
+      missedItem.appendChild(question);
+      missedItem.appendChild(answer);
+      list.appendChild(missedItem);
+    });
+    card.appendChild(title);
+    card.appendChild(copy);
+    card.appendChild(list);
+    missedSection.appendChild(card);
+  }
+}
+</script>
+</body>
+</html>
