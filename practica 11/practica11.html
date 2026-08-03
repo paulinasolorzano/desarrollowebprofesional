@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica 11 — Validaciones y Manejo de Errores</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',Arial,sans-serif; background:#fff; color:#1a1a2e; font-size:14px; line-height:1.7; }
+.header { background:#1565C0; color:#fff; }
+.header-top { background:#0D47A1; padding:18px 40px 14px; display:flex; justify-content:space-between; align-items:flex-start; }
+.header-inst { font-size:11px; opacity:0.85; letter-spacing:0.03em; text-transform:uppercase; }
+.header-carrera { font-size:13px; font-weight:600; margin-top:3px; }
+.header-badge { background:#fff; color:#0D47A1; font-weight:700; font-size:13px; padding:6px 16px; border-radius:20px; white-space:nowrap; align-self:center; }
+.header-main { padding:20px 40px 24px; }
+.header-practica { font-size:11px; opacity:0.75; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; }
+.header-titulo { font-size:26px; font-weight:700; margin-bottom:8px; }
+.header-meta { display:flex; gap:24px; font-size:12px; opacity:0.85; flex-wrap:wrap; }
+.header-strip { height:5px; background:#42A5F5; }
+.content { max-width:900px; margin:0 auto; padding:36px 40px 60px; }
+.toc { background:#E3F2FD; border-left:4px solid #1565C0; border-radius:0 8px 8px 0; padding:20px 24px; margin-bottom:36px; }
+.toc-title { font-size:13px; font-weight:700; color:#0D47A1; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px; }
+.toc ol { padding-left:18px; }
+.toc li { font-size:13px; color:#1565C0; padding:3px 0; }
+.toc li a { color:#1565C0; text-decoration:none; }
+.toc li a:hover { text-decoration:underline; }
+.seccion { margin-bottom:36px; }
+.seccion-titulo { font-size:16px; font-weight:700; color:#0D47A1; border-bottom:2px solid #BBDEFB; padding-bottom:8px; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+.seccion-num { background:#1565C0; color:#fff; font-size:12px; font-weight:700; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.subseccion-titulo { font-size:14px; font-weight:700; color:#1565C0; margin:18px 0 8px; }
+p { margin-bottom:10px; }
+.contexto-card { background:#F8FBFF; border:1px solid #BBDEFB; border-radius:10px; padding:20px 24px; margin-bottom:16px; }
+.contexto-card p:last-child { margin-bottom:0; }
+.concepto-bloque { border:1px solid #BBDEFB; border-radius:10px; margin-bottom:14px; overflow:hidden; }
+.concepto-header { background:#1565C0; color:#fff; padding:10px 16px; font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px; }
+.concepto-body { padding:14px 16px; font-size:13.5px; background:#F8FBFF; }
+.concepto-body p { margin-bottom:8px; }
+.concepto-body p:last-child { margin-bottom:0; }
+.nota { background:#FFF8E1; border-left:4px solid #F59E0B; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.nota strong { color:#92400E; }
+.info { background:#E8F5E9; border-left:4px solid #43A047; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.info strong { color:#1B5E20; }
+.peligro { background:#FFEBEE; border-left:4px solid #E53935; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.peligro strong { color:#B71C1C; }
+.profesional { background:#EDE7F6; border-left:4px solid #7B1FA2; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.profesional strong { color:#4A148C; }
+.flujo { display:flex; align-items:center; margin:16px 0; flex-wrap:wrap; gap:4px; }
+.flujo-item { background:#E3F2FD; border:1px solid #90CAF9; border-radius:8px; padding:10px 14px; text-align:center; font-size:12px; flex:1; min-width:90px; }
+.flujo-item.activo { background:#1565C0; color:#fff; border-color:#1565C0; font-weight:700; }
+.flujo-item.futuro { background:#F5F5F5; border-color:#ddd; color:#999; }
+.flujo-item.listo { background:#E8F5E9; border-color:#66BB6A; color:#2E7D32; }
+.flujo-item .fi-num { font-size:10px; opacity:0.7; margin-bottom:2px; }
+.flujo-item .fi-nombre { font-size:12px; font-weight:600; }
+.flujo-sep { color:#90CAF9; font-size:18px; padding:0 4px; }
+.paso { background:#fff; border:1px solid #BBDEFB; border-radius:10px; padding:20px 24px; margin-bottom:20px; }
+.paso-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.paso-num { background:#1565C0; color:#fff; font-size:13px; font-weight:700; padding:4px 12px; border-radius:14px; }
+.paso-titulo { font-size:14px; font-weight:700; color:#0D47A1; }
+.paso p { font-size:13.5px; margin-bottom:10px; }
+.file-label { display:inline-block; background:#E3F2FD; color:#0D47A1; font-family:'Courier New',monospace; font-size:12px; padding:4px 12px; border-radius:6px 6px 0 0; border:1px solid #BBDEFB; border-bottom:none; font-weight:600; margin-top:10px; }
+.file-label.nuevo { background:#E8F5E9; color:#1B5E20; border-color:#A5D6A7; }
+.file-label.modif { background:#FFF8E1; color:#92400E; border-color:#FFE082; }
+.code-wrap { border:1px solid #BBDEFB; border-radius:0 8px 8px 8px; overflow:hidden; margin-bottom:12px; background:#fff; }
+.code-wrap.nuevo { border-color:#A5D6A7; }
+.code-wrap.modif { border-color:#FFE082; }
+.code-wrap canvas { display:block; max-width:100%; }
+.folder-tree { background:#fff; border:1px solid #BBDEFB; border-radius:8px; padding:16px 20px; margin:12px 0; font-family:'Courier New',monospace; font-size:13px; line-height:2.1; }
+.folder-tree .d { color:#1565C0; font-weight:700; }
+.folder-tree .f-nuevo { color:#2E7D32; font-weight:700; background:#E8F5E9; padding:1px 4px; border-radius:3px; }
+.folder-tree .f-modif { color:#92400E; font-weight:700; background:#FFF8E1; padding:1px 4px; border-radius:3px; }
+.folder-tree .cm { color:#9E9E9E; font-style:italic; }
+.tabla-gen { width:100%; border-collapse:collapse; font-size:13px; margin:12px 0; }
+.tabla-gen th { background:#1565C0; color:#fff; padding:9px 14px; text-align:left; font-size:12px; }
+.tabla-gen td { padding:9px 14px; border-bottom:1px solid #E3F2FD; vertical-align:top; }
+.tabla-gen tr:nth-child(even) td { background:#F8FBFF; }
+.actividades { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.actividades th { background:#1565C0; color:#fff; padding:10px 14px; text-align:left; font-weight:600; font-size:12px; }
+.actividades td { padding:9px 14px; border-bottom:1px solid #E3F2FD; vertical-align:top; }
+.actividades tr:nth-child(even) td { background:#F8FBFF; }
+.actividades tr:last-child td { border-bottom:none; }
+.tipo-badge { font-size:11px; padding:3px 8px; border-radius:10px; font-weight:600; white-space:nowrap; }
+.tipo-codigo { background:#E3F2FD; color:#0D47A1; }
+.tipo-prueba { background:#E8F5E9; color:#1B5E20; }
+.tipo-thunder { background:#FFF3E0; color:#E65100; }
+.reflexion-lista { list-style:none; padding:0; counter-reset:ref; }
+.reflexion-lista li { counter-increment:ref; padding:10px 14px 10px 44px; position:relative; background:#F8FBFF; border:1px solid #BBDEFB; border-radius:8px; margin-bottom:8px; font-size:13.5px; }
+.reflexion-lista li::before { content:counter(ref); position:absolute; left:12px; top:50%; transform:translateY(-50%); background:#1565C0; color:#fff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
+.rubrica { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.rubrica th { background:#0D47A1; color:#fff; padding:10px 14px; text-align:left; font-weight:600; font-size:12px; }
+.rubrica td { padding:9px 14px; border-bottom:1px solid #E3F2FD; }
+.rubrica tr:nth-child(even) td { background:#F8FBFF; }
+.rubrica .total td { background:#1565C0; color:#fff; font-weight:700; }
+.pts { font-weight:700; color:#0D47A1; }
+.entregable-lista { list-style:none; padding:0; }
+.entregable-lista li { padding:8px 14px 8px 36px; position:relative; font-size:13.5px; border-bottom:1px solid #F0F4FF; }
+.entregable-lista li:last-child { border-bottom:none; }
+.entregable-lista li::before { content:'📄'; position:absolute; left:8px; }
+.footer { background:#0D47A1; color:#fff; text-align:center; padding:14px 40px; font-size:12px; margin-top:40px; }
+code { background:#E3F2FD; color:#0D47A1; padding:1px 5px; border-radius:3px; font-size:12px; font-family:'Courier New',monospace; }
+.http-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:12px 0; }
+.http-card { border-radius:8px; padding:12px 14px; text-align:center; }
+.http-card .code-big { font-size:22px; font-weight:700; font-family:'Courier New',monospace; margin-bottom:4px; }
+.http-card .desc { font-size:11px; }
+.http-200 { background:#E8F5E9; color:#1B5E20; border:1px solid #A5D6A7; }
+.http-201 { background:#E8F5E9; color:#1B5E20; border:1px solid #A5D6A7; }
+.http-400 { background:#FFF8E1; color:#92400E; border:1px solid #FFE082; }
+.http-401 { background:#FFEBEE; color:#B71C1C; border:1px solid #FFCDD2; }
+.http-403 { background:#FFEBEE; color:#B71C1C; border:1px solid #FFCDD2; }
+.http-404 { background:#FFF3E0; color:#E65100; border:1px solid #FFCC80; }
+.http-409 { background:#EDE7F6; color:#4A148C; border:1px solid #CE93D8; }
+.http-500 { background:#FFEBEE; color:#B71C1C; border:1px solid #FFCDD2; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-inst">Ingeniería de Desarrollo y Gestión de Software</div>
+      <div class="header-carrera">Desarrollo Web Integral y Seguridad</div>
+    </div>
+    <div class="header-badge">Práctica 11</div>
+  </div>
+  <div class="header-main">
+    <div class="header-practica">Fase 5 — Avanzado · inicio</div>
+    <div class="header-titulo">Validaciones y Manejo Profesional de Errores</div>
+    <div class="header-meta">
+      <span>⏱ Duración: 2.5 horas</span>
+      <span>📦 express-validator · middleware global · códigos HTTP correctos</span>
+      <span>🎯 Entregable: API robusta que valida entradas y responde con errores claros</span>
+    </div>
+  </div>
+  <div class="header-strip"></div>
+</div>
+
+<div class="content">
+
+  <div class="toc">
+    <div class="toc-title">Tabla de contenidos</div>
+    <ol>
+      <li><a href="#donde">¿Dónde estamos en el proyecto?</a></li>
+      <li><a href="#conceptos">Conceptos clave: validación vs manejo de errores</a></li>
+      <li><a href="#objetivos">Objetivos de la práctica</a></li>
+      <li><a href="#estructura">Cambios en la estructura</a></li>
+      <li><a href="#desarrollo">Desarrollo paso a paso</a></li>
+      <li><a href="#actividades">Actividades</a></li>
+      <li><a href="#reflexion">Preguntas de reflexión</a></li>
+      <li><a href="#entregable">Entregable</a></li>
+      <li><a href="#rubrica">Criterios de evaluación</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. DÓNDE ESTAMOS -->
+  <div class="seccion" id="donde">
+    <div class="seccion-titulo"><span class="seccion-num">1</span> ¿Dónde estamos en el proyecto?</div>
+    <div class="contexto-card">
+      <p>Con P10 completaste la <strong>Fase 4</strong> — los cuatro módulos CRUD del sistema están funcionando: Personas, Usuarios, Proyectos y Tareas, cada uno con sus relaciones, JOIN y permisos RBAC. El sistema <em>funciona</em>, pero tiene un problema importante: si alguien envía datos incorrectos o falta un campo obligatorio, el servidor responde con un error 500 genérico que no explica nada. En P11 vamos a cambiar eso.</p>
+      <p>La <strong>Fase 5</strong> es la etapa que convierte un sistema funcional en un sistema profesional: validaciones de entrada, errores descriptivos, seguridad avanzada y una entrega documentada.</p>
+    </div>
+    <div class="flujo">
+      <div class="flujo-item listo"><div class="fi-num">P01–P10</div><div class="fi-nombre">BD · Auth · CRUD completo</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item activo"><div class="fi-num">P11</div><div class="fi-nombre">Validaciones y errores</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item futuro"><div class="fi-num">P12</div><div class="fi-nombre">Seguridad avanzada</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item futuro"><div class="fi-num">P13</div><div class="fi-nombre">Cierre y entrega</div></div>
+    </div>
+  </div>
+
+  <!-- 2. CONCEPTOS -->
+  <div class="seccion" id="conceptos">
+    <div class="seccion-titulo"><span class="seccion-num">2</span> Conceptos clave: validación vs manejo de errores</div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header">¿Qué es la validación de entradas?</div>
+      <div class="concepto-body">
+        <p>La validación ocurre <strong>antes de que los datos lleguen a la base de datos</strong>. Es la puerta de entrada: revisa que el cuerpo de la petición tiene los campos necesarios, que no están vacíos, que tienen el tipo correcto y que cumplen las reglas de negocio.</p>
+        <p>Sin validación, un usuario puede enviar <code>{ nombre: "" }</code> o <code>{ calificacion: 999 }</code> y el servidor lo acepta sin quejarse, guardando datos basura en la BD.</p>
+        <p><strong>Analogía:</strong> es el guardia en la entrada de un edificio. Verifica que traes todo lo necesario antes de dejarte pasar. Si algo falta, te regresa en la puerta — el vigilante no espera a que el director te diga que no tienes cita.</p>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header">¿Qué es el manejo de errores?</div>
+      <div class="concepto-body">
+        <p>El manejo de errores ocurre cuando <strong>algo sale mal en tiempo de ejecución</strong>: la base de datos no responde, se intenta insertar un valor duplicado, o una operación falla inesperadamente. En lugar de dejar que Express muestre el error técnico completo al cliente (que puede exponer información sensible del servidor), el sistema lo captura y responde con un mensaje claro y un código HTTP adecuado.</p>
+        <p><strong>Analogía:</strong> es el protocolo de crisis de un hotel. Si hay una fuga de agua en una habitación, el recepcionista no le grita los detalles del problema a todos los huéspedes — llama a mantenimiento silenciosamente y le da al huésped una habitación diferente con una explicación breve y profesional.</p>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header">Códigos HTTP que usaremos en esta práctica</div>
+      <div class="concepto-body">
+        <div class="http-grid">
+          <div class="http-card http-200"><div class="code-big">200</div><div class="desc">OK — operación exitosa</div></div>
+          <div class="http-card http-201"><div class="code-big">201</div><div class="desc">Created — recurso creado</div></div>
+          <div class="http-card http-400"><div class="code-big">400</div><div class="desc">Bad Request — datos inválidos</div></div>
+          <div class="http-card http-401"><div class="code-big">401</div><div class="desc">Unauthorized — sin sesión</div></div>
+          <div class="http-card http-403"><div class="code-big">403</div><div class="desc">Forbidden — sin permiso</div></div>
+          <div class="http-card http-404"><div class="code-big">404</div><div class="desc">Not Found — no existe</div></div>
+          <div class="http-card http-409"><div class="code-big">409</div><div class="desc">Conflict — duplicado</div></div>
+          <div class="http-card http-500"><div class="code-big">500</div><div class="desc">Server Error — fallo interno</div></div>
+        </div>
+        <p style="font-size:12px;color:#666;margin-top:8px;">Regla: los errores del <strong>cliente</strong> son 4xx. Los errores del <strong>servidor</strong> son 5xx. El cliente nunca debe recibir un 500 por haber enviado datos incorrectos — eso debió ser un 400.</p>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header">express-validator — la herramienta de validación</div>
+      <div class="concepto-body">
+        <p><code>express-validator</code> es una librería para Node.js/Express que permite declarar reglas de validación directamente en las rutas, de forma legible y reutilizable. Funciona como un middleware que revisa el <code>req.body</code> antes de que la petición llegue al controlador.</p>
+        <table class="tabla-gen">
+          <thead><tr><th>Función</th><th>Qué valida</th><th>Ejemplo</th></tr></thead>
+          <tbody>
+            <tr><td><code>body('campo').notEmpty()</code></td><td>No vacío</td><td>nombre requerido</td></tr>
+            <tr><td><code>.isLength({ min:3 })</code></td><td>Longitud mínima</td><td>contraseña &ge; 3 chars</td></tr>
+            <tr><td><code>.isEmail()</code></td><td>Formato de email</td><td>correo válido</td></tr>
+            <tr><td><code>.isInt({ min:1, max:10 })</code></td><td>Número entero en rango</td><td>calificación 1–10</td></tr>
+            <tr><td><code>.isIn(['admin','usuario','invitado'])</code></td><td>Valor en lista</td><td>rol válido</td></tr>
+            <tr><td><code>.trim()</code></td><td>Elimina espacios extra</td><td>limpiar nombre</td></tr>
+            <tr><td><code>.withMessage('texto')</code></td><td>Mensaje personalizado</td><td>mensaje de error</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. OBJETIVOS -->
+  <div class="seccion" id="objetivos">
+    <div class="seccion-titulo"><span class="seccion-num">3</span> Objetivos de la práctica</div>
+    <ul class="entregable-lista" style="padding:0;">
+      <li>Instalar y configurar <code>express-validator</code> en el proyecto backend.</li>
+      <li>Crear el middleware <code>validar.js</code> que lee los errores de validación y responde 400 si hay problemas.</li>
+      <li>Crear el middleware global <code>errorHandler.js</code> que centraliza el manejo de errores 500.</li>
+      <li>Agregar reglas de validación a los controladores de Personas, Proyectos, Tareas, Departamentos y Evaluaciones.</li>
+      <li>Reemplazar los bloques <code>catch</code> genéricos por manejo específico de errores MySQL (ER_DUP_ENTRY, etc.).</li>
+      <li>Verificar con Thunder Client que los errores ahora devuelven 400 con mensajes descriptivos en lugar de 500.</li>
+    </ul>
+  </div>
+
+  <!-- 4. ESTRUCTURA -->
+  <div class="seccion" id="estructura">
+    <div class="seccion-titulo"><span class="seccion-num">4</span> Cambios en la estructura del proyecto</div>
+    <div class="folder-tree">
+      <span class="d">backend/</span><br>
+      ├── <span class="d">middlewares/</span><br>
+      │&nbsp;&nbsp;&nbsp;├── auth.middleware.js &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+      │&nbsp;&nbsp;&nbsp;├── rol.middleware.js &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← sin cambios</span><br>
+      │&nbsp;&nbsp;&nbsp;├── <span class="f-nuevo">validar.middleware.js</span>&nbsp;&nbsp;<span class="cm">← nuevo: lee errores de express-validator</span><br>
+      │&nbsp;&nbsp;&nbsp;└── <span class="f-nuevo">errorHandler.middleware.js</span>&nbsp;<span class="cm">← nuevo: middleware global de errores 500</span><br>
+      ├── <span class="d">validators/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← carpeta nueva</span><br>
+      │&nbsp;&nbsp;&nbsp;├── <span class="f-nuevo">personas.validator.js</span><br>
+      │&nbsp;&nbsp;&nbsp;├── <span class="f-nuevo">proyectos.validator.js</span><br>
+      │&nbsp;&nbsp;&nbsp;├── <span class="f-nuevo">tareas.validator.js</span><br>
+      │&nbsp;&nbsp;&nbsp;├── <span class="f-nuevo">evaluaciones.validator.js</span><br>
+      │&nbsp;&nbsp;&nbsp;└── <span class="f-nuevo">puestos.validator.js</span><br>
+      ├── <span class="d">controllers/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← catch mejorados en todos</span><br>
+      │&nbsp;&nbsp;&nbsp;├── <span class="f-modif">personas.controller.js</span><br>
+      │&nbsp;&nbsp;&nbsp;├── <span class="f-modif">proyectos.controller.js</span><br>
+      │&nbsp;&nbsp;&nbsp;├── <span class="f-modif">tareas.controller.js</span><br>
+      │&nbsp;&nbsp;&nbsp;└── <span class="f-modif">usuarios.controller.js</span><br>
+      ├── <span class="d">routes/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← agregar validators en POST y PUT</span><br>
+      │&nbsp;&nbsp;&nbsp;├── <span class="f-modif">personas.routes.js</span><br>
+      │&nbsp;&nbsp;&nbsp;├── <span class="f-modif">proyectos.routes.js</span><br>
+      │&nbsp;&nbsp;&nbsp;└── <span class="f-modif">tareas.routes.js</span><br>
+      └── <span class="f-modif">server.js</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">← registrar errorHandler al final</span>
+    </div>
+  </div>
+
+  <!-- 5. DESARROLLO -->
+  <div class="seccion" id="desarrollo">
+    <div class="seccion-titulo"><span class="seccion-num">5</span> Desarrollo paso a paso</div>
+
+    <!-- PASO 1 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 1</span><span class="paso-titulo">Instalar express-validator</span></div>
+      <p>Ejecuta este comando en la carpeta <code>backend/</code>:</p>
+      <div class="file-label">Terminal — dentro de backend/</div>
+      <div class="code-wrap"><canvas id="c_install"></canvas></div>
+    </div>
+
+    <!-- PASO 2 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 2</span><span class="paso-titulo">Crear <code>validar.middleware.js</code></span></div>
+      <p>Este middleware se coloca después de las reglas de validación en la ruta. Lee los errores que dejó <code>express-validator</code> y, si hay alguno, interrumpe la petición respondiendo 400 con la lista de errores. Si no hay errores, llama a <code>next()</code> para continuar al controlador.</p>
+      <div class="file-label nuevo">backend/middlewares/validar.middleware.js — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_validar"></canvas></div>
+    </div>
+
+    <!-- PASO 3 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 3</span><span class="paso-titulo">Crear <code>errorHandler.middleware.js</code></span></div>
+      <p>Este es el middleware <strong>global</strong> de errores. Express lo reconoce porque tiene <strong>cuatro parámetros</strong> (err, req, res, next). Se registra en <code>server.js</code> al final de todo y captura cualquier error que los controladores lancen con <code>next(err)</code> o que ocurra sin capturarse.</p>
+      <div class="file-label nuevo">backend/middlewares/errorHandler.middleware.js — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_errhandler"></canvas></div>
+      <div class="profesional"><strong>¿Por qué 4 parámetros?</strong> Express identifica los middlewares de error precisamente por la firma <code>(err, req, res, next)</code>. Si olvidas el <code>err</code> al principio, Express lo trata como un middleware normal y nunca lo llama cuando hay un error.</div>
+    </div>
+
+    <!-- PASO 4 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 4</span><span class="paso-titulo">Crear los validators — empezando con personas</span></div>
+      <p>Cada módulo tiene su propio archivo de reglas. Estas reglas son un arreglo de validaciones de <code>express-validator</code> que se insertan como middlewares en la ruta, <strong>antes</strong> del controlador.</p>
+      <div class="file-label nuevo">backend/validators/personas.validator.js — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_val_personas"></canvas></div>
+
+      <div class="subseccion-titulo" style="margin-top:16px;">Validator de proyectos</div>
+      <div class="file-label nuevo">backend/validators/proyectos.validator.js — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_val_proyectos"></canvas></div>
+
+      <div class="subseccion-titulo" style="margin-top:16px;">Validator de tareas</div>
+      <div class="file-label nuevo">backend/validators/tareas.validator.js — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_val_tareas"></canvas></div>
+
+      <div class="subseccion-titulo" style="margin-top:16px;">Validator de evaluaciones (módulo de evaluación)</div>
+      <div class="file-label nuevo">backend/validators/evaluaciones.validator.js — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_val_eval"></canvas></div>
+    </div>
+
+    <!-- PASO 5 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 5</span><span class="paso-titulo">Actualizar las rutas para incluir los validators</span></div>
+      <p>En cada archivo de rutas se importan el validator y el middleware <code>validar</code>. Se insertan en la cadena de middlewares de POST y PUT, justo antes del controlador.</p>
+      <div class="file-label modif">backend/routes/personas.routes.js — modificar</div>
+      <div class="code-wrap modif"><canvas id="c_routes_personas"></canvas></div>
+      <p>El patrón es el mismo para <code>proyectos.routes.js</code> y <code>tareas.routes.js</code> — importar su validator correspondiente y agregarlo a POST y PUT.</p>
+    </div>
+
+    <!-- PASO 6 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 6</span><span class="paso-titulo">Mejorar los bloques catch en los controladores</span></div>
+      <p>Actualmente todos los controladores tienen un catch genérico que responde 500 para cualquier error, incluyendo errores que deberían ser 409 (duplicado) o 404 (no encontrado). Vamos a especializarlos.</p>
+      <div class="file-label modif">backend/controllers/personas.controller.js — mejorar el catch de create y update</div>
+      <div class="code-wrap modif"><canvas id="c_ctrl_catch"></canvas></div>
+      <div class="info"><strong>Aplica este patrón en todos los controladores</strong> que tengan INSERT o UPDATE: personas, proyectos, tareas, usuarios, departamentos, puestos y evaluaciones. El error <code>ER_DUP_ENTRY</code> siempre debe devolver 409, nunca 500.</div>
+    </div>
+
+    <!-- PASO 7 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 7</span><span class="paso-titulo">Registrar el errorHandler en server.js</span></div>
+      <p>El middleware global de errores <strong>debe registrarse al final de todo</strong>, después de todas las rutas. Si se registra antes, no capturará los errores de las rutas registradas después.</p>
+      <div class="file-label modif">backend/server.js — agregar al final</div>
+      <div class="code-wrap modif"><canvas id="c_server"></canvas></div>
+    </div>
+
+    <!-- PASO 8 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 8</span><span class="paso-titulo">Probar con Thunder Client — 6 pruebas obligatorias</span></div>
+
+      <div class="subseccion-titulo">Prueba 1 — Campo vacío en crear persona</div>
+      <div class="file-label">POST http://localhost:3000/api/personas — body con nombre vacío</div>
+      <div class="code-wrap"><canvas id="c_t1"></canvas></div>
+      <div class="info"><strong>Esperado:</strong> <code>400 Bad Request</code> con arreglo de errores describiendo exactamente qué campo falló.</div>
+
+      <div class="subseccion-titulo" style="margin-top:16px;">Prueba 2 — Correo con formato inválido</div>
+      <div class="file-label">POST http://localhost:3000/api/personas — correo mal formado</div>
+      <div class="code-wrap"><canvas id="c_t2"></canvas></div>
+      <div class="info"><strong>Esperado:</strong> <code>400</code> con mensaje "Correo no válido".</div>
+
+      <div class="subseccion-titulo" style="margin-top:16px;">Prueba 3 — Crear proyecto sin responsable_id</div>
+      <div class="file-label">POST http://localhost:3000/api/proyectos — sin responsable_id</div>
+      <div class="code-wrap"><canvas id="c_t3"></canvas></div>
+      <div class="info"><strong>Esperado:</strong> <code>400</code> con mensaje sobre responsable_id requerido.</div>
+
+      <div class="subseccion-titulo" style="margin-top:16px;">Prueba 4 — Nombre duplicado en persona</div>
+      <div class="file-label">POST /api/personas — nombre ya existente en BD</div>
+      <div class="info"><strong>Esperado:</strong> <code>409 Conflict</code> — ya no es un 500 genérico.</div>
+
+      <div class="subseccion-titulo" style="margin-top:16px;">Prueba 5 — Calificación fuera de rango en evaluaciones</div>
+      <div class="file-label">POST http://localhost:3000/api/evaluaciones — calificacion: 150</div>
+      <div class="code-wrap"><canvas id="c_t5"></canvas></div>
+      <div class="info"><strong>Esperado:</strong> <code>400</code> con mensaje "La calificación debe estar entre 1 y 10".</div>
+
+      <div class="subseccion-titulo" style="margin-top:16px;">Prueba 6 — Crear persona con datos completos y válidos</div>
+      <div class="file-label">POST /api/personas — todos los campos correctos</div>
+      <div class="info"><strong>Esperado:</strong> <code>201 Created</code> — las validaciones no interfieren con peticiones correctas.</div>
+    </div>
+  </div>
+
+  <!-- 6. ACTIVIDADES -->
+  <div class="seccion" id="actividades">
+    <div class="seccion-titulo"><span class="seccion-num">6</span> Actividades</div>
+    <table class="actividades">
+      <thead><tr><th>Núm.</th><th>Actividad</th><th>Tipo</th></tr></thead>
+      <tbody>
+        <tr><td>A1</td><td>Realiza las 6 pruebas de Thunder Client. Captura cada respuesta mostrando el código HTTP y el body de error.</td><td><span class="tipo-badge tipo-thunder">Thunder Client</span></td></tr>
+        <tr><td>A2</td><td>Agrega validaciones al validator de <code>usuarios</code>: usuario no vacío (mín. 4 chars), password no vacío (mín. 6 chars), rol debe ser uno de 'admin', 'usuario', 'invitado'.</td><td><span class="tipo-badge tipo-codigo">Código</span></td></tr>
+        <tr><td>A3</td><td>Modifica el controlador de <code>getById</code> de cualquier módulo para que devuelva <strong>404</strong> con mensaje "Registro no encontrado" cuando <code>rows.length === 0</code>, en lugar del objeto vacío actual.</td><td><span class="tipo-badge tipo-codigo">Código</span></td></tr>
+        <tr><td>A4</td><td>Prueba que el errorHandler global funciona: en cualquier controlador agrega temporalmente <code>throw new Error('Error de prueba')</code> al inicio del getAll, llama el endpoint y verifica que responde 500 con el mensaje controlado (no el stack trace completo). Luego quita la línea.</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+        <tr><td>A5</td><td>Construye la tabla de errores del sistema: documenta en un archivo <code>ERRORES.md</code> dentro de <code>backend/</code> qué código HTTP devuelve cada situación posible del sistema (sin sesión, sin permiso, campo inválido, duplicado, no encontrado, error interno).</td><td><span class="tipo-badge tipo-codigo">Código</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 7. REFLEXIÓN -->
+  <div class="seccion" id="reflexion">
+    <div class="seccion-titulo"><span class="seccion-num">7</span> Preguntas de reflexión</div>
+    <ol class="reflexion-lista">
+      <li>¿Por qué el middleware de errores global en Express necesita exactamente cuatro parámetros <code>(err, req, res, next)</code>? ¿Qué pasaría si tuviera tres?</li>
+      <li>Explica la diferencia entre un error 400 y un error 500. Da un ejemplo concreto de cada uno en el contexto del Sistema Administrativo.</li>
+      <li>El validator de personas revisa que el correo tenga formato válido. ¿Eso es suficiente para garantizar que el correo realmente existe? ¿Qué validación adicional sería necesaria y por qué no la hacemos en el backend?</li>
+      <li>¿Por qué los validadores están en una carpeta separada <code>validators/</code> en lugar de escribirse directamente en las rutas o en los controladores? ¿Qué beneficio da esa separación?</li>
+      <li>Antes de esta práctica, cuando la BD lanzaba un ER_DUP_ENTRY el servidor respondía 500. ¿Por qué ese código era técnicamente incorrecto? ¿Cuál es la responsabilidad del desarrollador al elegir el código de respuesta correcto?</li>
+    </ol>
+  </div>
+
+  <!-- 8. ENTREGABLE -->
+  <div class="seccion" id="entregable">
+    <div class="seccion-titulo"><span class="seccion-num">8</span> Entregable</div>
+    <ul class="entregable-lista">
+      <li>ZIP con <code>backend/</code> y <code>frontend/</code> completos sin <code>node_modules/</code> ni <code>.env</code>.</li>
+      <li>Capturas de las 6 pruebas Thunder Client con código HTTP visible (A1).</li>
+      <li>Código del validator de usuarios implementado (A2).</li>
+      <li>Código del getById con 404 implementado (A3).</li>
+      <li>Captura del errorHandler respondiendo 500 controlado (A4).</li>
+      <li>Archivo <code>ERRORES.md</code> con la tabla de errores del sistema (A5).</li>
+      <li>Respuestas a las 5 preguntas de reflexión.</li>
+    </ul>
+    <div class="peligro"><strong>No incluyas <code>node_modules/</code> ni <code>.env</code> en el ZIP.</strong></div>
+  </div>
+
+  <!-- 9. RÚBRICA -->
+  <div class="seccion" id="rubrica">
+    <div class="seccion-titulo"><span class="seccion-num">9</span> Criterios de evaluación</div>
+    <table class="rubrica">
+      <thead><tr><th>Criterio</th><th>Descripción</th><th>Puntos</th></tr></thead>
+      <tbody>
+        <tr><td>Middleware validar.js</td><td>Intercepta errores de express-validator y responde 400 con lista de errores. Verificado con Thunder Client (A1).</td><td class="pts">20</td></tr>
+        <tr><td>Validators implementados</td><td>Al menos personas, proyectos y tareas tienen reglas de validación funcionales en POST y PUT.</td><td class="pts">25</td></tr>
+        <tr><td>Manejo de ER_DUP_ENTRY</td><td>Los controladores responden 409 en lugar de 500 cuando hay duplicados.</td><td class="pts">15</td></tr>
+        <tr><td>errorHandler global</td><td>Registrado al final de server.js. Responde 500 con mensaje controlado, no el stack trace. (A4)</td><td class="pts">20</td></tr>
+        <tr><td>Actividades A2, A3 y A5</td><td>Validator de usuarios, getById con 404 y archivo ERRORES.md completos.</td><td class="pts">20</td></tr>
+      </tbody>
+      <tr class="total"><td colspan="2">Total</td><td>100</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<div class="footer">
+  Ingeniería de Desarrollo y Gestión de Software &nbsp;·&nbsp; Práctica 11 de 13 &nbsp;·&nbsp; Fase 5: Avanzado — Validaciones y Manejo de Errores
+</div>
+
+<script>
+const KW='#7B40F2',ST='#C0392B',CM='#27AE60',FN='#16A085',PL='#1a1a2e',IM='#8E44AD';
+
+function draw(id, lines) {
+  const cv = document.getElementById(id);
+  if (!cv) return;
+
+  // Use a fixed char width for Courier New 13px (monospace = predictable)
+  const CH = 7.8;   // px per character at 13px Courier New
+  const LH = 22;    // line height px
+  const PX = 14;    // horizontal padding
+  const PY = 12;    // vertical padding
+  const FS = '13px "Courier New",Courier,monospace';
+
+  // Calculate canvas size from content
+  let maxChars = 0;
+  lines.forEach(segs => {
+    const len = segs.reduce((acc, [, t]) => acc + t.length, 0);
+    if (len > maxChars) maxChars = len;
+  });
+
+  const W = Math.ceil(maxChars * CH + PX * 2);
+  const H = lines.length * LH + PY * 2;
+  const dpr = window.devicePixelRatio || 1;
+
+  cv.width  = W * dpr;
+  cv.height = H * dpr;
+  cv.style.width  = W + 'px';
+  cv.style.height = H + 'px';
+
+  const ctx = cv.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+  ctx.font = FS;
+  ctx.textBaseline = 'alphabetic';
+
+  // Now measure using actual canvas context (already in DOM)
+  lines.forEach((segs, i) => {
+    const y = PY + i * LH + LH * 0.78;
+    let x = PX;
+    segs.forEach(([color, text]) => {
+      ctx.fillStyle = color;
+      ctx.fillText(text, x, y);
+      x += ctx.measureText(text).width;
+    });
+  });
+}
+
+const B={
+
+c_install:[
+  [[CM,'# Dentro de backend/']],
+  [[PL,'npm install express-validator']],
+],
+
+c_validar:[
+  [[IM,'import'],[PL,' { validationResult } '],[IM,'from'],[PL,' '],[ST,"'express-validator'"],[PL,';']],
+  [[PL,'']],
+  [[CM,'// Lee los errores acumulados por express-validator']],
+  [[CM,'// Si hay errores → 400 con la lista. Si no → next()']],
+  [[KW,'export const'],[PL,' validar = (req, res, next) => {']],
+  [[PL,'  '],[KW,'const'],[PL,' errores = '],[FN,'validationResult'],[PL,'(req);']],
+  [[PL,'  '],[KW,'if'],[PL,' (!errores.'],[FN,'isEmpty'],[PL,'()) {']],
+  [[PL,'    '],[KW,'return'],[PL,' res.'],[FN,'status'],[PL,'(400).'],[FN,'json'],[PL,'({']],
+  [[PL,'      errores: errores.'],[FN,'array'],[PL,'().'],[FN,'map'],[PL,'(e => ({']],
+  [[PL,'        campo:   e.path,']],
+  [[PL,'        mensaje: e.msg']],
+  [[PL,'      }))']],
+  [[PL,'    });']],
+  [[PL,'  }']],
+  [[PL,'  '],[FN,'next'],[PL,'();']],
+  [[PL,'};']],
+],
+
+c_errhandler:[
+  [[CM,'// Middleware global de errores — 4 parámetros obligatorios']],
+  [[CM,'// Express lo reconoce por la firma (err, req, res, next)']],
+  [[KW,'export const'],[PL,' errorHandler = (err, req, res, next) => {']],
+  [[PL,'  console.'],[FN,'error'],[PL,'('],[ST,"'[ERROR]'"],[PL,', err.message);']],
+  [[PL,'']],
+  [[CM,'  // Errores específicos de MySQL']],
+  [[PL,'  '],[KW,'if'],[PL,' (err.code === '],[ST,"'ER_DUP_ENTRY'"],[PL,') {']],
+  [[PL,'    '],[KW,'return'],[PL,' res.'],[FN,'status'],[PL,'(409).'],[FN,'json'],[PL,'({']],
+  [[PL,'      error: '],[ST,"'El registro ya existe (valor duplicado)'"],[PL,'']],
+  [[PL,'    });']],
+  [[PL,'  }']],
+  [[PL,'']],
+  [[CM,'  // Error genérico — nunca exponer el stack trace al cliente']],
+  [[PL,'  res.'],[FN,'status'],[PL,'(err.status || 500).'],[FN,'json'],[PL,'({']],
+  [[PL,'    error: err.message || '],[ST,"'Error interno del servidor'"],[PL,'']],
+  [[PL,'  });']],
+  [[PL,'};']],
+],
+
+c_val_personas:[
+  [[IM,'import'],[PL,' { body } '],[IM,'from'],[PL,' '],[ST,"'express-validator'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'export const'],[PL,' personasRules = [']],
+  [[PL,'  '],[FN,'body'],[PL,'('],[ST,"'nombre'"],[PL,')']],
+  [[PL,'    .'],[FN,'notEmpty'],[PL,'().'],[FN,'withMessage'],[PL,'('],[ST,"'El nombre es obligatorio'"],[PL,')']],
+  [[PL,'    .'],[FN,'isLength'],[PL,'({ min: 2 }).'],[FN,'withMessage'],[PL,'('],[ST,"'Mínimo 2 caracteres'"],[PL,')']],
+  [[PL,'    .'],[FN,'trim'],[PL,'(),']],
+  [[PL,'  '],[FN,'body'],[PL,'('],[ST,"'correo'"],[PL,')']],
+  [[PL,'    .'],[FN,'notEmpty'],[PL,'().'],[FN,'withMessage'],[PL,'('],[ST,"'El correo es obligatorio'"],[PL,')']],
+  [[PL,'    .'],[FN,'isEmail'],[PL,'().'],[FN,'withMessage'],[PL,'('],[ST,"'Correo no válido'"],[PL,')']],
+  [[PL,'    .'],[FN,'normalizeEmail'],[PL,'(),']],
+  [[PL,'  '],[FN,'body'],[PL,'('],[ST,"'puesto'"],[PL,')']],
+  [[PL,'    .'],[FN,'notEmpty'],[PL,'().'],[FN,'withMessage'],[PL,'('],[ST,"'El puesto es obligatorio'"],[PL,')']],
+  [[PL,'    .'],[FN,'trim'],[PL,'(),']],
+  [[PL,'];']],
+],
+
+c_val_proyectos:[
+  [[IM,'import'],[PL,' { body } '],[IM,'from'],[PL,' '],[ST,"'express-validator'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'export const'],[PL,' proyectosRules = [']],
+  [[PL,'  '],[FN,'body'],[PL,'('],[ST,"'nombre'"],[PL,')']],
+  [[PL,'    .'],[FN,'notEmpty'],[PL,'().'],[FN,'withMessage'],[PL,'('],[ST,"'El nombre del proyecto es obligatorio'"],[PL,')']],
+  [[PL,'    .'],[FN,'trim'],[PL,'(),']],
+  [[PL,'  '],[FN,'body'],[PL,'('],[ST,"'responsable_id'"],[PL,')']],
+  [[PL,'    .'],[FN,'notEmpty'],[PL,'().'],[FN,'withMessage'],[PL,'('],[ST,"'El responsable es obligatorio'"],[PL,')']],
+  [[PL,'    .'],[FN,'isInt'],[PL,'({ min: 1 }).'],[FN,'withMessage'],[PL,'('],[ST,"'ID de responsable inválido'"],[PL,')']],
+  [[PL,'    .'],[FN,'toInt'],[PL,'(),']],
+  [[PL,'  '],[FN,'body'],[PL,'('],[ST,"'estado'"],[PL,')']],
+  [[PL,'    .'],[FN,'optional'],[PL,'()']],
+  [[PL,'    .'],[FN,'isIn'],[PL,'(['],[ST,"'activo'"],[PL,','],[ST,"'pausado'"],[PL,','],[ST,"'completado'"],[PL,'])']],
+  [[PL,'    .'],[FN,'withMessage'],[PL,'('],[ST,"'Estado no válido'"],[PL,'),']],
+  [[PL,'];']],
+],
+
+c_val_tareas:[
+  [[IM,'import'],[PL,' { body } '],[IM,'from'],[PL,' '],[ST,"'express-validator'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'export const'],[PL,' tareasRules = [']],
+  [[PL,'  '],[FN,'body'],[PL,'('],[ST,"'titulo'"],[PL,')']],
+  [[PL,'    .'],[FN,'notEmpty'],[PL,'().'],[FN,'withMessage'],[PL,'('],[ST,"'El título es obligatorio'"],[PL,')']],
+  [[PL,'    .'],[FN,'trim'],[PL,'(),']],
+  [[PL,'  '],[FN,'body'],[PL,'('],[ST,"'proyecto_id'"],[PL,')']],
+  [[PL,'    .'],[FN,'notEmpty'],[PL,'().'],[FN,'withMessage'],[PL,'('],[ST,"'El proyecto es obligatorio'"],[PL,')']],
+  [[PL,'    .'],[FN,'isInt'],[PL,'({ min: 1 }).'],[FN,'withMessage'],[PL,'('],[ST,"'ID de proyecto inválido'"],[PL,')']],
+  [[PL,'    .'],[FN,'toInt'],[PL,'(),']],
+  [[PL,'  '],[FN,'body'],[PL,'('],[ST,"'responsable_id'"],[PL,')']],
+  [[PL,'    .'],[FN,'notEmpty'],[PL,'().'],[FN,'withMessage'],[PL,'('],[ST,"'El responsable es obligatorio'"],[PL,')']],
+  [[PL,'    .'],[FN,'isInt'],[PL,'({ min: 1 }).'],[FN,'withMessage'],[PL,'('],[ST,"'ID inválido'"],[PL,')']],
+  [[PL,'    .'],[FN,'toInt'],[PL,'(),']],
+  [[PL,'  '],[FN,'body'],[PL,'('],[ST,"'prioridad'"],[PL,')']],
+  [[PL,'    .'],[FN,'optional'],[PL,'()']],
+  [[PL,'    .'],[FN,'isIn'],[PL,'(['],[ST,"'baja'"],[PL,','],[ST,"'media'"],[PL,','],[ST,"'alta'"],[PL,'])']],
+  [[PL,'    .'],[FN,'withMessage'],[PL,'('],[ST,"'Prioridad no válida: baja, media o alta'"],[PL,'),']],
+  [[PL,'];']],
+],
+
+c_val_eval:[
+  [[IM,'import'],[PL,' { body } '],[IM,'from'],[PL,' '],[ST,"'express-validator'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'export const'],[PL,' evaluacionesRules = [']],
+  [[PL,'  '],[FN,'body'],[PL,'('],[ST,"'persona_id'"],[PL,')']],
+  [[PL,'    .'],[FN,'notEmpty'],[PL,'().'],[FN,'withMessage'],[PL,'('],[ST,"'La persona evaluada es obligatoria'"],[PL,')']],
+  [[PL,'    .'],[FN,'isInt'],[PL,'({ min: 1 }).'],[FN,'withMessage'],[PL,'('],[ST,"'ID inválido'"],[PL,')']],
+  [[PL,'    .'],[FN,'toInt'],[PL,'(),']],
+  [[PL,'  '],[FN,'body'],[PL,'('],[ST,"'calificacion'"],[PL,')']],
+  [[PL,'    .'],[FN,'notEmpty'],[PL,'().'],[FN,'withMessage'],[PL,'('],[ST,"'La calificación es obligatoria'"],[PL,')']],
+  [[PL,'    .'],[FN,'isInt'],[PL,'({ min: 1, max: 10 })']],
+  [[PL,'    .'],[FN,'withMessage'],[PL,'('],[ST,"'La calificación debe estar entre 1 y 10'"],[PL,')']],
+  [[PL,'    .'],[FN,'toInt'],[PL,'(),']],
+  [[PL,'  '],[FN,'body'],[PL,'('],[ST,"'periodo'"],[PL,')']],
+  [[PL,'    .'],[FN,'notEmpty'],[PL,'().'],[FN,'withMessage'],[PL,'('],[ST,"'El periodo es obligatorio'"],[PL,')']],
+  [[PL,'    .'],[FN,'trim'],[PL,'(),']],
+  [[PL,'  '],[FN,'body'],[PL,'('],[ST,"'fecha'"],[PL,')']],
+  [[PL,'    .'],[FN,'notEmpty'],[PL,'().'],[FN,'withMessage'],[PL,'('],[ST,"'La fecha es obligatoria'"],[PL,')']],
+  [[PL,'    .'],[FN,'isDate'],[PL,'().'],[FN,'withMessage'],[PL,'('],[ST,"'Fecha con formato inválido'"],[PL,'),']],
+  [[PL,'];']],
+],
+
+c_routes_personas:[
+  [[IM,'import'],[PL,' { personasRules } '],[IM,'from'],[PL,' '],[ST,"'../validators/personas.validator.js'"],[PL,';']],
+  [[IM,'import'],[PL,' { validar }        '],[IM,'from'],[PL,' '],[ST,"'../middlewares/validar.middleware.js'"],[PL,';']],
+  [[PL,'']],
+  [[CM,'// GET — sin cambios (no valida body)']],
+  [[PL,'router.'],[FN,'get'],[PL,'('],[ST,"'/'"],[PL,',    verificarToken,'],[FN,'verificarRol'],[PL,'('],[ST,"'admin'"],[PL,','],[ST,"'usuario'"],[PL,','],[ST,"'invitado'"],[PL,'), getAll);']],
+  [[PL,'']],
+  [[CM,'// POST — agrega personasRules y validar ANTES del controlador']],
+  [[PL,'router.'],[FN,'post'],[PL,'('],[ST,"'/'"],[PL,', verificarToken,'],[FN,'verificarRol'],[PL,'('],[ST,"'admin'"],[PL,','],[ST,"'usuario'"],[PL,'),']],
+  [[PL,'  ...personasRules, validar,']],
+  [[PL,'  create);']],
+  [[PL,'']],
+  [[CM,'// PUT — igual que POST']],
+  [[PL,'router.'],[FN,'put'],[PL,'('],[ST,"'/:id'"],[PL,', verificarToken,'],[FN,'verificarRol'],[PL,'('],[ST,"'admin'"],[PL,','],[ST,"'usuario'"],[PL,'),']],
+  [[PL,'  ...personasRules, validar,']],
+  [[PL,'  update);']],
+],
+
+c_ctrl_catch:[
+  [[CM,'// create() en personas.controller.js — catch mejorado']],
+  [[KW,'export const'],[PL,' create = '],[KW,'async'],[PL,' (req, res, next) => {']],
+  [[PL,'  '],[KW,'try'],[PL,' {']],
+  [[PL,'    '],[KW,'const'],[PL,' { nombre, correo, puesto } = req.body;']],
+  [[PL,'    '],[KW,'const'],[PL,' [r] = '],[KW,'await'],[PL,' pool.'],[FN,'query'],[PL,'(']],
+  [[PL,'      '],[ST,"'INSERT INTO personas (nombre, correo, puesto) VALUES (?,?,?)'"],[PL,',']],
+  [[PL,'      [nombre, correo, puesto]']],
+  [[PL,'    );']],
+  [[PL,'    res.'],[FN,'status'],[PL,'(201).'],[FN,'json'],[PL,'({ mensaje: '],[ST,"'Persona creada'"],[PL,', id: r.insertId });']],
+  [[PL,'  } '],[KW,'catch'],[PL,' (err) {']],
+  [[CM,'    // Duplicado — responde 409, no 500']],
+  [[PL,'    '],[KW,'if'],[PL,' (err.code === '],[ST,"'ER_DUP_ENTRY'"],[PL,')']],
+  [[PL,'      '],[KW,'return'],[PL,' res.'],[FN,'status'],[PL,'(409).'],[FN,'json'],[PL,'({ error: '],[ST,"'Correo ya registrado'"],[PL,' });']],
+  [[CM,'    // Cualquier otro error — lo pasa al errorHandler global']],
+  [[PL,'    '],[FN,'next'],[PL,'(err);']],
+  [[PL,'  }']],
+  [[PL,'};']],
+],
+
+c_server:[
+  [[IM,'import'],[PL,' { errorHandler } '],[IM,'from'],[PL,' '],[ST,"'./middlewares/errorHandler.middleware.js'"],[PL,';']],
+  [[PL,'']],
+  [[CM,'// ... todas las rutas van aquí ...']],
+  [[CM,'// app.use("/api/personas", ...);']],
+  [[CM,'// app.use("/api/proyectos", ...);']],
+  [[CM,'// etc.']],
+  [[PL,'']],
+  [[CM,'// El errorHandler SIEMPRE al final de todo']],
+  [[PL,'app.'],[FN,'use'],[PL,'(errorHandler);']],
+  [[PL,'']],
+  [[PL,'app.'],[FN,'listen'],[PL,'(process.env.PORT || 3000, () => {']],
+  [[PL,'  console.'],[FN,'log'],[PL,'('],[ST,"'Servidor en puerto 3000'"],[PL,');']],
+  [[PL,'});']],
+],
+
+c_t1:[
+  [[CM,'// POST /api/personas — campo nombre vacío']],
+  [[PL,'{']],
+  [[PL,'  '],[ST,'"nombre"'],[PL,'  : '],[ST,'""'],[PL,',']],
+  [[PL,'  '],[ST,'"correo"'],[PL,'  : '],[ST,'"ana@empresa.com"'],[PL,',']],
+  [[PL,'  '],[ST,'"puesto"'],[PL,'  : '],[ST,'"Analista"']],
+  [[PL,'}']],
+  [[PL,'']],
+  [[CM,'// Respuesta 400 esperada:']],
+  [[PL,'{']],
+  [[PL,'  "errores": [']],
+  [[PL,'    { "campo": "nombre", "mensaje": "El nombre es obligatorio" }']],
+  [[PL,'  ]']],
+  [[PL,'}']],
+],
+
+c_t2:[
+  [[CM,'// POST /api/personas — correo mal formado']],
+  [[PL,'{']],
+  [[PL,'  '],[ST,'"nombre"'],[PL,'  : '],[ST,'"Ana García"'],[PL,',']],
+  [[PL,'  '],[ST,'"correo"'],[PL,'  : '],[ST,'"esto-no-es-un-correo"'],[PL,',']],
+  [[PL,'  '],[ST,'"puesto"'],[PL,'  : '],[ST,'"Analista"']],
+  [[PL,'}']],
+],
+
+c_t3:[
+  [[CM,'// POST /api/proyectos — sin responsable_id']],
+  [[PL,'{']],
+  [[PL,'  '],[ST,'"nombre"'],[PL,'      : '],[ST,'"Portal web"'],[PL,',']],
+  [[PL,'  '],[ST,'"descripcion"'],[PL,' : '],[ST,'"Rediseño del sitio"']],
+  [[PL,'}']],
+],
+
+c_t5:[
+  [[CM,'// POST /api/evaluaciones — calificacion fuera de rango']],
+  [[PL,'{']],
+  [[PL,'  '],[ST,'"persona_id"'],[PL,'   : 2,']],
+  [[PL,'  '],[ST,'"calificacion"'],[PL,' : 150,']],
+  [[PL,'  '],[ST,'"periodo"'],[PL,'     : '],[ST,'"2026-1"'],[PL,',']],
+  [[PL,'  '],[ST,'"fecha"'],[PL,'       : '],[ST,'"2026-07-01"']],
+  [[PL,'}']],
+],
+
+};
+
+// Draw immediately — Courier New is always available (system font)
+// Render all canvases — works with file:// and http://
+(function() {
+  function go() {
+    for (var id in B) {
+      if (B.hasOwnProperty(id)) draw(id, B[id]);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', go);
+  } else {
+    // Already loaded — run immediately
+    setTimeout(go, 0);
+  }
+})();
+</script>
+</body>
+</html>
