@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica 11.5 — CAPTCHA con hCaptcha y 2FA</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',Arial,sans-serif; background:#fff; color:#1a1a2e; font-size:14px; line-height:1.7; }
+.header { background:#1565C0; color:#fff; }
+.header-top { background:#0D47A1; padding:18px 40px 14px; display:flex; justify-content:space-between; align-items:flex-start; }
+.header-inst { font-size:11px; opacity:0.85; letter-spacing:0.03em; text-transform:uppercase; }
+.header-carrera { font-size:13px; font-weight:600; margin-top:3px; }
+.header-badge { background:#fff; color:#0D47A1; font-weight:700; font-size:13px; padding:6px 16px; border-radius:20px; white-space:nowrap; align-self:center; }
+.header-main { padding:20px 40px 24px; }
+.header-practica { font-size:11px; opacity:0.75; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; }
+.header-titulo { font-size:26px; font-weight:700; margin-bottom:8px; }
+.header-meta { display:flex; gap:24px; font-size:12px; opacity:0.85; flex-wrap:wrap; }
+.header-strip { height:5px; background:#42A5F5; }
+.content { max-width:900px; margin:0 auto; padding:36px 40px 60px; }
+.toc { background:#E3F2FD; border-left:4px solid #1565C0; border-radius:0 8px 8px 0; padding:20px 24px; margin-bottom:36px; }
+.toc-title { font-size:13px; font-weight:700; color:#0D47A1; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px; }
+.toc ol { padding-left:18px; }
+.toc li { font-size:13px; color:#1565C0; padding:3px 0; }
+.toc li a { color:#1565C0; text-decoration:none; }
+.seccion { margin-bottom:36px; }
+.seccion-titulo { font-size:16px; font-weight:700; color:#0D47A1; border-bottom:2px solid #BBDEFB; padding-bottom:8px; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+.seccion-num { background:#1565C0; color:#fff; font-size:12px; font-weight:700; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.subseccion-titulo { font-size:14px; font-weight:700; color:#1565C0; margin:18px 0 8px; }
+p { margin-bottom:10px; }
+.contexto-card { background:#F8FBFF; border:1px solid #BBDEFB; border-radius:10px; padding:20px 24px; margin-bottom:16px; }
+.concepto-bloque { border:1px solid #BBDEFB; border-radius:10px; margin-bottom:14px; overflow:hidden; }
+.concepto-header { background:#1565C0; color:#fff; padding:10px 16px; font-size:13px; font-weight:700; }
+.concepto-body { padding:14px 16px; font-size:13.5px; background:#F8FBFF; }
+.concepto-body p { margin-bottom:8px; }
+.concepto-body p:last-child { margin-bottom:0; }
+.nota { background:#FFF8E1; border-left:4px solid #F59E0B; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.nota strong { color:#92400E; }
+.info { background:#E8F5E9; border-left:4px solid #43A047; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.info strong { color:#1B5E20; }
+.peligro { background:#FFEBEE; border-left:4px solid #E53935; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.peligro strong { color:#B71C1C; }
+.profesional { background:#EDE7F6; border-left:4px solid #7B1FA2; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.profesional strong { color:#4A148C; }
+.flujo { display:flex; align-items:center; margin:16px 0; flex-wrap:wrap; gap:4px; }
+.flujo-item { background:#E3F2FD; border:1px solid #90CAF9; border-radius:8px; padding:10px 14px; text-align:center; font-size:12px; flex:1; min-width:90px; }
+.flujo-item.activo { background:#1565C0; color:#fff; border-color:#1565C0; font-weight:700; }
+.flujo-item.futuro { background:#F5F5F5; border-color:#ddd; color:#999; }
+.flujo-item.listo { background:#E8F5E9; border-color:#66BB6A; color:#2E7D32; }
+.flujo-item .fi-num { font-size:10px; opacity:0.7; margin-bottom:2px; }
+.flujo-item .fi-nombre { font-size:12px; font-weight:600; }
+.flujo-sep { color:#90CAF9; font-size:18px; padding:0 4px; }
+.paso { background:#fff; border:1px solid #BBDEFB; border-radius:10px; padding:20px 24px; margin-bottom:20px; }
+.paso-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.paso-num { background:#1565C0; color:#fff; font-size:13px; font-weight:700; padding:4px 12px; border-radius:14px; }
+.paso-titulo { font-size:14px; font-weight:700; color:#0D47A1; }
+.file-label { display:inline-block; background:#E3F2FD; color:#0D47A1; font-family:'Courier New',monospace; font-size:12px; padding:4px 12px; border-radius:6px 6px 0 0; border:1px solid #BBDEFB; border-bottom:none; font-weight:600; margin-top:10px; }
+.file-label.nuevo { background:#E8F5E9; color:#1B5E20; border-color:#A5D6A7; }
+.file-label.modif { background:#FFF8E1; color:#92400E; border-color:#FFE082; }
+.code-wrap { border:1px solid #BBDEFB; border-radius:0 8px 8px 8px; overflow:hidden; margin-bottom:12px; }
+.code-wrap.nuevo { border-color:#A5D6A7; }
+.code-wrap.modif { border-color:#FFE082; }
+.code-wrap canvas { display:block; max-width:100%; }
+.tabla-gen { width:100%; border-collapse:collapse; font-size:13px; margin:12px 0; }
+.tabla-gen th { background:#1565C0; color:#fff; padding:9px 14px; text-align:left; font-size:12px; }
+.tabla-gen td { padding:9px 14px; border-bottom:1px solid #E3F2FD; vertical-align:top; }
+.tabla-gen tr:nth-child(even) td { background:#F8FBFF; }
+.actividades { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.actividades th { background:#1565C0; color:#fff; padding:10px 14px; text-align:left; font-weight:600; font-size:12px; }
+.actividades td { padding:9px 14px; border-bottom:1px solid #E3F2FD; vertical-align:top; }
+.actividades tr:nth-child(even) td { background:#F8FBFF; }
+.actividades tr:last-child td { border-bottom:none; }
+.tipo-badge { font-size:11px; padding:3px 8px; border-radius:10px; font-weight:600; white-space:nowrap; }
+.tipo-codigo { background:#E3F2FD; color:#0D47A1; }
+.tipo-prueba { background:#E8F5E9; color:#1B5E20; }
+.tipo-thunder { background:#FFF3E0; color:#E65100; }
+.reflexion-lista { list-style:none; padding:0; counter-reset:ref; }
+.reflexion-lista li { counter-increment:ref; padding:10px 14px 10px 44px; position:relative; background:#F8FBFF; border:1px solid #BBDEFB; border-radius:8px; margin-bottom:8px; font-size:13.5px; }
+.reflexion-lista li::before { content:counter(ref); position:absolute; left:12px; top:50%; transform:translateY(-50%); background:#1565C0; color:#fff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
+.rubrica { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.rubrica th { background:#0D47A1; color:#fff; padding:10px 14px; text-align:left; font-weight:600; font-size:12px; }
+.rubrica td { padding:9px 14px; border-bottom:1px solid #E3F2FD; }
+.rubrica tr:nth-child(even) td { background:#F8FBFF; }
+.rubrica .total td { background:#1565C0; color:#fff; font-weight:700; }
+.pts { font-weight:700; color:#0D47A1; }
+.entregable-lista { list-style:none; padding:0; }
+.entregable-lista li { padding:8px 14px 8px 36px; position:relative; font-size:13.5px; border-bottom:1px solid #F0F4FF; }
+.entregable-lista li:last-child { border-bottom:none; }
+.entregable-lista li::before { content:'📄'; position:absolute; left:8px; }
+.footer { background:#0D47A1; color:#fff; text-align:center; padding:14px 40px; font-size:12px; margin-top:40px; }
+code { background:#E3F2FD; color:#0D47A1; padding:1px 5px; border-radius:3px; font-size:12px; font-family:'Courier New',monospace; }
+
+/* ── DIAGRAMA CAPTCHA ── */
+.diagrama-captcha { background:#F8FBFF; border:1px solid #BBDEFB; border-radius:12px; padding:24px; margin:16px 0; }
+.diagrama-captcha svg { display:block; width:100%; max-width:780px; margin:0 auto; }
+.login-simple { display:grid; gap:12px; }
+.login-simple-intro { background:#fff; border:1px solid #BBDEFB; border-radius:8px; padding:12px 14px; font-size:13.5px; }
+.login-simple-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+.login-simple-card { background:#fff; border:1px solid #BBDEFB; border-radius:10px; padding:14px 16px; min-height:112px; }
+.login-simple-num { background:#1565C0; color:#fff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; margin-bottom:8px; }
+.login-simple-title { font-size:13px; font-weight:700; color:#0D47A1; margin-bottom:4px; }
+.login-simple-card p { font-size:12.5px; color:#333; margin:0; line-height:1.6; }
+.login-simple-final { background:#E8F5E9; border:1px solid #A5D6A7; border-left:4px solid #43A047; border-radius:8px; padding:12px 14px; font-size:13px; }
+.login-simple-final strong { color:#1B5E20; }
+@media (max-width: 700px) { .login-simple-grid { grid-template-columns:1fr; } }
+
+/* ── DIAGRAMA 2FA ── */
+.diagrama-2fa { background:#F3E5F5; border:1px solid #CE93D8; border-radius:12px; padding:24px; margin:16px 0; }
+.diagrama-2fa svg { display:block; width:100%; max-width:780px; margin:0 auto; }
+
+/* ── COMPARATIVA SEGURIDAD ── */
+.seg-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin:16px 0; }
+.seg-card { border-radius:10px; overflow:hidden; border:1px solid #BBDEFB; }
+.seg-card-hdr { padding:10px 14px; font-size:12px; font-weight:700; color:#fff; text-align:center; }
+.seg-card-hdr.nivel1 { background:#43A047; }
+.seg-card-hdr.nivel2 { background:#1565C0; }
+.seg-card-hdr.nivel3 { background:#6A1B9A; }
+.seg-card-body { padding:12px 14px; font-size:12px; background:#F8FBFF; color:#444; line-height:1.7; }
+.seg-card-body strong { color:#1a1a2e; }
+
+/* ── 2FA PASOS ── */
+.tfa-pasos { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:16px 0; }
+.tfa-paso { background:#F8FBFF; border:1px solid #CE93D8; border-radius:10px; padding:14px 12px; text-align:center; position:relative; }
+.tfa-paso .num { background:#6A1B9A; color:#fff; font-size:11px; font-weight:700; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 8px; }
+.tfa-paso .titulo { font-size:12px; font-weight:700; color:#4A148C; margin-bottom:4px; }
+.tfa-paso .desc { font-size:11px; color:#666; line-height:1.5; }
+
+/* ── CAMBIOS 2FA ── */
+.cambios-2fa { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0; }
+.cambio-item { background:#F3E5F5; border:1px solid #CE93D8; border-radius:8px; padding:14px 16px; }
+.cambio-item .capa { font-size:10px; font-weight:700; color:#6A1B9A; text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px; }
+.cambio-item ul { padding-left:16px; font-size:12px; color:#444; line-height:1.9; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-inst">Ingeniería de Desarrollo y Gestión de Software</div>
+      <div class="header-carrera">Desarrollo Web Integral y Seguridad</div>
+    </div>
+    <div class="header-badge">Práctica 11.5</div>
+  </div>
+  <div class="header-main">
+    <div class="header-practica">Fase 5 — Seguridad adicional al login</div>
+    <div class="header-titulo">CAPTCHA con hCaptcha y fundamentos de 2FA</div>
+    <div class="header-meta">
+      <span>⏱ Duración: 1.5 horas</span>
+      <span>📦 hCaptcha · verificación backend · fundamentos teóricos de 2FA</span>
+      <span>🎯 No rompe nada existente — se agrega encima del login actual</span>
+    </div>
+  </div>
+  <div class="header-strip"></div>
+</div>
+
+<div class="content">
+
+  <div class="toc">
+    <div class="toc-title">Tabla de contenidos</div>
+    <ol>
+      <li><a href="#donde">¿Dónde estamos?</a></li>
+      <li><a href="#captcha-concepto">¿Qué es un CAPTCHA y por qué usarlo?</a></li>
+      <li><a href="#comparativa">hCaptcha vs reCAPTCHA: ¿cuál usaremos y por qué?</a></li>
+      <li><a href="#cuando-usar">¿Cuándo conviene usar CAPTCHA?</a></li>
+      <li><a href="#captcha-impl">Implementación de hCaptcha</a></li>
+      <li><a href="#2fa-teoria">Autenticación de 2 Factores — fundamentos teóricos</a></li>
+      <li><a href="#actividades">Actividades</a></li>
+      <li><a href="#reflexion">Preguntas de reflexión</a></li>
+      <li><a href="#entregable">Entregable</a></li>
+      <li><a href="#rubrica">Criterios de evaluación</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. DÓNDE ESTAMOS -->
+  <div class="seccion" id="donde">
+    <div class="seccion-titulo"><span class="seccion-num">1</span> ¿Dónde estamos?</div>
+    <div class="contexto-card">
+      <p>Con P11 el sistema valida que los datos enviados al backend sean correctos antes de tocar la base de datos. En P11.5 vamos a agregar una capa de protección específica para el formulario de login: un CAPTCHA que distingue entre un humano real y un programa automatizado que intenta adivinar contraseñas.</p>
+      <p>Esta práctica <strong>no modifica el flujo de autenticación existente</strong> — agrega una verificación adicional encima sin tocar el JWT, bcrypt ni el AuthContext.</p>
+    </div>
+    <div class="flujo">
+      <div class="flujo-item listo"><div class="fi-num">P01–P11</div><div class="fi-nombre">CRUD · Auth · Validaciones</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item activo"><div class="fi-num">P11.5</div><div class="fi-nombre">CAPTCHA + 2FA teoría</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item futuro"><div class="fi-num">P12</div><div class="fi-nombre">Seguridad avanzada</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item futuro"><div class="fi-num">P13</div><div class="fi-nombre">Cierre</div></div>
+    </div>
+  </div>
+
+  <!-- 2. CAPTCHA CONCEPTO -->
+  <div class="seccion" id="captcha-concepto">
+    <div class="seccion-titulo"><span class="seccion-num">2</span> ¿Qué es un CAPTCHA y por qué usarlo?</div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header">Definición</div>
+      <div class="concepto-body">
+        <p><strong>CAPTCHA</strong> son las siglas de <em>Completely Automated Public Turing test to tell Computers and Humans Apart</em> — una prueba automática para distinguir computadoras de humanos. Es el famoso "selecciona todas las imágenes con semáforos" o el widget de "No soy un robot".</p>
+        <p>Su función principal es bloquear bots y scripts automatizados que intentan acceder a sistemas sin ser humanos. En el contexto del login, previene los <strong>ataques de fuerza bruta</strong> — programas que prueban miles de combinaciones de usuario/contraseña por segundo.</p>
+      </div>
+    </div>
+
+    <div class="subseccion-titulo">¿Cómo funciona en el login?</div>
+    <div class="diagrama-captcha">
+      <div class="login-simple">
+        <div class="login-simple-intro">
+          El CAPTCHA agrega una pregunta antes del login. No revisa la contraseña: solo ayuda a confirmar que la petición viene de una persona y no de un script automático.
+        </div>
+        <div class="login-simple-grid">
+          <div class="login-simple-card">
+            <div class="login-simple-num">1</div>
+            <div class="login-simple-title">El usuario llena el formulario</div>
+            <p>Escribe su correo y contraseña. Antes de enviar, también debe completar el widget de hCaptcha.</p>
+          </div>
+          <div class="login-simple-card">
+            <div class="login-simple-num">2</div>
+            <div class="login-simple-title">hCaptcha entrega un token</div>
+            <p>Cuando la verificación se completa, hCaptcha genera un token temporal. Ese token no es una contraseña.</p>
+          </div>
+          <div class="login-simple-card">
+            <div class="login-simple-num">3</div>
+            <div class="login-simple-title">El frontend envía todo al backend</div>
+            <p>React manda correo, contraseña y <code>captchaToken</code> al login. El navegador no decide si el token es válido.</p>
+          </div>
+          <div class="login-simple-card">
+            <div class="login-simple-num">4</div>
+            <div class="login-simple-title">El backend valida y responde</div>
+            <p>Express verifica el token con hCaptcha. Si es válido, revisa las credenciales en la base de datos y responde el resultado.</p>
+          </div>
+        </div>
+        <div class="login-simple-final">
+          <strong>Idea clave:</strong> hCaptcha ayuda a frenar bots; la base de datos sigue siendo la que permite o rechaza el acceso según el usuario y la contraseña.
+        </div>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header">¿Por qué hCaptcha y no reCAPTCHA?</div>
+      <div class="concepto-body">
+        <table class="tabla-gen">
+          <thead><tr><th>Característica</th><th>reCAPTCHA (Google)</th><th>hCaptcha</th></tr></thead>
+          <tbody>
+            <tr><td>Configuración para pruebas</td><td>Normalmente se configura desde Google</td><td>Puede usarse con claves públicas de prueba</td></tr>
+            <tr><td>Privacidad</td><td>Datos van a Google</td><td>Diseñado para privacidad (GDPR-friendly)</td></tr>
+            <tr><td>Claves para desarrollo</td><td>Hay que generar en Google Console</td><td>Hay claves de prueba públicas listas para usar</td></tr>
+            <tr><td>Integración con React</td><td><code>react-google-recaptcha</code></td><td><code>@hcaptcha/react-hcaptcha</code></td></tr>
+            <tr><td>Plan gratuito</td><td>Sí</td><td>Sí</td></tr>
+          </tbody>
+        </table>
+        <p style="margin-top:8px;">Para esta práctica usaremos las <strong>claves de prueba públicas</strong> de hCaptcha. Si el navegador presenta restricciones al utilizar <code>localhost</code>, configura un hostname local (por ejemplo <code>test.local</code>) apuntando a <code>127.0.0.1</code>. En producción deben utilizarse claves reales del sitio y nunca las claves de prueba.</p>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- COMPARATIVA -->
+  <div class="seccion" id="comparativa">
+    <div class="seccion-titulo"><span class="seccion-num">3</span> hCaptcha vs reCAPTCHA: ¿cuál usaremos y por qué?</div>
+    <div class="contexto-card">
+      <p><strong>CAPTCHA</strong> es el concepto general. <strong>hCaptcha</strong> y <strong>reCAPTCHA</strong> son servicios concretos que implementan ese concepto.</p>
+      <p>Para esta práctica usaremos <strong>hCaptcha</strong> porque permite trabajar con <strong>claves de prueba públicas</strong> diseñadas para integración y pruebas. Así podemos concentrarnos en el flujo <strong>frontend → token → backend → verificación externa</strong>, no en la administración de una cuenta de proveedor.</p>
+    </div>
+    <table class="tabla-gen">
+      <thead><tr><th>Aspecto</th><th>hCaptcha</th><th>reCAPTCHA</th><th>Para esta práctica</th></tr></thead>
+      <tbody>
+        <tr><td>Concepto</td><td>Servicio CAPTCHA externo</td><td>Servicio CAPTCHA de Google</td><td>Ambos sirven para estudiar el mismo patrón de seguridad</td></tr>
+        <tr><td>Token</td><td>Entrega un token al completar la verificación</td><td>Entrega un token de respuesta</td><td>En ambos casos el backend debe verificarlo</td></tr>
+        <tr><td>Pruebas</td><td>Ofrece sitekey, secret y response token de prueba públicos</td><td>También dispone de mecanismos de prueba, pero la configuración típica suele partir de una clave asociada al sitio</td><td><strong>hCaptcha reduce pasos de preparación</strong></td></tr>
+        <tr><td>React</td><td><code>@hcaptcha/react-hcaptcha</code></td><td><code>react-google-recaptcha</code> u otra integración</td><td>La lógica de integración es equivalente</td></tr>
+        <tr><td>Verificación servidor</td><td><code>/siteverify</code></td><td><code>/recaptcha/api/siteverify</code></td><td><strong>Nunca confiar solo en el frontend</strong></td></tr>
+      </tbody>
+    </table>
+    <div class="info"><strong>Idea clave:</strong> lo importante no es memorizar una marca, sino entender el patrón: el usuario supera una verificación, el proveedor devuelve un token, el frontend lo envía y el backend lo valida.</div>
+    <div class="nota"><strong>Importante sobre desarrollo local:</strong> las claves de prueba de hCaptcha sí existen y son públicas, pero la documentación oficial advierte sobre el uso de <code>localhost</code> y <code>127.0.0.1</code> como hostname. Si el widget presenta problemas en desarrollo local, puede configurarse un hostname local, por ejemplo <code>test.local</code>, apuntando a <code>127.0.0.1</code> en el archivo <code>hosts</code>.</div>
+  </div>
+
+  <!-- CUANDO USAR -->
+  <div class="seccion" id="cuando-usar">
+    <div class="seccion-titulo"><span class="seccion-num">4</span> ¿Cuándo conviene usar CAPTCHA?</div>
+    <p>CAPTCHA es una <strong>medida anti-automatización</strong>. No sustituye una contraseña segura, 2FA ni el rate limiting. Su función es dificultar que un programa automatizado abuse de un formulario o endpoint.</p>
+    <table class="tabla-gen">
+      <thead><tr><th>Situación</th><th>¿CAPTCHA?</th><th>Motivo</th></tr></thead>
+      <tbody>
+        <tr><td>Login expuesto a Internet</td><td>Puede ser conveniente</td><td>Reduce intentos automatizados de fuerza bruta o credential stuffing</td></tr>
+        <tr><td>Registro público de cuentas</td><td>Sí, con frecuencia</td><td>Evita creación masiva de cuentas por bots</td></tr>
+        <tr><td>Recuperación de contraseña</td><td>Frecuentemente</td><td>Reduce abuso de correos/SMS y enumeración automatizada</td></tr>
+        <tr><td>Formulario público de contacto</td><td>Frecuentemente</td><td>Reduce spam automatizado</td></tr>
+        <tr><td>Formulario interno después de iniciar sesión</td><td>Normalmente no</td><td>Agregar CAPTCHA a cada operación deteriora la experiencia sin aportar suficiente valor</td></tr>
+        <tr><td>Acción sensible de alto riesgo</td><td>CAPTCHA no basta</td><td>Conviene combinar controles: autorización, 2FA, rate limiting, logs y reglas de negocio</td></tr>
+      </tbody>
+    </table>
+    <div class="profesional"><strong>Regla práctica:</strong> no se pone CAPTCHA “porque sí”. Primero identifica qué abuso automatizado quieres detener. Después decides si CAPTCHA es el control adecuado o si conviene combinarlo con rate limiting, 2FA u otras medidas.</div>
+  </div>
+
+  <!-- TOKEN -->
+  <div class="seccion" id="token-flujo">
+    <div class="seccion-titulo"><span class="seccion-num">5</span> ¿Cuándo se genera el token?</div>
+    <div class="contexto-card">
+      <p><strong>El token NO es el CAPTCHA.</strong> El CAPTCHA es el mecanismo de comprobación; el <strong>token es la evidencia temporal</strong> que el proveedor entrega cuando la verificación se completa correctamente.</p>
+      <p>En esta práctica, el token aparece en React mediante <code>onVerify={token =&gt; setCaptcha(token)}</code>. Después se envía al backend junto con el usuario y la contraseña.</p>
+    </div>
+    <div class="diagrama-captcha">
+      <svg viewBox="0 0 900 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Flujo de generación y verificación del token CAPTCHA">
+        <defs>
+          <marker id="tokarr" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,9 3.5,0 7" fill="#1565C0"/></marker>
+          <marker id="tokarrg" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,9 3.5,0 7" fill="#2E7D32"/></marker>
+        </defs>
+        <text x="450" y="28" text-anchor="middle" font-family="Segoe UI,Arial" font-size="16" font-weight="700" fill="#0D47A1">Flujo del token hCaptcha</text>
+        <rect x="35" y="70" width="170" height="82" rx="12" fill="#E3F2FD" stroke="#90CAF9"/>
+        <text x="120" y="99" text-anchor="middle" font-family="Segoe UI,Arial" font-size="13" font-weight="700" fill="#0D47A1">1. Usuario</text>
+        <text x="120" y="122" text-anchor="middle" font-family="Segoe UI,Arial" font-size="12" fill="#333">Resuelve la verificación</text>
+        <text x="120" y="140" text-anchor="middle" font-family="Segoe UI,Arial" font-size="12" fill="#333">de hCaptcha</text>
+
+        <rect x="365" y="70" width="170" height="82" rx="12" fill="#FFF8E1" stroke="#FFE082"/>
+        <text x="450" y="99" text-anchor="middle" font-family="Segoe UI,Arial" font-size="13" font-weight="700" fill="#92400E">2. hCaptcha</text>
+        <text x="450" y="122" text-anchor="middle" font-family="Segoe UI,Arial" font-size="12" fill="#333">Verificación correcta</text>
+        <text x="450" y="140" text-anchor="middle" font-family="Segoe UI,Arial" font-size="12" font-weight="700" fill="#C62828">→ GENERA TOKEN</text>
+
+        <rect x="695" y="70" width="170" height="82" rx="12" fill="#E8F5E9" stroke="#A5D6A7"/>
+        <text x="780" y="99" text-anchor="middle" font-family="Segoe UI,Arial" font-size="13" font-weight="700" fill="#1B5E20">3. React</text>
+        <text x="780" y="122" text-anchor="middle" font-family="Segoe UI,Arial" font-size="12" fill="#333">onVerify(token)</text>
+        <text x="780" y="140" text-anchor="middle" font-family="Segoe UI,Arial" font-size="12" fill="#333">setCaptcha(token)</text>
+
+        <line x1="205" y1="111" x2="355" y2="111" stroke="#1565C0" stroke-width="2" marker-end="url(#tokarr)"/>
+        <line x1="535" y1="111" x2="685" y2="111" stroke="#1565C0" stroke-width="2" marker-end="url(#tokarr)"/>
+
+        <rect x="135" y="220" width="245" height="100" rx="12" fill="#F8FBFF" stroke="#BBDEFB"/>
+        <text x="258" y="247" text-anchor="middle" font-family="Segoe UI,Arial" font-size="13" font-weight="700" fill="#1565C0">4. Frontend envía login</text>
+        <text x="258" y="273" text-anchor="middle" font-family="Courier New" font-size="12" fill="#333">{ usuario, password,</text>
+        <text x="258" y="292" text-anchor="middle" font-family="Courier New" font-size="12" fill="#333">captchaToken }</text>
+
+        <rect x="520" y="220" width="245" height="100" rx="12" fill="#E8F5E9" stroke="#A5D6A7"/>
+        <text x="643" y="247" text-anchor="middle" font-family="Segoe UI,Arial" font-size="13" font-weight="700" fill="#1B5E20">5. Backend verifica</text>
+        <text x="643" y="273" text-anchor="middle" font-family="Segoe UI,Arial" font-size="12" fill="#333">POST a /siteverify</text>
+        <text x="643" y="292" text-anchor="middle" font-family="Segoe UI,Arial" font-size="12" fill="#333">secret + response(token)</text>
+
+        <line x1="780" y1="152" x2="780" y2="190" stroke="#1565C0" stroke-width="2"/>
+        <line x1="780" y1="190" x2="258" y2="190" stroke="#1565C0" stroke-width="2"/>
+        <line x1="258" y1="190" x2="258" y2="210" stroke="#1565C0" stroke-width="2" marker-end="url(#tokarr)"/>
+        <line x1="380" y1="270" x2="510" y2="270" stroke="#1565C0" stroke-width="2" marker-end="url(#tokarr)"/>
+
+        <rect x="320" y="355" width="260" height="52" rx="12" fill="#E8F5E9" stroke="#66BB6A"/>
+        <text x="450" y="378" text-anchor="middle" font-family="Segoe UI,Arial" font-size="13" font-weight="700" fill="#1B5E20">6. success: true → continúa login</text>
+        <text x="450" y="397" text-anchor="middle" font-family="Segoe UI,Arial" font-size="11" fill="#333">success: false → rechaza la petición</text>
+        <line x1="643" y1="320" x2="643" y2="338" stroke="#2E7D32" stroke-width="2"/>
+        <line x1="643" y1="338" x2="450" y2="338" stroke="#2E7D32" stroke-width="2"/>
+        <line x1="450" y1="338" x2="450" y2="345" stroke="#2E7D32" stroke-width="2" marker-end="url(#tokarrg)"/>
+      </svg>
+    </div>
+    <div class="nota"><strong>Vida del token:</strong> es temporal y no debe tratarse como una contraseña permanente. La documentación de hCaptcha indica que los tokens deben verificarse en un periodo corto y que no deben reutilizarse.</div>
+  </div>
+
+  <!-- 3. IMPLEMENTACIÓN -->
+  <div class="seccion" id="captcha-impl">
+    <div class="seccion-titulo"><span class="seccion-num">6</span> Implementación de hCaptcha</div>
+
+    <!-- PASO 1 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 1</span><span class="paso-titulo">Instalar los paquetes</span></div>
+      <div class="file-label">Terminal — dentro de frontend/</div>
+      <div class="code-wrap"><canvas id="c_install_front"></canvas></div>
+      <div class="file-label" style="margin-top:12px;">Terminal — dentro de backend/</div>
+      <div class="code-wrap"><canvas id="c_install_back"></canvas></div>
+      <div class="nota"><strong>Claves de prueba de hCaptcha (solo para localhost):</strong><br>
+        Site key: <code>10000000-ffff-ffff-ffff-000000000001</code><br>
+        Secret key: <code>0x0000000000000000000000000000000000000000</code><br>
+        Estas claves siempre validan correctamente en desarrollo — no requieren cuenta.</div>
+    </div>
+
+    <!-- PASO 2 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 2</span><span class="paso-titulo">Agregar hCaptcha al formulario de login</span></div>
+      <p>Se importa el componente de hCaptcha y se agrega al formulario de login. Al resolverse, guarda el token en el estado local para enviarlo junto con las credenciales.</p>
+      <div class="file-label modif">frontend/src/pages/LoginPage.jsx — modificar</div>
+      <div class="code-wrap modif"><canvas id="c_login_front"></canvas></div>
+      <div class="profesional"><strong>¿Qué es el token?</strong> Cuando el usuario resuelve el CAPTCHA, hCaptcha genera un token temporal (cadena larga) que prueba que un humano lo completó. Ese token se envía al backend, que lo verifica con la API de hCaptcha. Si es válido, la petición continúa. Si no, se rechaza con 400.</div>
+    </div>
+
+    <!-- PASO 3 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 3</span><span class="paso-titulo">Crear el middleware de verificación en el backend</span></div>
+      <p>El middleware llama a la API de hCaptcha con el token recibido y la clave secreta. Si hCaptcha responde que es válido, la petición pasa al controlador. Si no, responde 400.</p>
+      <div class="file-label nuevo">backend/middlewares/captcha.middleware.js — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_captcha_mw"></canvas></div>
+    </div>
+
+    <!-- PASO 4 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 4</span><span class="paso-titulo">Agregar el middleware a la ruta de login</span></div>
+      <p>El middleware de CAPTCHA se agrega antes del controlador de login. El orden es: <code>limiterAuth → verificarCaptcha → login</code>.</p>
+      <div class="file-label modif">backend/routes/auth.routes.js — modificar</div>
+      <div class="code-wrap modif"><canvas id="c_auth_route"></canvas></div>
+    </div>
+
+    <!-- PASO 5 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 5</span><span class="paso-titulo">Agregar la clave secreta al .env</span></div>
+      <div class="file-label modif">backend/.env — agregar línea</div>
+      <div class="code-wrap modif"><canvas id="c_env"></canvas></div>
+    </div>
+
+    <!-- PASO 6 — PRUEBA -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 6</span><span class="paso-titulo">Probar el flujo completo</span></div>
+      <p>Verifica las dos situaciones:</p>
+      <div class="info"><strong>Con CAPTCHA resuelto:</strong> el usuario completa el widget, el token se envía con las credenciales y el login funciona normalmente con 200 OK o 401 si las credenciales son incorrectas.</div>
+      <div class="peligro"><strong>Sin CAPTCHA (petición directa desde Thunder Client):</strong> enviar la petición sin el campo <code>captchaToken</code> debe responder <strong>400 Bad Request</strong> con el mensaje "CAPTCHA requerido". Esto confirma que el middleware protege el endpoint incluso si alguien evita el frontend.</div>
+      <div class="file-label">Thunder Client — POST /api/auth/login sin captchaToken</div>
+      <div class="code-wrap"><canvas id="c_t1"></canvas></div>
+      <div class="file-label" style="margin-top:12px;">Thunder Client — POST /api/auth/login con token inválido</div>
+      <div class="code-wrap"><canvas id="c_t2"></canvas></div>
+    </div>
+  </div>
+
+  <!-- 4. 2FA TEORÍA -->
+  <div class="seccion" id="2fa-teoria">
+    <div class="seccion-titulo"><span class="seccion-num">7</span> Autenticación de 2 Factores — Fundamentos teóricos</div>
+
+    <div class="contexto-card">
+      <p>La <strong>Autenticación de 2 Factores (2FA)</strong> agrega una segunda capa de verificación después del usuario y contraseña. Aunque alguien robe la contraseña de un usuario, necesita también el segundo factor para entrar — que generalmente es algo que el usuario tiene físicamente en su teléfono.</p>
+      <p>Esta sección es <strong>teórica</strong> — no se implementa en este proyecto porque requeriría modificar el flujo de login existente, agregar una columna a la BD y crear pantallas adicionales en el frontend. Se incluye para que conozcan la arquitectura antes de necesitarla en un proyecto profesional.</p>
+    </div>
+
+    <div class="subseccion-titulo">Los tres factores de autenticación</div>
+    <div class="seg-grid">
+      <div class="seg-card">
+        <div class="seg-card-hdr nivel1">Factor 1 — Algo que sabes</div>
+        <div class="seg-card-body">
+          <strong>Lo que ya tiene el sistema:</strong><br>
+          Usuario y contraseña. El usuario lo memoriza. Vulnerable si se roba o adivina.
+        </div>
+      </div>
+      <div class="seg-card">
+        <div class="seg-card-hdr nivel2">Factor 2 — Algo que tienes</div>
+        <div class="seg-card-body">
+          <strong>Lo que agrega 2FA:</strong><br>
+          Un código de 6 dígitos que cambia cada 30 segundos en la app del teléfono (Google Authenticator, Authy). Sin el teléfono, no hay acceso.
+        </div>
+      </div>
+      <div class="seg-card">
+        <div class="seg-card-hdr nivel3">Factor 3 — Algo que eres</div>
+        <div class="seg-card-body">
+          <strong>Biometría (no implementado):</strong><br>
+          Huella dactilar, reconocimiento facial. Requiere hardware específico. Se usa en apps bancarias móviles.
+        </div>
+      </div>
+    </div>
+
+    <div class="subseccion-titulo">¿Cómo funciona 2FA con TOTP?</div>
+    <p>El estándar más usado se llama <strong>TOTP</strong> (Time-based One-Time Password). Funciona así:</p>
+
+    <div class="tfa-pasos">
+      <div class="tfa-paso">
+        <div class="num">1</div>
+        <div class="titulo">Configuración inicial</div>
+        <div class="desc">El servidor genera un secreto único por usuario con la librería <code>speakeasy</code>. Se guarda en la BD encriptado.</div>
+      </div>
+      <div class="tfa-paso">
+        <div class="num">2</div>
+        <div class="titulo">Escaneo del QR</div>
+        <div class="desc">El secreto se convierte en un código QR con <code>qrcode</code>. El usuario lo escanea una sola vez con Google Authenticator.</div>
+      </div>
+      <div class="tfa-paso">
+        <div class="num">3</div>
+        <div class="titulo">Login en dos fases</div>
+        <div class="desc">Fase 1: usuario + contraseña. Si son correctos, el servidor pide el código de 6 dígitos de la app.</div>
+      </div>
+      <div class="tfa-paso">
+        <div class="num">4</div>
+        <div class="titulo">Verificación del código</div>
+        <div class="desc"><code>speakeasy.totp.verify()</code> confirma que el código coincide con el secreto del usuario en ese momento.</div>
+      </div>
+    </div>
+
+    <div class="subseccion-titulo">Flujo completo de login con 2FA</div>
+    <div class="diagrama-2fa">
+      <svg viewBox="0 0 780 380" xmlns="http://www.w3.org/2000/svg">
+        <text x="390" y="22" text-anchor="middle" font-family="Segoe UI,Arial" font-size="13" font-weight="700" fill="#4A148C">Flujo de autenticación con 2FA (TOTP)</text>
+
+        <!-- Cajas de actores -->
+        <rect x="10"  y="40" width="100" height="330" rx="8" fill="#F3E5F5" stroke="#CE93D8" stroke-width="1.5"/>
+        <text x="60"  y="58" text-anchor="middle" font-family="Segoe UI,Arial" font-size="11" font-weight="700" fill="#4A148C">Usuario</text>
+
+        <rect x="140" y="40" width="130" height="330" rx="8" fill="#EDE7F6" stroke="#CE93D8" stroke-width="1.5"/>
+        <text x="205" y="58" text-anchor="middle" font-family="Segoe UI,Arial" font-size="11" font-weight="700" fill="#6A1B9A">Frontend</text>
+
+        <rect x="300" y="40" width="130" height="330" rx="8" fill="#F8FBFF" stroke="#BBDEFB" stroke-width="1.5"/>
+        <text x="365" y="58" text-anchor="middle" font-family="Segoe UI,Arial" font-size="11" font-weight="700" fill="#1565C0">Backend</text>
+
+        <rect x="460" y="40" width="100" height="330" rx="8" fill="#E8F5E9" stroke="#A5D6A7" stroke-width="1.5"/>
+        <text x="510" y="58" text-anchor="middle" font-family="Segoe UI,Arial" font-size="11" font-weight="700" fill="#1B5E20">BD / MySQL</text>
+
+        <rect x="590" y="40" width="180" height="330" rx="8" fill="#FFF8E1" stroke="#FFE082" stroke-width="1.5"/>
+        <text x="680" y="58" text-anchor="middle" font-family="Segoe UI,Arial" font-size="11" font-weight="700" fill="#92400E">Google Authenticator</text>
+
+        <!-- Líneas guía -->
+        <line x1="60"  y1="62" x2="60"  y2="360" stroke="#CE93D8" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="205" y1="62" x2="205" y2="360" stroke="#CE93D8" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="365" y1="62" x2="365" y2="360" stroke="#BBDEFB" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="510" y1="62" x2="510" y2="360" stroke="#A5D6A7" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="680" y1="62" x2="680" y2="360" stroke="#FFE082" stroke-width="1" stroke-dasharray="3,3"/>
+
+        <!-- Paso 1 -->
+        <line x1="60" y1="85" x2="195" y2="85" stroke="#6A1B9A" stroke-width="1.5" marker-end="url(#p)"/>
+        <text x="128" y="78" text-anchor="middle" font-family="Segoe UI,Arial" font-size="9.5" fill="#6A1B9A">1. usuario + password</text>
+
+        <!-- Paso 2 -->
+        <line x1="205" y1="108" x2="355" y2="108" stroke="#1565C0" stroke-width="1.5" marker-end="url(#p2)"/>
+        <text x="280" y="101" text-anchor="middle" font-family="Segoe UI,Arial" font-size="9.5" fill="#1565C0">2. POST /api/auth/login</text>
+
+        <!-- Paso 3 -->
+        <line x1="365" y1="132" x2="455" y2="132" stroke="#1B5E20" stroke-width="1.5" marker-end="url(#p3)"/>
+        <text x="410" y="125" text-anchor="middle" font-family="Segoe UI,Arial" font-size="9.5" fill="#1B5E20">3. Verifica pwd</text>
+
+        <!-- Paso 4 — respuesta BD -->
+        <line x1="455" y1="155" x2="375" y2="155" stroke="#1B5E20" stroke-width="1.5" marker-end="url(#p2)"/>
+        <text x="415" y="148" text-anchor="middle" font-family="Segoe UI,Arial" font-size="9.5" fill="#1B5E20">4. OK + totp_secret</text>
+
+        <!-- Paso 5 — backend responde fase 1 -->
+        <line x1="355" y1="178" x2="215" y2="178" stroke="#1565C0" stroke-width="1.5" marker-end="url(#p4)"/>
+        <text x="285" y="171" text-anchor="middle" font-family="Segoe UI,Arial" font-size="9.5" fill="#1565C0">5. Fase 1 OK — pide código 2FA</text>
+
+        <!-- Paso 6 — frontend pide código -->
+        <line x1="205" y1="202" x2="70" y2="202" stroke="#6A1B9A" stroke-width="1.5" marker-end="url(#p)"/>
+        <text x="138" y="195" text-anchor="middle" font-family="Segoe UI,Arial" font-size="9.5" fill="#6A1B9A">6. Muestra campo código 2FA</text>
+
+        <!-- Paso 7 — usuario abre app -->
+        <line x1="60" y1="228" x2="670" y2="228" stroke="#92400E" stroke-width="1.5" marker-end="url(#p5)" stroke-dasharray="5,3"/>
+        <text x="365" y="221" text-anchor="middle" font-family="Segoe UI,Arial" font-size="9.5" fill="#92400E">7. Abre Google Authenticator — lee código de 6 dígitos</text>
+
+        <!-- Paso 8 — usuario ingresa código -->
+        <line x1="60" y1="252" x2="195" y2="252" stroke="#6A1B9A" stroke-width="1.5" marker-end="url(#p)"/>
+        <text x="128" y="245" text-anchor="middle" font-family="Segoe UI,Arial" font-size="9.5" fill="#6A1B9A">8. Ingresa código 6 dígitos</text>
+
+        <!-- Paso 9 — envía código -->
+        <line x1="205" y1="275" x2="355" y2="275" stroke="#1565C0" stroke-width="1.5" marker-end="url(#p2)"/>
+        <text x="280" y="268" text-anchor="middle" font-family="Segoe UI,Arial" font-size="9.5" fill="#1565C0">9. POST /api/auth/verify-2fa</text>
+
+        <!-- Paso 10 — backend verifica -->
+        <rect x="302" y="290" width="126" height="28" rx="6" fill="#1565C0" opacity="0.1"/>
+        <text x="365" y="300" text-anchor="middle" font-family="Segoe UI,Arial" font-size="9.5" fill="#1565C0" font-weight="700">10. speakeasy.totp.verify()</text>
+        <text x="365" y="312" text-anchor="middle" font-family="Segoe UI,Arial" font-size="9" fill="#1565C0">compara código con secret</text>
+
+        <!-- Paso 11 — JWT -->
+        <line x1="355" y1="335" x2="215" y2="335" stroke="#1565C0" stroke-width="1.5" marker-end="url(#p4)"/>
+        <text x="285" y="328" text-anchor="middle" font-family="Segoe UI,Arial" font-size="9.5" fill="#1565C0">11. Devuelve JWT (cookie httpOnly)</text>
+
+        <defs>
+          <marker id="p"  markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#6A1B9A"/></marker>
+          <marker id="p2" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#1565C0"/></marker>
+          <marker id="p3" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#1B5E20"/></marker>
+          <marker id="p4" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#1565C0"/></marker>
+          <marker id="p5" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#92400E"/></marker>
+        </defs>
+      </svg>
+    </div>
+
+    <div class="subseccion-titulo">¿Qué habría que cambiar en el sistema para implementar 2FA?</div>
+    <div class="cambios-2fa">
+      <div class="cambio-item">
+        <div class="capa">Base de datos</div>
+        <ul>
+          <li>Agregar columna <code>totp_secret VARCHAR(64)</code> a la tabla <code>usuarios</code></li>
+          <li>Agregar columna <code>totp_activo TINYINT(1) DEFAULT 0</code></li>
+        </ul>
+      </div>
+      <div class="cambio-item">
+        <div class="capa">Backend — paquetes</div>
+        <ul>
+          <li>Instalar <code>speakeasy</code> — genera y verifica códigos TOTP</li>
+          <li>Instalar <code>qrcode</code> — genera el código QR para escanear</li>
+        </ul>
+      </div>
+      <div class="cambio-item">
+        <div class="capa">Backend — endpoints nuevos</div>
+        <ul>
+          <li><code>POST /api/auth/setup-2fa</code> — genera el secreto y el QR</li>
+          <li><code>POST /api/auth/verify-2fa</code> — valida el código de 6 dígitos</li>
+          <li>Modificar <code>POST /api/auth/login</code> para manejar login en dos fases</li>
+        </ul>
+      </div>
+      <div class="cambio-item">
+        <div class="capa">Frontend — pantallas nuevas</div>
+        <ul>
+          <li>Pantalla de configuración 2FA con el código QR para escanear</li>
+          <li>Campo de código de 6 dígitos en el flujo de login (fase 2)</li>
+          <li>Manejo de dos estados en el login: fase 1 y fase 2</li>
+        </ul>
+      </div>
+    </div>
+
+    <table class="tabla-gen" style="margin-top:16px;">
+      <thead><tr><th>Librería</th><th>Función</th><th>Instalación</th></tr></thead>
+      <tbody>
+        <tr><td><code>speakeasy</code></td><td>Genera el secreto TOTP y verifica los códigos de 6 dígitos</td><td><code>npm install speakeasy</code></td></tr>
+        <tr><td><code>qrcode</code></td><td>Convierte el secreto en un código QR que el usuario escanea</td><td><code>npm install qrcode</code></td></tr>
+        <tr><td><code>Google Authenticator</code></td><td>App móvil gratuita que genera los códigos de 6 dígitos. No se instala en el servidor — la usa el usuario final.</td><td>App Store / Play Store</td></tr>
+      </tbody>
+    </table>
+
+    <div class="profesional"><strong>¿Por qué no se implementa en este proyecto?</strong> El flujo de login actual es un proceso de una sola fase: el usuario envía credenciales y recibe el JWT en una sola petición. El 2FA requiere dos fases — la primera verifica usuario+contraseña y devuelve un estado intermedio, y la segunda verifica el código TOTP y devuelve el JWT. Eso implicaría modificar el AuthContext, el LoginPage y toda la lógica de redirección que ya funciona correctamente. Para implementarlo bien, es un proyecto separado de 4–6 horas adicionales.</div>
+  </div>
+
+  <!-- 5. ACTIVIDADES -->
+  <div class="seccion" id="actividades">
+    <div class="seccion-titulo"><span class="seccion-num">8</span> Actividades</div>
+    <table class="actividades">
+      <thead><tr><th>Núm.</th><th>Actividad</th><th>Tipo</th></tr></thead>
+      <tbody>
+        <tr><td>A1</td><td>Implementa hCaptcha en el formulario de login. Verifica que el widget aparece correctamente en el navegador y que al resolverlo el token se genera. Toma captura del formulario con el widget visible.</td><td><span class="tipo-badge tipo-codigo">Código</span></td></tr>
+        <tr><td>A2</td><td>Desde Thunder Client, envía un POST a <code>/api/auth/login</code> sin el campo <code>captchaToken</code>. Toma captura del 400 con el mensaje "CAPTCHA requerido".</td><td><span class="tipo-badge tipo-thunder">Thunder Client</span></td></tr>
+        <tr><td>A3</td><td>Desde Thunder Client, envía el login con un <code>captchaToken</code> inventado (string aleatorio). Toma captura del 400 con el mensaje "CAPTCHA inválido".</td><td><span class="tipo-badge tipo-thunder">Thunder Client</span></td></tr>
+        <tr><td>A4</td><td>Haz el login completo desde el navegador (resuelve el CAPTCHA y entra al sistema). Confirma que el flujo normal sigue funcionando. Toma captura de la pantalla principal después del login exitoso.</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+        <tr><td>A5</td><td>Escribe en un documento de texto (máximo una página) tu análisis de la diferencia entre CAPTCHA y 2FA: ¿qué amenaza específica resuelve cada uno? ¿En qué situación usarías ambos juntos?</td><td><span class="tipo-badge tipo-prueba">Análisis</span></td></tr>
+        <tr><td>A6</td><td>Explica con tus propias palabras el flujo del token: ¿en qué momento se genera?, ¿quién lo genera?, ¿quién lo guarda temporalmente?, ¿quién lo valida? Indica además por qué para esta práctica se eligió hCaptcha en lugar de reCAPTCHA.</td><td><span class="tipo-badge tipo-prueba">Análisis</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 6. REFLEXIÓN -->
+  <div class="seccion" id="reflexion">
+    <div class="seccion-titulo"><span class="seccion-num">9</span> Preguntas de reflexión</div>
+    <ol class="reflexion-lista">
+      <li>El middleware de CAPTCHA verifica el token con la API de hCaptcha desde el backend, no desde el frontend. ¿Por qué es importante que esa verificación ocurra en el servidor y no en el navegador?</li>
+      <li>Las claves de prueba de hCaptcha siempre validan correctamente en localhost. ¿Qué riesgo representaría usar esas claves de prueba en un servidor de producción?</li>
+      <li>Un atacante que quiera hacer fuerza bruta al login ya tiene el rate limiting de P11 que lo bloquea después de 10 intentos. ¿Para qué sirve el CAPTCHA si ya existe ese límite? ¿Se solapan o se complementan?</li>
+      <li>En el diagrama de 2FA, el servidor devuelve un "estado intermedio" entre la fase 1 y la fase 2 del login. ¿Cómo podría implementarse ese estado intermedio en el sistema actual sin almacenarlo en la base de datos?</li>
+      <li>¿En qué tipo de sistema real considerarías implementar los tres mecanismos juntos: CAPTCHA + rate limiting + 2FA? Justifica con un ejemplo concreto.</li>
+      <li>¿Por qué el token no debe confundirse con el CAPTCHA? Describe quién genera el token y por qué el backend debe validarlo con el proveedor.</li>
+    </ol>
+  </div>
+
+  <!-- 7. ENTREGABLE -->
+  <div class="seccion" id="entregable">
+    <div class="seccion-titulo"><span class="seccion-num">10</span> Entregable</div>
+    <ul class="entregable-lista">
+      <li>ZIP con <code>backend/</code> y <code>frontend/</code> sin <code>node_modules/</code> ni <code>.env</code>.</li>
+      <li>Captura del formulario de login con el widget de hCaptcha visible (A1).</li>
+      <li>Captura del 400 sin captchaToken desde Thunder Client (A2).</li>
+      <li>Captura del 400 con token inválido desde Thunder Client (A3).</li>
+      <li>Captura del login exitoso desde el navegador con CAPTCHA resuelto (A4).</li>
+      <li>Análisis escrito CAPTCHA vs 2FA, máximo una página (A5).</li>
+      <li>Explicación del flujo del token y elección hCaptcha vs reCAPTCHA (A6).</li>
+      <li>Respuestas a las 5 preguntas de reflexión.</li>
+    </ul>
+    <div class="peligro"><strong>Recuerda:</strong> las claves de prueba de hCaptcha son públicas — no necesitas ocultarlas en el .env para esta práctica. En producción sí se pondrían en .env.</div>
+  </div>
+
+  <!-- 8. RÚBRICA -->
+  <div class="seccion" id="rubrica">
+    <div class="seccion-titulo"><span class="seccion-num">11</span> Criterios de evaluación</div>
+    <table class="rubrica">
+      <thead><tr><th>Criterio</th><th>Descripción</th><th>Puntos</th></tr></thead>
+      <tbody>
+        <tr><td>Widget hCaptcha en el login</td><td>El componente aparece en el formulario y genera un token al resolverse. Captura visible (A1).</td><td class="pts">25</td></tr>
+        <tr><td>Middleware de verificación</td><td>El backend rechaza peticiones sin token (400) y con token inválido (400). Verificado con Thunder Client (A2 y A3).</td><td class="pts">30</td></tr>
+        <tr><td>Flujo completo funcional</td><td>El login desde el navegador con CAPTCHA resuelto sigue funcionando correctamente (A4).</td><td class="pts">20</td></tr>
+        <tr><td>Análisis CAPTCHA vs 2FA</td><td>Documento claro que distingue qué amenaza resuelve cada mecanismo y cuándo usarlos juntos (A5).</td><td class="pts">25</td></tr>
+      </tbody>
+      <tr class="total"><td colspan="2">Total</td><td>100</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<div class="footer">
+  Ingeniería de Desarrollo y Gestión de Software &nbsp;·&nbsp; Práctica 11.5 de 13 &nbsp;·&nbsp; Fase 5: hCaptcha, token, rate limiting y fundamentos de 2FA
+</div>
+
+<script>
+const KW='#7B40F2',ST='#C0392B',CM='#27AE60',FN='#16A085',PL='#1a1a2e',IM='#8E44AD';
+
+function draw(id, lines) {
+  const cv = document.getElementById(id);
+  if (!cv) return;
+  const CH = 7.8, LH = 22, PX = 14, PY = 12;
+  const FS = '13px "Courier New",Courier,monospace';
+  let maxChars = 0;
+  lines.forEach(segs => {
+    const len = segs.reduce((acc, s) => acc + s[1].length, 0);
+    if (len > maxChars) maxChars = len;
+  });
+  const W = Math.ceil(maxChars * CH + PX * 2);
+  const H = lines.length * LH + PY * 2;
+  const dpr = window.devicePixelRatio || 1;
+  cv.width  = W * dpr; cv.height = H * dpr;
+  cv.style.width = W + 'px'; cv.style.height = H + 'px';
+  const ctx = cv.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H);
+  ctx.font = FS; ctx.textBaseline = 'alphabetic';
+  lines.forEach((segs, i) => {
+    const y = PY + i * LH + LH * 0.78;
+    let x = PX;
+    segs.forEach(function(s) {
+      ctx.fillStyle = s[0]; ctx.fillText(s[1], x, y);
+      x += ctx.measureText(s[1]).width;
+    });
+  });
+}
+
+const B={
+
+c_install_front:[
+  [[CM,'# Dentro de frontend/']],
+  [[PL,'npm install @hcaptcha/react-hcaptcha']],
+],
+
+c_install_back:[
+  [[CM,'# Dentro de backend/']],
+  [[CM,'# node-fetch para llamar a la API de hCaptcha']],
+  [[PL,'npm install node-fetch']],
+],
+
+c_login_front:[
+  [[IM,'import'],[PL,' { useState, useRef } '],[IM,'from'],[PL,' '],[ST,"'react'"],[PL,';']],
+  [[IM,'import'],[PL,' HCaptcha              '],[IM,'from'],[PL,' '],[ST,"'@hcaptcha/react-hcaptcha'"],[PL,';']],
+  [[IM,'import'],[PL,' { useAuth }           '],[IM,'from'],[PL,' '],[ST,"'../context/AuthContext'"],[PL,';']],
+  [[PL,'']],
+  [[CM,'// Site key de prueba — funciona en localhost sin registro']],
+  [[KW,'const'],[PL,' SITE_KEY = '],[ST,"'10000000-ffff-ffff-ffff-000000000001'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'function'],[PL,' '],[FN,'LoginPage'],[PL,'() {']],
+  [[PL,'  '],[KW,'const'],[PL,' [form, setForm]           = '],[FN,'useState'],[PL,'({ usuario: '],[ST,"''"],[PL,', password: '],[ST,"''"],[PL,' });']],
+  [[PL,'  '],[KW,'const'],[PL,' [captchaToken, setCaptcha] = '],[FN,'useState'],[PL,'('],[ST,"''"],[PL,');']],
+  [[PL,'  '],[KW,'const'],[PL,' [error, setError]          = '],[FN,'useState'],[PL,'('],[ST,"''"],[PL,');']],
+  [[PL,'  '],[KW,'const'],[PL,' captchaRef = '],[FN,'useRef'],[PL,'(null);']],
+  [[PL,'  '],[KW,'const'],[PL,' { login } = '],[FN,'useAuth'],[PL,'();']],
+  [[PL,'']],
+  [[KW,'  async function'],[PL,' '],[FN,'handleSubmit'],[PL,'(e) {']],
+  [[PL,'    e.'],[FN,'preventDefault'],[PL,'();']],
+  [[PL,'    '],[KW,'if'],[PL,' (!captchaToken) {']],
+  [[PL,'      '],[FN,'setError'],[PL,'('],[ST,"'Completa el CAPTCHA antes de continuar'"],[PL,');']],
+  [[PL,'      '],[KW,'return'],[PL,';']],
+  [[PL,'    }']],
+  [[PL,'    '],[KW,'try'],[PL,' {']],
+  [[CM,'      // Envía usuario, password Y el token del captcha']],
+  [[PL,'      '],[KW,'await'],[PL,' '],[FN,'login'],[PL,'({ ...form, captchaToken });']],
+  [[PL,'    } '],[KW,'catch'],[PL,' (err) {']],
+  [[PL,'      '],[FN,'setError'],[PL,'(err.response?.data?.error || '],[ST,"'Error al iniciar sesión'"],[PL,');']],
+  [[CM,'      // Resetear el captcha después de un error']],
+  [[PL,'      captchaRef.current?.'],[FN,'resetCaptcha'],[PL,'();']],
+  [[PL,'      '],[FN,'setCaptcha'],[PL,'('],[ST,"''"],[PL,');']],
+  [[PL,'    }']],
+  [[PL,'  }']],
+  [[PL,'']],
+  [[PL,'  '],[KW,'return'],[PL,' (']],
+  [[PL,'    <form onSubmit={handleSubmit}>']],
+  [[PL,'      {/* campos de usuario y password — sin cambios */}']],
+  [[PL,'      {error && <div className='],[ST,'"alert alert-danger"'],[PL,'>{error}</div>}']],
+  [[PL,'']],
+  [[CM,'      {/* Widget de hCaptcha — nuevo */}']],
+  [[PL,'      <div className='],[ST,'"mb-3"'],[PL,'>']],
+  [[PL,'        <HCaptcha']],
+  [[PL,'          sitekey={SITE_KEY}']],
+  [[PL,'          onVerify={token => '],[FN,'setCaptcha'],[PL,'(token)}']],
+  [[PL,'          onExpire={() => '],[FN,'setCaptcha'],[PL,'('],[ST,"''"],[PL,')}']],
+  [[PL,'          ref={captchaRef}']],
+  [[PL,'        />']],
+  [[PL,'      </div>']],
+  [[PL,'      <button type='],[ST,'"submit"'],[PL,' className='],[ST,'"btn btn-primary w-100"'],[PL,'>']],
+  [[PL,'        Iniciar sesión']],
+  [[PL,'      </button>']],
+  [[PL,'    </form>']],
+  [[PL,'  );']],
+  [[PL,'}']],
+  [[PL,'']],
+  [[KW,'export default'],[PL,' LoginPage;']],
+],
+
+c_captcha_mw:[
+  [[IM,'import'],[PL,' fetch '],[IM,'from'],[PL,' '],[ST,"'node-fetch'"],[PL,';']],
+  [[PL,'']],
+  [[CM,'// Secret key de prueba — válida solo en localhost']],
+  [[KW,'const'],[PL,' HCAPTCHA_SECRET = process.env.HCAPTCHA_SECRET ||']],
+  [[PL,'  '],[ST,"'0x0000000000000000000000000000000000000000'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'export const'],[PL,' verificarCaptcha = '],[KW,'async'],[PL,' (req, res, next) => {']],
+  [[PL,'  '],[KW,'const'],[PL,' { captchaToken } = req.body;']],
+  [[PL,'']],
+  [[PL,'  '],[KW,'if'],[PL,' (!captchaToken) {']],
+  [[PL,'    '],[KW,'return'],[PL,' res.'],[FN,'status'],[PL,'(400).'],[FN,'json'],[PL,'({']],
+  [[PL,'      error: '],[ST,"'CAPTCHA requerido'"],[PL,'']],
+  [[PL,'    });']],
+  [[PL,'  }']],
+  [[PL,'']],
+  [[CM,'  // Verifica el token con la API de hCaptcha']],
+  [[KW,'  const'],[PL,' resp = '],[KW,'await'],[PL,' '],[FN,'fetch'],[PL,'(']],
+  [[PL,'    '],[ST,"'https://hcaptcha.com/siteverify'"],[PL,', {']],
+  [[PL,'      method: '],[ST,"'POST'"],[PL,',']],
+  [[PL,'      headers: { '],[ST,"'Content-Type'"],[PL,': '],[ST,"'application/x-www-form-urlencoded'"],[PL,' },']],
+  [[PL,'      body: `secret=${HCAPTCHA_SECRET}&response=${captchaToken}`']],
+  [[PL,'    }']],
+  [[PL,'  );']],
+  [[PL,'  '],[KW,'const'],[PL,' data = '],[KW,'await'],[PL,' resp.'],[FN,'json'],[PL,'();']],
+  [[PL,'']],
+  [[PL,'  '],[KW,'if'],[PL,' (!data.success) {']],
+  [[PL,'    '],[KW,'return'],[PL,' res.'],[FN,'status'],[PL,'(400).'],[FN,'json'],[PL,'({']],
+  [[PL,'      error: '],[ST,"'CAPTCHA inválido. Intenta de nuevo'"],[PL,'']],
+  [[PL,'    });']],
+  [[PL,'  }']],
+  [[PL,'']],
+  [[FN,'  next'],[PL,'();']],
+  [[PL,'};']],
+],
+
+c_auth_route:[
+  [[IM,'import'],[PL,' { verificarCaptcha } '],[IM,'from'],[PL,' '],[ST,"'../middlewares/captcha.middleware.js'"],[PL,';']],
+  [[PL,'']],
+  [[CM,'// Ruta de login — agregar verificarCaptcha antes del controlador']],
+  [[CM,'// El orden es: limiterAuth → verificarCaptcha → login']],
+  [[PL,'router.'],[FN,'post'],[PL,'('],[ST,"'/login'"],[PL,', limiterAuth, verificarCaptcha, login);']],
+  [[PL,'']],
+  [[CM,'// El resto de rutas de auth sin cambios']],
+  [[PL,'router.'],[FN,'post'],[PL,'('],[ST,"'/logout'"],[PL,', verificarToken, logout);']],
+  [[PL,'router.'],[FN,'get'],[PL,'('],[ST,"'/me'"],[PL,',    verificarToken, me);']],
+],
+
+c_env:[
+  [[CM,'# backend/.env — agregar esta línea']],
+  [[PL,'']],
+  [[CM,'# Secret key de prueba (localhost) — no registrarse en hcaptcha.com']],
+  [[PL,'HCAPTCHA_SECRET=0x0000000000000000000000000000000000000000']],
+  [[PL,'']],
+  [[CM,'# Para producción: registrar en hcaptcha.com y reemplazar la clave']],
+],
+
+c_t1:[
+  [[CM,'// POST /api/auth/login — sin campo captchaToken']],
+  [[PL,'{']],
+  [[PL,'  '],[ST,'"usuario"'],[PL,'  : '],[ST,'"admin"'],[PL,',']],
+  [[PL,'  '],[ST,'"password"'],[PL,' : '],[ST,'"Admin1234"']],
+  [[PL,'}']],
+  [[PL,'']],
+  [[CM,'// Respuesta 400 esperada:']],
+  [[PL,'{ "error": "CAPTCHA requerido" }']],
+],
+
+c_t2:[
+  [[CM,'// POST /api/auth/login — token inventado']],
+  [[PL,'{']],
+  [[PL,'  '],[ST,'"usuario"'],[PL,'      : '],[ST,'"admin"'],[PL,',']],
+  [[PL,'  '],[ST,'"password"'],[PL,'     : '],[ST,'"Admin1234"'],[PL,',']],
+  [[PL,'  '],[ST,'"captchaToken"'],[PL,' : '],[ST,'"token-inventado-invalido"']],
+  [[PL,'}']],
+  [[PL,'']],
+  [[CM,'// Respuesta 400 esperada:']],
+  [[PL,'{ "error": "CAPTCHA invalido. Intenta de nuevo" }']],
+],
+
+};
+
+(function() {
+  function go() {
+    for (var id in B) {
+      if (B.hasOwnProperty(id)) draw(id, B[id]);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', go);
+  } else {
+    setTimeout(go, 0);
+  }
+})();
+</script>
+</body>
+</html>
