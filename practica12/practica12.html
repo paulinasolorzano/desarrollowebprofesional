@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica 12 — Seguridad Avanzada</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',Arial,sans-serif; background:#fff; color:#1a1a2e; font-size:14px; line-height:1.7; }
+.header { background:#1565C0; color:#fff; }
+.header-top { background:#0D47A1; padding:18px 40px 14px; display:flex; justify-content:space-between; align-items:flex-start; }
+.header-inst { font-size:11px; opacity:0.85; letter-spacing:0.03em; text-transform:uppercase; }
+.header-carrera { font-size:13px; font-weight:600; margin-top:3px; }
+.header-badge { background:#fff; color:#0D47A1; font-weight:700; font-size:13px; padding:6px 16px; border-radius:20px; white-space:nowrap; align-self:center; }
+.header-main { padding:20px 40px 24px; }
+.header-practica { font-size:11px; opacity:0.75; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; }
+.header-titulo { font-size:26px; font-weight:700; margin-bottom:8px; }
+.header-meta { display:flex; gap:24px; font-size:12px; opacity:0.85; flex-wrap:wrap; }
+.header-strip { height:5px; background:#42A5F5; }
+.content { max-width:900px; margin:0 auto; padding:36px 40px 60px; }
+.toc { background:#E3F2FD; border-left:4px solid #1565C0; border-radius:0 8px 8px 0; padding:20px 24px; margin-bottom:36px; }
+.toc-title { font-size:13px; font-weight:700; color:#0D47A1; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px; }
+.toc ol { padding-left:18px; }
+.toc li { font-size:13px; color:#1565C0; padding:3px 0; }
+.toc li a { color:#1565C0; text-decoration:none; }
+.seccion { margin-bottom:36px; }
+.seccion-titulo { font-size:16px; font-weight:700; color:#0D47A1; border-bottom:2px solid #BBDEFB; padding-bottom:8px; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+.seccion-num { background:#1565C0; color:#fff; font-size:12px; font-weight:700; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.subseccion-titulo { font-size:14px; font-weight:700; color:#1565C0; margin:18px 0 8px; }
+p { margin-bottom:10px; }
+.contexto-card { background:#F8FBFF; border:1px solid #BBDEFB; border-radius:10px; padding:20px 24px; margin-bottom:16px; }
+.concepto-bloque { border:1px solid #BBDEFB; border-radius:10px; margin-bottom:14px; overflow:hidden; }
+.concepto-header { background:#1565C0; color:#fff; padding:10px 16px; font-size:13px; font-weight:700; }
+.concepto-body { padding:14px 16px; font-size:13.5px; background:#F8FBFF; }
+.concepto-body p { margin-bottom:8px; }
+.nota { background:#FFF8E1; border-left:4px solid #F59E0B; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.nota strong { color:#92400E; }
+.info { background:#E8F5E9; border-left:4px solid #43A047; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.info strong { color:#1B5E20; }
+.peligro { background:#FFEBEE; border-left:4px solid #E53935; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.peligro strong { color:#B71C1C; }
+.profesional { background:#EDE7F6; border-left:4px solid #7B1FA2; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.profesional strong { color:#4A148C; }
+.flujo { display:flex; align-items:center; margin:16px 0; flex-wrap:wrap; gap:4px; }
+.flujo-item { background:#E3F2FD; border:1px solid #90CAF9; border-radius:8px; padding:10px 14px; text-align:center; font-size:12px; flex:1; min-width:90px; }
+.flujo-item.activo { background:#1565C0; color:#fff; border-color:#1565C0; font-weight:700; }
+.flujo-item.futuro { background:#F5F5F5; border-color:#ddd; color:#999; }
+.flujo-item.listo { background:#E8F5E9; border-color:#66BB6A; color:#2E7D32; }
+.flujo-item .fi-num { font-size:10px; opacity:0.7; margin-bottom:2px; }
+.flujo-item .fi-nombre { font-size:12px; font-weight:600; }
+.flujo-sep { color:#90CAF9; font-size:18px; padding:0 4px; }
+.paso { background:#fff; border:1px solid #BBDEFB; border-radius:10px; padding:20px 24px; margin-bottom:20px; }
+.paso-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.paso-num { background:#1565C0; color:#fff; font-size:13px; font-weight:700; padding:4px 12px; border-radius:14px; }
+.paso-titulo { font-size:14px; font-weight:700; color:#0D47A1; }
+.file-label { display:inline-block; background:#E3F2FD; color:#0D47A1; font-family:'Courier New',monospace; font-size:12px; padding:4px 12px; border-radius:6px 6px 0 0; border:1px solid #BBDEFB; border-bottom:none; font-weight:600; margin-top:10px; }
+.file-label.nuevo { background:#E8F5E9; color:#1B5E20; border-color:#A5D6A7; }
+.file-label.modif { background:#FFF8E1; color:#92400E; border-color:#FFE082; }
+.code-wrap { border:1px solid #BBDEFB; border-radius:0 8px 8px 8px; overflow:hidden; margin-bottom:12px; background:#fff; }
+.code-wrap.nuevo { border-color:#A5D6A7; }
+.code-wrap.modif { border-color:#FFE082; }
+.code-wrap canvas { display:block; max-width:100%; }
+.tabla-gen { width:100%; border-collapse:collapse; font-size:13px; margin:12px 0; }
+.tabla-gen th { background:#1565C0; color:#fff; padding:9px 14px; text-align:left; font-size:12px; }
+.tabla-gen td { padding:9px 14px; border-bottom:1px solid #E3F2FD; vertical-align:top; }
+.tabla-gen tr:nth-child(even) td { background:#F8FBFF; }
+.tabla-gen code { background:#E3F2FD; color:#0D47A1; padding:1px 6px; border-radius:3px; font-size:12px; }
+.actividades { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.actividades th { background:#1565C0; color:#fff; padding:10px 14px; text-align:left; font-weight:600; font-size:12px; }
+.actividades td { padding:9px 14px; border-bottom:1px solid #E3F2FD; vertical-align:top; }
+.actividades tr:nth-child(even) td { background:#F8FBFF; }
+.actividades tr:last-child td { border-bottom:none; }
+.tipo-badge { font-size:11px; padding:3px 8px; border-radius:10px; font-weight:600; white-space:nowrap; }
+.tipo-codigo { background:#E3F2FD; color:#0D47A1; }
+.tipo-prueba { background:#E8F5E9; color:#1B5E20; }
+.tipo-thunder { background:#FFF3E0; color:#E65100; }
+.reflexion-lista { list-style:none; padding:0; counter-reset:ref; }
+.reflexion-lista li { counter-increment:ref; padding:10px 14px 10px 44px; position:relative; background:#F8FBFF; border:1px solid #BBDEFB; border-radius:8px; margin-bottom:8px; font-size:13.5px; }
+.reflexion-lista li::before { content:counter(ref); position:absolute; left:12px; top:50%; transform:translateY(-50%); background:#1565C0; color:#fff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
+.rubrica { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.rubrica th { background:#0D47A1; color:#fff; padding:10px 14px; text-align:left; font-weight:600; font-size:12px; }
+.rubrica td { padding:9px 14px; border-bottom:1px solid #E3F2FD; }
+.rubrica tr:nth-child(even) td { background:#F8FBFF; }
+.rubrica .total td { background:#1565C0; color:#fff; font-weight:700; }
+.pts { font-weight:700; color:#0D47A1; }
+.entregable-lista { list-style:none; padding:0; }
+.entregable-lista li { padding:8px 14px 8px 36px; position:relative; font-size:13.5px; border-bottom:1px solid #F0F4FF; }
+.entregable-lista li:last-child { border-bottom:none; }
+.entregable-lista li::before { content:'📄'; position:absolute; left:8px; }
+.footer { background:#0D47A1; color:#fff; text-align:center; padding:14px 40px; font-size:12px; margin-top:40px; }
+code { background:#E3F2FD; color:#0D47A1; padding:1px 5px; border-radius:3px; font-size:12px; font-family:'Courier New',monospace; }
+.owasp-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:12px 0; }
+.owasp-item { background:#F8FBFF; border:1px solid #BBDEFB; border-radius:8px; padding:12px 14px; }
+.owasp-item .num { font-size:10px; font-weight:700; color:#1565C0; text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px; }
+.owasp-item .titulo { font-size:13px; font-weight:700; color:#1a1a2e; margin-bottom:4px; }
+.owasp-item .estado { font-size:11px; padding:2px 8px; border-radius:10px; font-weight:600; display:inline-block; }
+.estado-ok { background:#E8F5E9; color:#1B5E20; }
+.estado-parcial { background:#FFF8E1; color:#92400E; }
+.owasp-item .desc { font-size:12px; color:#666; margin-top:6px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-inst">Ingeniería de Desarrollo y Gestión de Software</div>
+      <div class="header-carrera">Desarrollo Web Integral y Seguridad</div>
+    </div>
+    <div class="header-badge">Práctica 12</div>
+  </div>
+  <div class="header-main">
+    <div class="header-practica">Fase 5 — Avanzado · continuación</div>
+    <div class="header-titulo">Seguridad Avanzada: Helmet, Rate Limiting y Auditoría</div>
+    <div class="header-meta">
+      <span>⏱ Duración: 2.5 horas</span>
+      <span>📦 helmet · express-rate-limit · tabla de auditoría · checklist OWASP</span>
+      <span>🎯 Entregable: API protegida con headers seguros, límite de peticiones y trazabilidad</span>
+    </div>
+  </div>
+  <div class="header-strip"></div>
+</div>
+
+<div class="content">
+
+  <div class="toc">
+    <div class="toc-title">Tabla de contenidos</div>
+    <ol>
+      <li><a href="#donde">¿Dónde estamos?</a></li>
+      <li><a href="#conceptos">Conceptos clave</a></li>
+      <li><a href="#objetivos">Objetivos</a></li>
+      <li><a href="#desarrollo">Desarrollo paso a paso</a></li>
+      <li><a href="#owasp">Checklist OWASP aplicado al proyecto</a></li>
+      <li><a href="#actividades">Actividades</a></li>
+      <li><a href="#reflexion">Preguntas de reflexión</a></li>
+      <li><a href="#entregable">Entregable</a></li>
+      <li><a href="#rubrica">Criterios de evaluación</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. DÓNDE ESTAMOS -->
+  <div class="seccion" id="donde">
+    <div class="seccion-titulo"><span class="seccion-num">1</span> ¿Dónde estamos?</div>
+    <div class="contexto-card">
+      <p>En P11 la API aprendió a <strong>rechazar datos incorrectos</strong> antes de que llegaran a la base de datos. En P12 vamos a proteger la API de amenazas externas: ataques de fuerza bruta, peticiones maliciosas, inyección de scripts y accesos no rastreados. Al terminar esta práctica el sistema tendrá una capa de seguridad completa lista para producción.</p>
+    </div>
+    <div class="flujo">
+      <div class="flujo-item listo"><div class="fi-num">P01–P11</div><div class="fi-nombre">CRUD · Auth · Validaciones</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item activo"><div class="fi-num">P12</div><div class="fi-nombre">Seguridad avanzada</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item futuro"><div class="fi-num">P13</div><div class="fi-nombre">Cierre y entrega</div></div>
+    </div>
+  </div>
+
+  <!-- 2. CONCEPTOS -->
+  <div class="seccion" id="conceptos">
+    <div class="seccion-titulo"><span class="seccion-num">2</span> Conceptos clave</div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header">Helmet — headers HTTP de seguridad</div>
+      <div class="concepto-body">
+        <p>Cuando Express responde una petición, incluye ciertos <strong>headers HTTP</strong> en la respuesta. Por defecto esos headers no tienen configuración de seguridad — exponen información del servidor y dejan al navegador sin instrucciones de protección.</p>
+        <p><strong>Helmet</strong> es un paquete npm que agrega automáticamente 11 headers de seguridad en cada respuesta. No requiere configuración — con una sola línea el servidor ya los incluye.</p>
+        <p><strong>Analogía:</strong> es como instalar rejas, cerrojo y alarma en una casa nueva. La casa funciona sin ellos, pero está expuesta. Helmet los instala todos de una vez sin que tengas que pensar cuáles poner.</p>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header">Rate Limiting — límite de peticiones</div>
+      <div class="concepto-body">
+        <p>Sin límite de peticiones, cualquier persona puede enviar miles de peticiones por segundo a la API — para adivinar contraseñas por fuerza bruta, saturar el servidor o extraer datos masivamente.</p>
+        <p><strong>express-rate-limit</strong> cuenta las peticiones de cada IP y bloquea temporalmente cuando supera el límite definido. La respuesta es <code>429 Too Many Requests</code>.</p>
+        <p>Se configura con dos límites distintos:</p>
+        <table class="tabla-gen">
+          <thead><tr><th>Límite</th><th>Aplica a</th><th>Configuración</th></tr></thead>
+          <tbody>
+            <tr><td>Global</td><td>Todas las rutas</td><td>100 peticiones por IP cada 15 minutos</td></tr>
+            <tr><td>Estricto</td><td>Solo <code>/api/auth/login</code></td><td>10 intentos por IP cada hora</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header">Auditoría — trazabilidad de acciones</div>
+      <div class="concepto-body">
+        <p>La auditoría registra <strong>quién hizo qué y cuándo</strong> en el sistema. Es una tabla en la BD donde cada acción importante (crear, editar, eliminar) deja una huella: el usuario que la ejecutó, la tabla afectada, el id del registro y la IP de origen.</p>
+        <p>En seguridad esto se llama <strong>trazabilidad</strong> — si algo sale mal puedes saber exactamente qué pasó, quién lo hizo y desde dónde.</p>
+      </div>
+    </div>
+
+    <div class="concepto-bloque">
+      <div class="concepto-header">OWASP Top 10 — las vulnerabilidades más críticas</div>
+      <div class="concepto-body">
+        <p>OWASP (Open Web Application Security Project) publica cada año la lista de las 10 vulnerabilidades más frecuentes y peligrosas en aplicaciones web. En esta práctica verificarás cuáles de ellas ya están cubiertas por el sistema y cuáles quedan pendientes para producción real.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. OBJETIVOS -->
+  <div class="seccion" id="objetivos">
+    <div class="seccion-titulo"><span class="seccion-num">3</span> Objetivos</div>
+    <ul class="entregable-lista" style="padding:0;">
+      <li>Instalar y configurar <code>helmet</code> para agregar headers HTTP de seguridad automáticamente.</li>
+      <li>Instalar y configurar <code>express-rate-limit</code> con dos niveles: global y estricto para autenticación.</li>
+      <li>Crear la tabla <code>auditoria</code> en la BD y el helper <code>registrarAuditoria()</code>.</li>
+      <li>Integrar el registro de auditoría en los controladores de creación, edición y eliminación.</li>
+      <li>Revisar y documentar el orden correcto de los middlewares en <code>server.js</code>.</li>
+      <li>Completar el checklist OWASP Top 10 aplicado al Sistema Administrativo.</li>
+    </ul>
+  </div>
+
+  <!-- 4. DESARROLLO -->
+  <div class="seccion" id="desarrollo">
+    <div class="seccion-titulo"><span class="seccion-num">4</span> Desarrollo paso a paso</div>
+
+    <!-- PASO 1 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 1</span><span class="paso-titulo">Instalar los paquetes</span></div>
+      <div class="file-label">Terminal — dentro de backend/</div>
+      <div class="code-wrap"><canvas id="c_install"></canvas></div>
+    </div>
+
+    <!-- PASO 2 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 2</span><span class="paso-titulo">Configurar Helmet</span></div>
+      <p>Helmet se activa con una sola línea. El lugar correcto es en <code>server.js</code>, <strong>antes de cualquier ruta</strong>, para que todos los endpoints hereden los headers de seguridad.</p>
+      <div class="file-label modif">backend/server.js — agregar helmet</div>
+      <div class="code-wrap modif"><canvas id="c_helmet"></canvas></div>
+      <div class="info"><strong>Verifica en Thunder Client:</strong> después de agregar helmet, cualquier petición GET al backend mostrará en la pestaña Headers de la respuesta los nuevos encabezados de seguridad como <code>X-Content-Type-Options</code> y <code>X-Frame-Options</code>.</div>
+    </div>
+
+    <!-- PASO 3 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 3</span><span class="paso-titulo">Configurar Rate Limiting</span></div>
+      <p>Se crean dos limitadores con distinto nivel de restricción. El global protege toda la API; el estricto protege específicamente el endpoint de login contra ataques de fuerza bruta.</p>
+      <div class="file-label modif">backend/server.js — limiter global</div>
+      <div class="code-wrap modif"><canvas id="c_ratelimit_global"></canvas></div>
+      <div class="file-label modif">backend/server.js — limiter estricto para auth</div>
+      <div class="code-wrap modif"><canvas id="c_ratelimit_auth"></canvas></div>
+      <div class="profesional"><strong>¿Por qué dos limitadores?</strong> El endpoint de login es el más vulnerable — un atacante puede intentar millones de combinaciones de usuario/contraseña. El límite de 10 intentos por hora hace ese ataque inviable en la práctica. El límite global de 100 peticiones en 15 minutos protege contra scraping y saturación general.</div>
+    </div>
+
+    <!-- PASO 4 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 4</span><span class="paso-titulo">Orden correcto de middlewares en server.js</span></div>
+      <p>El orden en que se registran los middlewares en Express <strong>define exactamente qué se aplica y cuándo</strong>. Este es el orden correcto y profesional para el sistema:</p>
+      <div class="file-label modif">backend/server.js — orden completo</div>
+      <div class="code-wrap modif"><canvas id="c_server_orden"></canvas></div>
+      <div class="nota"><strong>Regla de oro:</strong> Helmet y CORS van antes que las rutas. El errorHandler global va después de todo. Si el orden cambia, la seguridad puede quedar incompleta o el manejo de errores puede no funcionar.</div>
+    </div>
+
+    <!-- PASO 5 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 5</span><span class="paso-titulo">Crear la tabla de auditoría en la BD</span></div>
+      <div class="file-label nuevo">phpMyAdmin — pestaña SQL</div>
+      <div class="code-wrap nuevo"><canvas id="c_audit_sql"></canvas></div>
+    </div>
+
+    <!-- PASO 6 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 6</span><span class="paso-titulo">Crear el helper de auditoría</span></div>
+      <p>Se crea en una carpeta <code>helpers/</code> separada de los middlewares porque no es un middleware de Express — es una función utilitaria que los controladores llaman directamente.</p>
+      <div class="file-label nuevo">backend/helpers/auditoria.js — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_audit"></canvas></div>
+    </div>
+
+    <!-- PASO 7 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 7</span><span class="paso-titulo">Usar la auditoría en los controladores</span></div>
+      <p>Se agrega una llamada a <code>registrarAuditoria()</code> después de cada operación de escritura exitosa (CREATE, UPDATE, DELETE). La auditoría nunca debe bloquear la respuesta al cliente — si falla, solo lo registra en consola.</p>
+      <div class="file-label modif">backend/controllers/personas.controller.js — ejemplo</div>
+      <div class="code-wrap modif"><canvas id="c_audit_uso"></canvas></div>
+      <div class="info"><strong>Aplica el mismo patrón</strong> en los controladores de <code>update</code> y <code>remove</code> de todos los módulos: personas, proyectos, tareas, departamentos y evaluaciones. La acción cambia: <code>'CREATE'</code>, <code>'UPDATE'</code> o <code>'DELETE'</code>.</div>
+    </div>
+
+    <!-- PASO 8 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 8</span><span class="paso-titulo">Revisar variables de entorno</span></div>
+      <p>Antes de la entrega final, verifica que el archivo <code>.env</code> esté completo y que el <code>JWT_SECRET</code> sea una cadena larga y aleatoria — no palabras simples.</p>
+      <div class="file-label">backend/.env — estructura completa</div>
+      <div class="code-wrap"><canvas id="c_env"></canvas></div>
+      <div class="peligro"><strong>Nunca subas el .env a GitHub.</strong> Verifica que <code>.gitignore</code> incluya la línea <code>.env</code> antes de cualquier commit.</div>
+    </div>
+
+    <!-- PASO 9 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 9</span><span class="paso-titulo">Pruebas con Thunder Client</span></div>
+
+      <div class="subseccion-titulo">Prueba 1 — Rate limit en login (429)</div>
+      <div class="file-label">POST http://localhost:3000/api/auth/login — enviar 11 veces seguidas</div>
+      <div class="code-wrap"><canvas id="c_t1"></canvas></div>
+      <div class="info"><strong>Esperado en la petición 11:</strong> <code>429 Too Many Requests</code> con el mensaje de error configurado.</div>
+
+      <div class="subseccion-titulo" style="margin-top:16px;">Prueba 2 — Headers de seguridad (Helmet)</div>
+      <div class="file-label">GET http://localhost:3000/api/personas — revisar pestaña Headers</div>
+      <div class="code-wrap"><canvas id="c_t2"></canvas></div>
+
+      <div class="subseccion-titulo" style="margin-top:16px;">Prueba 3 — Registro en tabla auditoría</div>
+      <div class="file-label">phpMyAdmin — consulta SQL</div>
+      <div class="code-wrap"><canvas id="c_t3"></canvas></div>
+      <div class="info"><strong>Esperado:</strong> cada vez que creas, editas o eliminas un registro desde Thunder Client, aparece una fila nueva en la tabla <code>auditoria</code> con el usuario, la acción y la IP.</div>
+    </div>
+  </div>
+
+  <!-- 5. OWASP -->
+  <div class="seccion" id="owasp">
+    <div class="seccion-titulo"><span class="seccion-num">5</span> Checklist OWASP Top 10 aplicado al proyecto</div>
+    <p>Revisa cuáles de las vulnerabilidades más críticas ya están cubiertas por el Sistema Administrativo y cuáles quedarían pendientes para una versión de producción real.</p>
+
+    <div class="owasp-grid">
+      <div class="owasp-item">
+        <div class="num">A01 — Broken Access Control</div>
+        <div class="titulo">Control de acceso roto</div>
+        <span class="estado estado-ok">Cubierto</span>
+        <div class="desc">RBAC implementado desde P08. verificarToken + verificarRol bloquean accesos no autorizados. Invitado no puede modificar datos.</div>
+      </div>
+      <div class="owasp-item">
+        <div class="num">A02 — Cryptographic Failures</div>
+        <div class="titulo">Fallos criptográficos</div>
+        <span class="estado estado-ok">Cubierto</span>
+        <div class="desc">Contraseñas hasheadas con bcrypt (10 rondas). JWT firmado con HS256. Cookies httpOnly. Se recomienda HTTPS en producción.</div>
+      </div>
+      <div class="owasp-item">
+        <div class="num">A03 — Injection</div>
+        <div class="titulo">Inyección SQL / XSS</div>
+        <span class="estado estado-ok">Cubierto</span>
+        <div class="desc">Parámetros preparados (?) en todas las queries. Helmet agrega Content-Security-Policy para mitigar XSS. express-validator sanea entradas.</div>
+      </div>
+      <div class="owasp-item">
+        <div class="num">A04 — Insecure Design</div>
+        <div class="titulo">Diseño inseguro</div>
+        <span class="estado estado-ok">Cubierto</span>
+        <div class="desc">Arquitectura de capas: validación → autenticación → autorización → controlador. Principio de mínimo privilegio en roles. Separación frontend/backend.</div>
+      </div>
+      <div class="owasp-item">
+        <div class="num">A05 — Security Misconfiguration</div>
+        <div class="titulo">Configuración insegura</div>
+        <span class="estado estado-ok">Cubierto en P12</span>
+        <div class="desc">Helmet configura headers automáticamente. Variables sensibles en .env. CORS restringido a origen específico. Rate limiting activado.</div>
+      </div>
+      <div class="owasp-item">
+        <div class="num">A06 — Vulnerable Components</div>
+        <div class="titulo">Componentes vulnerables</div>
+        <span class="estado estado-parcial">Parcial</span>
+        <div class="desc">Mantener dependencias actualizadas con npm audit. Para producción: revisar periódicamente con npm audit fix.</div>
+      </div>
+      <div class="owasp-item">
+        <div class="num">A07 — Auth Failures</div>
+        <div class="titulo">Fallos de autenticación</div>
+        <span class="estado estado-ok">Cubierto</span>
+        <div class="desc">Rate limit en login (10 intentos/hora) previene fuerza bruta. JWT con expiración. Cookies httpOnly y sameSite: strict.</div>
+      </div>
+      <div class="owasp-item">
+        <div class="num">A08 — Software Integrity</div>
+        <div class="titulo">Integridad del software</div>
+        <span class="estado estado-parcial">Parcial</span>
+        <div class="desc">package-lock.json fija versiones exactas. Para producción: verificar integridad de paquetes con npm ci en lugar de npm install.</div>
+      </div>
+      <div class="owasp-item">
+        <div class="num">A09 — Logging Failures</div>
+        <div class="titulo">Fallos de registro</div>
+        <span class="estado estado-ok">Cubierto en P12</span>
+        <div class="desc">Tabla auditoria registra quién hizo qué y cuándo. errorHandler registra errores en consola. Para producción: usar un logger como Winston.</div>
+      </div>
+      <div class="owasp-item">
+        <div class="num">A10 — SSRF</div>
+        <div class="titulo">Server-Side Request Forgery</div>
+        <span class="estado estado-parcial">No aplica aún</span>
+        <div class="desc">El sistema no hace peticiones a URLs externas en esta versión. Relevant si se agrega integración con servicios de terceros.</div>
+      </div>
+    </div>
+
+    <div class="profesional" style="margin-top:16px;"><strong>Resultado:</strong> el Sistema Administrativo cubre 7 de las 10 vulnerabilidades OWASP de forma completa y 3 de forma parcial. Para una versión de producción real, los puntos parciales requieren configuración adicional de infraestructura (HTTPS, logger externo, monitoreo de dependencias).</div>
+  </div>
+
+  <!-- 6. ACTIVIDADES -->
+  <div class="seccion" id="actividades">
+    <div class="seccion-titulo"><span class="seccion-num">6</span> Actividades</div>
+    <table class="actividades">
+      <thead><tr><th>Núm.</th><th>Actividad</th><th>Tipo</th></tr></thead>
+      <tbody>
+        <tr><td>A1</td><td>Realiza las 3 pruebas de Thunder Client. Captura el 429 en login, los headers de helmet y el registro en la tabla auditoria desde phpMyAdmin.</td><td><span class="tipo-badge tipo-thunder">Thunder Client</span></td></tr>
+        <tr><td>A2</td><td>Agrega el registro de auditoría a los controladores de <code>update</code> y <code>remove</code> de al menos dos módulos (personas y proyectos). Verifica que aparecen los registros en la tabla con acción UPDATE y DELETE.</td><td><span class="tipo-badge tipo-codigo">Código</span></td></tr>
+        <tr><td>A3</td><td>Ejecuta <code>npm audit</code> en la carpeta backend y captura el resultado. Si hay vulnerabilidades de severidad alta, ejecuta <code>npm audit fix</code> e intenta resolverlas.</td><td><span class="tipo-badge tipo-prueba">Prueba</span></td></tr>
+        <tr><td>A4</td><td>Verifica que el archivo <code>.gitignore</code> en backend incluye <code>.env</code> y <code>node_modules/</code>. Si no existe, créalo con esas dos líneas como mínimo.</td><td><span class="tipo-badge tipo-codigo">Código</span></td></tr>
+        <tr><td>A5</td><td>Completa el checklist OWASP en un archivo <code>OWASP.md</code> dentro de <code>backend/</code>. Para cada punto indica: estado (Cubierto / Parcial / No aplica), cómo se cubre en el sistema y qué faltaría para cubrirlo completamente.</td><td><span class="tipo-badge tipo-codigo">Código</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 7. REFLEXIÓN -->
+  <div class="seccion" id="reflexion">
+    <div class="seccion-titulo"><span class="seccion-num">7</span> Preguntas de reflexión</div>
+    <ol class="reflexion-lista">
+      <li>Helmet agrega el header <code>X-Frame-Options: SAMEORIGIN</code>. ¿Qué tipo de ataque previene ese header y cómo funciona ese ataque contra una aplicación web?</li>
+      <li>¿Por qué el rate limit de login es más estricto que el global? ¿Qué pasaría si ambos tuvieran el mismo límite de 100 peticiones por 15 minutos?</li>
+      <li>La función <code>registrarAuditoria()</code> tiene un try/catch interno que solo hace <code>console.error</code> si falla. ¿Por qué no propagamos ese error con <code>next(err)</code>? ¿Qué consecuencia tendría si lo hiciéramos?</li>
+      <li>El checklist muestra que A06 (Componentes Vulnerables) está parcialmente cubierto. ¿Qué comando usarías para revisar las vulnerabilidades actuales de las dependencias y cómo interpretarías el resultado?</li>
+      <li>¿Por qué <code>.env</code> nunca debe subirse a GitHub? Describe el escenario de ataque concreto que ocurriría si el <code>JWT_SECRET</code> quedara expuesto públicamente en un repositorio.</li>
+    </ol>
+  </div>
+
+  <!-- 8. ENTREGABLE -->
+  <div class="seccion" id="entregable">
+    <div class="seccion-titulo"><span class="seccion-num">8</span> Entregable</div>
+    <ul class="entregable-lista">
+      <li>ZIP con <code>backend/</code> y <code>frontend/</code> sin <code>node_modules/</code> ni <code>.env</code>.</li>
+      <li>Capturas de las 3 pruebas Thunder Client: 429 en login, headers de helmet y auditoría en phpMyAdmin (A1).</li>
+      <li>Auditoría funcionando en update y remove de dos módulos (A2).</li>
+      <li>Captura del resultado de <code>npm audit</code> (A3).</li>
+      <li>Archivo <code>.gitignore</code> verificado (A4).</li>
+      <li>Archivo <code>OWASP.md</code> completo con los 10 puntos (A5).</li>
+      <li>Respuestas a las 5 preguntas de reflexión.</li>
+    </ul>
+    <div class="peligro"><strong>No incluyas <code>node_modules/</code> ni <code>.env</code>.</strong> Si incluyes el <code>.env</code>, el JWT_SECRET queda expuesto — eso es exactamente lo que cubre A05 de OWASP.</div>
+  </div>
+
+  <!-- 9. RÚBRICA -->
+  <div class="seccion" id="rubrica">
+    <div class="seccion-titulo"><span class="seccion-num">9</span> Criterios de evaluación</div>
+    <table class="rubrica">
+      <thead><tr><th>Criterio</th><th>Descripción</th><th>Puntos</th></tr></thead>
+      <tbody>
+        <tr><td>Helmet configurado</td><td>Headers de seguridad visibles en Thunder Client. Captura con X-Content-Type-Options y X-Frame-Options presentes.</td><td class="pts">20</td></tr>
+        <tr><td>Rate limiting</td><td>Login responde 429 al intento 11. Límite global y estricto configurados correctamente en server.js.</td><td class="pts">25</td></tr>
+        <tr><td>Auditoría funcional</td><td>Tabla auditoria creada. registrarAuditoria() integrado en create, update y delete. Verificado en phpMyAdmin.</td><td class="pts">25</td></tr>
+        <tr><td>OWASP.md completo</td><td>Los 10 puntos documentados con estado y justificación técnica. Evidencia de npm audit ejecutado.</td><td class="pts">20</td></tr>
+        <tr><td>.gitignore verificado</td><td>El archivo existe e incluye .env y node_modules/.</td><td class="pts">10</td></tr>
+      </tbody>
+      <tr class="total"><td colspan="2">Total</td><td>100</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<div class="footer">
+  Ingeniería de Desarrollo y Gestión de Software &nbsp;·&nbsp; Práctica 12 de 13 &nbsp;·&nbsp; Fase 5: Seguridad Avanzada
+</div>
+
+<script>
+const KW='#7B40F2',ST='#C0392B',CM='#27AE60',FN='#16A085',PL='#1a1a2e',IM='#8E44AD';
+
+function draw(id, lines) {
+  const cv = document.getElementById(id);
+  if (!cv) return;
+  const CH = 7.8;
+  const LH = 22;
+  const PX = 14;
+  const PY = 12;
+  const FS = '13px "Courier New",Courier,monospace';
+  let maxChars = 0;
+  lines.forEach(segs => {
+    const len = segs.reduce((acc, s) => acc + s[1].length, 0);
+    if (len > maxChars) maxChars = len;
+  });
+  const W   = Math.ceil(maxChars * CH + PX * 2);
+  const H   = lines.length * LH + PY * 2;
+  const dpr = window.devicePixelRatio || 1;
+  cv.width  = W * dpr;
+  cv.height = H * dpr;
+  cv.style.width  = W + 'px';
+  cv.style.height = H + 'px';
+  const ctx = cv.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+  ctx.font = FS;
+  ctx.textBaseline = 'alphabetic';
+  lines.forEach((segs, i) => {
+    const y = PY + i * LH + LH * 0.78;
+    let x = PX;
+    segs.forEach(function(s) {
+      ctx.fillStyle = s[0];
+      ctx.fillText(s[1], x, y);
+      x += ctx.measureText(s[1]).width;
+    });
+  });
+}
+
+const B={
+
+c_install:[
+  [[CM,'# Dentro de backend/']],
+  [[PL,'npm install helmet express-rate-limit']],
+],
+
+c_helmet:[
+  [[IM,'import'],[PL,' helmet '],[IM,'from'],[PL,' '],[ST,"'helmet'"],[PL,';']],
+  [[PL,'']],
+  [[CM,'// En server.js — agregar ANTES de las rutas']],
+  [[CM,'// Agrega 11 headers de seguridad automáticamente']],
+  [[PL,'app.'],[FN,'use'],[PL,'('],[FN,'helmet'],[PL,'());']],
+  [[PL,'']],
+  [[CM,'// Headers que agrega helmet:']],
+  [[CM,'// X-Content-Type-Options: nosniff']],
+  [[CM,'// X-Frame-Options: SAMEORIGIN']],
+  [[CM,'// Strict-Transport-Security: max-age=15552000']],
+  [[CM,'// Content-Security-Policy: default-src self']],
+],
+
+c_ratelimit_global:[
+  [[IM,'import'],[PL,' rateLimit '],[IM,'from'],[PL,' '],[ST,"'express-rate-limit'"],[PL,';']],
+  [[PL,'']],
+  [[CM,'// Límite global — 100 peticiones por IP cada 15 minutos']],
+  [[KW,'const'],[PL,' limiterGlobal = '],[FN,'rateLimit'],[PL,'({']],
+  [[PL,'  windowMs: 15 * 60 * 1000,']],
+  [[PL,'  max:      100,']],
+  [[PL,'  message:  { error: '],[ST,"'Demasiadas peticiones. Espera 15 minutos'"],[PL,' },']],
+  [[PL,'  standardHeaders: '],[KW,'true'],[PL,',']],
+  [[PL,'  legacyHeaders:   '],[KW,'false']],
+  [[PL,'});']],
+  [[PL,'']],
+  [[CM,'// Aplicar a TODAS las rutas']],
+  [[PL,'app.'],[FN,'use'],[PL,'(limiterGlobal);']],
+],
+
+c_ratelimit_auth:[
+  [[CM,'// Límite estricto — 10 intentos de login por IP cada hora']],
+  [[CM,'// Previene ataques de fuerza bruta en autenticación']],
+  [[KW,'const'],[PL,' limiterAuth = '],[FN,'rateLimit'],[PL,'({']],
+  [[PL,'  windowMs: 60 * 60 * 1000,']],
+  [[PL,'  max:      10,']],
+  [[PL,'  message:  { error: '],[ST,"'Demasiados intentos. Espera 1 hora'"],[PL,' },']],
+  [[PL,'  standardHeaders: '],[KW,'true'],[PL,',']],
+  [[PL,'  legacyHeaders:   '],[KW,'false']],
+  [[PL,'});']],
+  [[PL,'']],
+  [[CM,'// Aplicar SOLO a las rutas de autenticación']],
+  [[PL,'app.'],[FN,'use'],[PL,'('],[ST,"'/api/auth'"],[PL,', limiterAuth, authRoutes);']],
+],
+
+c_server_orden:[
+  [[IM,'import'],[PL,' express   '],[IM,'from'],[PL,' '],[ST,"'express'"],[PL,';']],
+  [[IM,'import'],[PL,' cors      '],[IM,'from'],[PL,' '],[ST,"'cors'"],[PL,';']],
+  [[IM,'import'],[PL,' helmet    '],[IM,'from'],[PL,' '],[ST,"'helmet'"],[PL,';']],
+  [[IM,'import'],[PL,' rateLimit '],[IM,'from'],[PL,' '],[ST,"'express-rate-limit'"],[PL,';']],
+  [[IM,'import'],[PL,' { errorHandler } '],[IM,'from'],[PL,' '],[ST,"'./middlewares/errorHandler.middleware.js'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'const'],[PL,' app = '],[FN,'express'],[PL,'();']],
+  [[PL,'']],
+  [[CM,'// 1. Seguridad HTTP — siempre primero']],
+  [[PL,'app.'],[FN,'use'],[PL,'('],[FN,'helmet'],[PL,'());']],
+  [[PL,'']],
+  [[CM,'// 2. CORS — permite peticiones desde el frontend']],
+  [[PL,'app.'],[FN,'use'],[PL,'('],[FN,'cors'],[PL,'({ origin: '],[ST,"'http://localhost:5173'"],[PL,', credentials: '],[KW,'true'],[PL,' }));']],
+  [[PL,'']],
+  [[CM,'// 3. Body parser — leer el JSON del body']],
+  [[PL,'app.'],[FN,'use'],[PL,'(express.'],[FN,'json'],[PL,'());']],
+  [[PL,'']],
+  [[CM,'// 4. Rate limiting global']],
+  [[PL,'app.'],[FN,'use'],[PL,'(limiterGlobal);']],
+  [[PL,'']],
+  [[CM,'// 5. Rutas — con sus propios middlewares']],
+  [[PL,'app.'],[FN,'use'],[PL,'('],[ST,"'/api/auth'"],[PL,'    , limiterAuth, authRoutes);']],
+  [[PL,'app.'],[FN,'use'],[PL,'('],[ST,"'/api/personas'"],[PL,' , verificarToken, personasRoutes);']],
+  [[PL,'']],
+  [[CM,'// 6. Error handler — siempre al final de todo']],
+  [[PL,'app.'],[FN,'use'],[PL,'(errorHandler);']],
+],
+
+c_audit_sql:[
+  [[CM,'-- phpMyAdmin > pestaña SQL']],
+  [[PL,'CREATE TABLE auditoria (']],
+  [[PL,'  id          INT AUTO_INCREMENT PRIMARY KEY,']],
+  [[PL,'  usuario_id  INT,']],
+  [[PL,'  accion      VARCHAR(50)  NOT NULL,']],
+  [[PL,'  tabla       VARCHAR(50)  NOT NULL,']],
+  [[PL,'  registro_id INT,']],
+  [[PL,'  ip          VARCHAR(45),']],
+  [[PL,'  creado_en   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,']],
+  [[PL,'  FOREIGN KEY (usuario_id) REFERENCES usuarios(id)']],
+  [[PL,') ENGINE=InnoDB;']],
+],
+
+c_audit:[
+  [[IM,'import'],[PL,' pool '],[IM,'from'],[PL,' '],[ST,"'../db.js'"],[PL,';']],
+  [[PL,'']],
+  [[CM,'// Registra en BD cada acción importante del sistema']],
+  [[KW,'export const'],[PL,' registrarAuditoria = ']],
+  [[KW,'  async'],[PL,' (usuario_id, accion, tabla, registro_id, ip) => {']],
+  [[PL,'  '],[KW,'try'],[PL,' {']],
+  [[PL,'    '],[KW,'await'],[PL,' pool.'],[FN,'query'],[PL,'(']],
+  [[PL,'      '],[ST,"'INSERT INTO auditoria'"]],
+  [[PL,'      '],[ST,"' (usuario_id,accion,tabla,registro_id,ip)'"]],
+  [[PL,'      '],[ST,"' VALUES (?,?,?,?,?)'"],[PL,',']],
+  [[PL,'      [usuario_id, accion, tabla, registro_id, ip]']],
+  [[PL,'    );']],
+  [[PL,'  } '],[KW,'catch'],[PL,' (err) {']],
+  [[CM,'    // No propaga el error — auditoría no bloquea la respuesta']],
+  [[PL,'    console.'],[FN,'error'],[PL,'('],[ST,"'Auditoría falló:'"],[PL,', err.message);']],
+  [[PL,'  }']],
+  [[PL,'};']],
+],
+
+c_audit_uso:[
+  [[IM,'import'],[PL,' { registrarAuditoria } '],[IM,'from'],[PL,' '],[ST,"'../helpers/auditoria.js'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'export const'],[PL,' create = '],[KW,'async'],[PL,' (req, res, next) => {']],
+  [[PL,'  '],[KW,'try'],[PL,' {']],
+  [[PL,'    '],[KW,'const'],[PL,' { nombre, correo, puesto } = req.body;']],
+  [[PL,'    '],[KW,'const'],[PL,' [r] = '],[KW,'await'],[PL,' pool.'],[FN,'query'],[PL,'(']],
+  [[PL,'      '],[ST,"'INSERT INTO personas(nombre,correo,puesto) VALUES(?,?,?)'"],[PL,',']],
+  [[PL,'      [nombre, correo, puesto]']],
+  [[PL,'    );']],
+  [[PL,'']],
+  [[CM,'    // Registrar auditoría — después del INSERT exitoso']],
+  [[KW,'    await'],[PL,' '],[FN,'registrarAuditoria'],[PL,'(']],
+  [[PL,'      req.usuario.id,']],
+  [[PL,'      '],[ST,"'CREATE'"],[PL,',']],
+  [[PL,'      '],[ST,"'personas'"],[PL,',']],
+  [[PL,'      r.insertId,']],
+  [[PL,'      req.ip']],
+  [[PL,'    );']],
+  [[PL,'']],
+  [[PL,'    res.'],[FN,'status'],[PL,'(201).'],[FN,'json'],[PL,'({ mensaje: '],[ST,"'Persona creada'"],[PL,', id: r.insertId });']],
+  [[PL,'  } '],[KW,'catch'],[PL,' (err) { '],[FN,'next'],[PL,'(err); }']],
+  [[PL,'};']],
+],
+
+c_env:[
+  [[CM,'# backend/.env']],
+  [[PL,'DB_HOST=127.0.0.1']],
+  [[PL,'DB_PORT=3306']],
+  [[PL,'DB_USER=root']],
+  [[PL,'DB_PASSWORD=']],
+  [[PL,'DB_NAME=sistema_admin']],
+  [[PL,'']],
+  [[CM,'# Usar una cadena larga y aleatoria — no palabras simples']],
+  [[PL,'JWT_SECRET=cambia_esto_por_una_clave_segura_larga']],
+  [[PL,'JWT_EXPIRES=8h']],
+  [[PL,'']],
+  [[PL,'PORT=3000']],
+  [[PL,'NODE_ENV=development']],
+],
+
+c_t1:[
+  [[CM,'# Enviar 11 veces este body a POST /api/auth/login']],
+  [[CM,'# La petición número 11 debe responder 429']],
+  [[PL,'{']],
+  [[PL,'  '],[ST,'"usuario"'],[PL,' : '],[ST,'"admin"'],[PL,',']],
+  [[PL,'  '],[ST,'"password"'],[PL,': '],[ST,'"cualquier_valor"']],
+  [[PL,'}']],
+],
+
+c_t2:[
+  [[CM,'# GET /api/personas — revisar pestaña Headers de la respuesta']],
+  [[CM,'# Deben aparecer los headers de helmet:']],
+  [[CM,'# X-Content-Type-Options: nosniff']],
+  [[CM,'# X-Frame-Options: SAMEORIGIN']],
+  [[CM,'# X-DNS-Prefetch-Control: off']],
+  [[CM,'# Referrer-Policy: no-referrer']],
+],
+
+c_t3:[
+  [[CM,'-- phpMyAdmin > pestaña SQL']],
+  [[CM,'-- Ejecutar después de crear o editar un registro']],
+  [[PL,'SELECT * FROM auditoria']],
+  [[PL,'ORDER BY creado_en DESC']],
+  [[PL,'LIMIT 10;']],
+  [[PL,'']],
+  [[CM,'-- Debe aparecer: usuario_id, accion, tabla, registro_id, ip']],
+],
+
+};
+
+(function() {
+  function go() {
+    for (var id in B) {
+      if (B.hasOwnProperty(id)) draw(id, B[id]);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', go);
+  } else {
+    setTimeout(go, 0);
+  }
+})();
+</script>
+</body>
+</html>
