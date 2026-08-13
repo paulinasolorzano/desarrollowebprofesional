@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica 13 — Cierre y Entrega Final</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',Arial,sans-serif; background:#fff; color:#1a1a2e; font-size:14px; line-height:1.7; }
+.header { background:#1565C0; color:#fff; }
+.header-top { background:#0D47A1; padding:18px 40px 14px; display:flex; justify-content:space-between; align-items:flex-start; }
+.header-inst { font-size:11px; opacity:.85; letter-spacing:.03em; text-transform:uppercase; }
+.header-carrera { font-size:13px; font-weight:600; margin-top:3px; }
+.header-badge { background:#fff; color:#0D47A1; font-weight:700; font-size:13px; padding:6px 16px; border-radius:20px; white-space:nowrap; align-self:center; }
+.header-main { padding:20px 40px 24px; }
+.header-practica { font-size:11px; opacity:.75; text-transform:uppercase; letter-spacing:.08em; margin-bottom:6px; }
+.header-titulo { font-size:26px; font-weight:700; margin-bottom:8px; }
+.header-meta { display:flex; gap:24px; font-size:12px; opacity:.85; flex-wrap:wrap; }
+.header-strip { height:5px; background:#42A5F5; }
+.content { max-width:900px; margin:0 auto; padding:36px 40px 60px; }
+.toc { background:#E3F2FD; border-left:4px solid #1565C0; border-radius:0 8px 8px 0; padding:20px 24px; margin-bottom:36px; }
+.toc-title { font-size:13px; font-weight:700; color:#0D47A1; text-transform:uppercase; letter-spacing:.05em; margin-bottom:12px; }
+.toc ol { padding-left:18px; }
+.toc li { font-size:13px; color:#1565C0; padding:3px 0; }
+.toc li a { color:#1565C0; text-decoration:none; }
+.seccion { margin-bottom:36px; }
+.seccion-titulo { font-size:16px; font-weight:700; color:#0D47A1; border-bottom:2px solid #BBDEFB; padding-bottom:8px; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+.seccion-num { background:#1565C0; color:#fff; font-size:12px; font-weight:700; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.subseccion-titulo { font-size:14px; font-weight:700; color:#1565C0; margin:18px 0 8px; }
+p { margin-bottom:10px; }
+.contexto-card { background:#F8FBFF; border:1px solid #BBDEFB; border-radius:10px; padding:20px 24px; margin-bottom:16px; }
+.info { background:#E8F5E9; border-left:4px solid #43A047; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.info strong { color:#1B5E20; }
+.nota { background:#FFF8E1; border-left:4px solid #F59E0B; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.nota strong { color:#92400E; }
+.peligro { background:#FFEBEE; border-left:4px solid #E53935; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.peligro strong { color:#B71C1C; }
+.profesional { background:#EDE7F6; border-left:4px solid #7B1FA2; border-radius:0 8px 8px 0; padding:12px 16px; margin:14px 0; font-size:13px; }
+.profesional strong { color:#4A148C; }
+.flujo { display:flex; align-items:center; margin:16px 0; flex-wrap:wrap; gap:4px; }
+.flujo-item { background:#E8F5E9; border:1px solid #66BB6A; border-radius:8px; padding:10px 14px; text-align:center; font-size:12px; flex:1; min-width:90px; }
+.flujo-item.activo { background:#1565C0; color:#fff; border-color:#1565C0; font-weight:700; }
+.flujo-item.listo { background:#E8F5E9; border-color:#66BB6A; color:#2E7D32; }
+.flujo-item .fi-num { font-size:10px; opacity:.7; margin-bottom:2px; }
+.flujo-item .fi-nombre { font-size:12px; font-weight:600; }
+.flujo-sep { color:#90CAF9; font-size:18px; padding:0 4px; }
+.paso { background:#fff; border:1px solid #BBDEFB; border-radius:10px; padding:20px 24px; margin-bottom:20px; }
+.paso-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.paso-num { background:#1565C0; color:#fff; font-size:13px; font-weight:700; padding:4px 12px; border-radius:14px; }
+.paso-titulo { font-size:14px; font-weight:700; color:#0D47A1; }
+.file-label { display:inline-block; background:#E3F2FD; color:#0D47A1; font-family:'Courier New',monospace; font-size:12px; padding:4px 12px; border-radius:6px 6px 0 0; border:1px solid #BBDEFB; border-bottom:none; font-weight:600; margin-top:10px; }
+.file-label.nuevo { background:#E8F5E9; color:#1B5E20; border-color:#A5D6A7; }
+.code-wrap { border:1px solid #BBDEFB; border-radius:0 8px 8px 8px; overflow:hidden; margin-bottom:12px; }
+.code-wrap.nuevo { border-color:#A5D6A7; }
+.code-wrap canvas { display:block; max-width:100%; }
+.tabla-gen { width:100%; border-collapse:collapse; font-size:13px; margin:12px 0; }
+.tabla-gen th { background:#1565C0; color:#fff; padding:9px 14px; text-align:left; font-size:12px; }
+.tabla-gen td { padding:9px 14px; border-bottom:1px solid #E3F2FD; vertical-align:top; }
+.tabla-gen tr:nth-child(even) td { background:#F8FBFF; }
+.actividades { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.actividades th { background:#1565C0; color:#fff; padding:10px 14px; text-align:left; font-weight:600; font-size:12px; }
+.actividades td { padding:9px 14px; border-bottom:1px solid #E3F2FD; vertical-align:top; }
+.actividades tr:nth-child(even) td { background:#F8FBFF; }
+.actividades tr:last-child td { border-bottom:none; }
+.tipo-badge { font-size:11px; padding:3px 8px; border-radius:10px; font-weight:600; white-space:nowrap; }
+.tipo-codigo { background:#E3F2FD; color:#0D47A1; }
+.tipo-thunder { background:#FFF3E0; color:#E65100; }
+.tipo-doc { background:#F3E5F5; color:#6A1B9A; }
+.reflexion-lista { list-style:none; padding:0; counter-reset:ref; }
+.reflexion-lista li { counter-increment:ref; padding:10px 14px 10px 44px; position:relative; background:#F8FBFF; border:1px solid #BBDEFB; border-radius:8px; margin-bottom:8px; font-size:13.5px; }
+.reflexion-lista li::before { content:counter(ref); position:absolute; left:12px; top:50%; transform:translateY(-50%); background:#1565C0; color:#fff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
+.rubrica { width:100%; border-collapse:collapse; font-size:13px; margin:14px 0; }
+.rubrica th { background:#0D47A1; color:#fff; padding:10px 14px; text-align:left; font-weight:600; font-size:12px; }
+.rubrica td { padding:9px 14px; border-bottom:1px solid #E3F2FD; }
+.rubrica tr:nth-child(even) td { background:#F8FBFF; }
+.rubrica .total td { background:#1565C0; color:#fff; font-weight:700; }
+.pts { font-weight:700; color:#0D47A1; }
+.entregable-lista { list-style:none; padding:0; }
+.entregable-lista li { padding:8px 14px 8px 36px; position:relative; font-size:13.5px; border-bottom:1px solid #F0F4FF; }
+.entregable-lista li:last-child { border-bottom:none; }
+.entregable-lista li::before { content:'📄'; position:absolute; left:8px; }
+.footer { background:#0D47A1; color:#fff; text-align:center; padding:14px 40px; font-size:12px; margin-top:40px; }
+code { background:#E3F2FD; color:#0D47A1; padding:1px 5px; border-radius:3px; font-size:12px; font-family:'Courier New',monospace; }
+
+/* ── DASHBOARD VISUAL ── */
+.dash-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:16px 0; }
+.dash-card { background:#E3F2FD; border:2px solid #90CAF9; border-radius:10px; padding:16px 12px; text-align:center; }
+.dash-card .num { font-size:32px; font-weight:700; color:#0D47A1; }
+.dash-card .label { font-size:11px; color:#1565C0; font-weight:600; margin-top:4px; text-transform:uppercase; letter-spacing:.04em; }
+.dash-card.verde { background:#E8F5E9; border-color:#66BB6A; }
+.dash-card.verde .num { color:#1B5E20; }
+.dash-card.verde .label { color:#2E7D32; }
+.dash-card.morado { background:#F3E5F5; border-color:#CE93D8; }
+.dash-card.morado .num { color:#4A148C; }
+.dash-card.morado .label { color:#6A1B9A; }
+.dash-card.ambar { background:#FFF8E1; border-color:#FFD54F; }
+.dash-card.ambar .num { color:#92400E; }
+.dash-card.ambar .label { color:#B45309; }
+
+/* ── THUNDER CHECKLIST ── */
+.thunder-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:14px 0; }
+.thunder-item { background:#FFF3E0; border:1px solid #FFCC80; border-radius:8px; padding:12px 14px; }
+.thunder-item .metodo { font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; display:inline-block; margin-bottom:6px; }
+.GET  { background:#E8F5E9; color:#1B5E20; }
+.POST { background:#E3F2FD; color:#0D47A1; }
+.PUT  { background:#FFF8E1; color:#92400E; }
+.DEL  { background:#FFEBEE; color:#B71C1C; }
+.PATCH { background:#F3E5F5; color:#4A148C; }
+.thunder-item .ruta { font-family:'Courier New',monospace; font-size:12px; color:#1a1a2e; font-weight:600; margin-bottom:4px; }
+.thunder-item .desc { font-size:11px; color:#666; }
+
+/* ── SISTEMA COMPLETO ── -->
+.sistema-capas { border:1px solid #BBDEFB; border-radius:10px; overflow:hidden; margin:16px 0; }
+.capa { display:flex; align-items:center; padding:12px 16px; border-bottom:1px solid #E3F2FD; gap:14px; }
+.capa:last-child { border-bottom:none; }
+.capa-icon { font-size:20px; flex-shrink:0; }
+.capa-nombre { font-size:13px; font-weight:700; color:#0D47A1; min-width:160px; }
+.capa-tech { font-size:12px; color:#1565C0; }
+.capa-archivos { font-size:11px; color:#666; margin-top:2px; }
+.capa-estado { margin-left:auto; font-size:11px; padding:3px 10px; border-radius:12px; font-weight:700; white-space:nowrap; }
+.estado-ok { background:#E8F5E9; color:#1B5E20; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-inst">Ingeniería de Desarrollo y Gestión de Software</div>
+      <div class="header-carrera">Desarrollo Web Integral y Seguridad</div>
+    </div>
+    <div class="header-badge">Práctica 13 — Final</div>
+  </div>
+  <div class="header-main">
+    <div class="header-practica">Fase 5 — Cierre del proyecto</div>
+    <div class="header-titulo">Dashboard, Pruebas Integrales y Entrega Final</div>
+    <div class="header-meta">
+      <span>⏱ Duración: 3 horas</span>
+      <span>📦 Dashboard con estadísticas · README completo · Thunder Client integral · Entrega en ZIP</span>
+      <span>🎯 Entregable: Sistema Administrativo Web completo y documentado</span>
+    </div>
+  </div>
+  <div class="header-strip"></div>
+</div>
+
+<div class="content">
+
+  <div class="toc">
+    <div class="toc-title">Tabla de contenidos</div>
+    <ol>
+      <li><a href="#donde">El sistema completo — ¿qué construiste?</a></li>
+      <li><a href="#dashboard">Dashboard con estadísticas</a></li>
+      <li><a href="#readme">README profesional</a></li>
+      <li><a href="#thunder">Pruebas integrales con Thunder Client</a></li>
+      <li><a href="#checklist">Checklist de cierre</a></li>
+      <li><a href="#actividades">Actividades</a></li>
+      <li><a href="#reflexion">Preguntas de reflexión final</a></li>
+      <li><a href="#entregable">Entregable</a></li>
+      <li><a href="#rubrica">Criterios de evaluación</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. EL SISTEMA COMPLETO -->
+  <div class="seccion" id="donde">
+    <div class="seccion-titulo"><span class="seccion-num">1</span> El sistema completo — ¿qué construiste?</div>
+
+    <div class="contexto-card">
+      <p>A lo largo de 13 prácticas construiste un <strong>Sistema Administrativo Web profesional</strong> de cero. No es un ejercicio de práctica — es una aplicación real con todas las capas que tiene un sistema en producción: base de datos relacional, API REST segura, interfaz de usuario reactiva, autenticación con JWT, cifrado de contraseñas, control de acceso por roles, validación de entradas, auditoría y protección ante los ataques más comunes.</p>
+      <p>En P13 cierras el proyecto: agregas un dashboard con estadísticas reales, escribes la documentación, pruebas el sistema completo de forma integral y lo preparas para entrega.</p>
+    </div>
+
+    <div class="flujo">
+      <div class="flujo-item listo"><div class="fi-num">P01–P05</div><div class="fi-nombre">BD · Backend · React</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item listo"><div class="fi-num">P06–P10</div><div class="fi-nombre">Auth · CRUD completo</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item listo"><div class="fi-num">P11–P12</div><div class="fi-nombre">Validación · Seguridad</div></div>
+      <div class="flujo-sep">→</div>
+      <div class="flujo-item activo"><div class="fi-num">P13</div><div class="fi-nombre">Dashboard · Cierre</div></div>
+    </div>
+
+    <div class="subseccion-titulo">Lo que tiene el sistema al llegar a P13</div>
+    <div class="sistema-capas">
+      <div class="capa">
+        <div class="capa-icon">🗄️</div>
+        <div>
+          <div class="capa-nombre">Base de datos</div>
+          <div class="capa-tech">MySQL · phpMyAdmin</div>
+          <div class="capa-archivos">7 tablas: personas, usuarios, proyectos, tareas, departamentos, puestos, evaluaciones + auditoria</div>
+        </div>
+        <span class="capa-estado estado-ok">✅ Completo</span>
+      </div>
+      <div class="capa">
+        <div class="capa-icon">⚙️</div>
+        <div>
+          <div class="capa-nombre">Backend — API REST</div>
+          <div class="capa-tech">Node.js · Express · mysql2 · JWT · bcrypt</div>
+          <div class="capa-archivos">routes/ · controllers/ · middlewares/ · validators/ · helpers/</div>
+        </div>
+        <span class="capa-estado estado-ok">✅ Completo</span>
+      </div>
+      <div class="capa">
+        <div class="capa-icon">🔒</div>
+        <div>
+          <div class="capa-nombre">Seguridad</div>
+          <div class="capa-tech">Helmet · express-rate-limit · hCaptcha · express-validator</div>
+          <div class="capa-archivos">RBAC · cookies httpOnly · validación de entradas · auditoría</div>
+        </div>
+        <span class="capa-estado estado-ok">✅ Completo</span>
+      </div>
+      <div class="capa">
+        <div class="capa-icon">⚛️</div>
+        <div>
+          <div class="capa-nombre">Frontend</div>
+          <div class="capa-tech">React 18 · Vite · Bootstrap · axios</div>
+          <div class="capa-archivos">AuthContext · PrivateRoute · Pages · Components</div>
+        </div>
+        <span class="capa-estado estado-ok">✅ Completo</span>
+      </div>
+      <div class="capa">
+        <div class="capa-icon">📊</div>
+        <div>
+          <div class="capa-nombre">Dashboard</div>
+          <div class="capa-tech">Endpoint /api/dashboard · DashboardPage</div>
+          <div class="capa-archivos">Estadísticas en tiempo real de todas las tablas del sistema</div>
+        </div>
+        <span class="capa-estado" style="background:#FFF8E1;color:#92400E;font-size:11px;padding:3px 10px;border-radius:12px;font-weight:700;">⏳ Esta práctica</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. DASHBOARD -->
+  <div class="seccion" id="dashboard">
+    <div class="seccion-titulo"><span class="seccion-num">2</span> Dashboard con estadísticas</div>
+
+    <p>El dashboard es la primera pantalla que ve el usuario al entrar al sistema. Muestra un resumen en tiempo real del estado de todos los módulos: cuántos registros activos hay, cuántas tareas están pendientes, cuántos usuarios hay por rol, etc.</p>
+
+    <div class="subseccion-titulo">Vista previa del dashboard</div>
+    <div class="dash-grid">
+      <div class="dash-card"><div class="num">—</div><div class="label">Personas activas</div></div>
+      <div class="dash-card verde"><div class="num">—</div><div class="label">Proyectos activos</div></div>
+      <div class="dash-card morado"><div class="num">—</div><div class="label">Tareas pendientes</div></div>
+      <div class="dash-card ambar"><div class="num">—</div><div class="label">Usuarios del sistema</div></div>
+    </div>
+    <p style="font-size:12px;color:#666;margin-top:-8px;">Los números se llenan en tiempo real desde la BD al cargar la página.</p>
+
+    <!-- PASO 1 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 1</span><span class="paso-titulo">Crear el endpoint del dashboard en el backend</span></div>
+      <p>Un solo endpoint que hace varias consultas en paralelo con <code>Promise.all</code> y devuelve todas las estadísticas en un objeto.</p>
+      <div class="file-label nuevo">backend/routes/dashboard.routes.js — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_dash_route"></canvas></div>
+    </div>
+
+    <!-- PASO 2 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 2</span><span class="paso-titulo">Registrar la ruta en server.js</span></div>
+      <div class="file-label" style="background:#FFF8E1;color:#92400E;border-color:#FFE082;">backend/server.js — agregar</div>
+      <div class="code-wrap" style="border-color:#FFE082;"><canvas id="c_server_dash"></canvas></div>
+    </div>
+
+    <!-- PASO 3 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 3</span><span class="paso-titulo">Crear la página de dashboard en el frontend</span></div>
+      <p>Una página React que llama al endpoint al cargar y muestra las tarjetas con los números. Visible para todos los roles.</p>
+      <div class="file-label nuevo">frontend/src/pages/DashboardPage.jsx — archivo nuevo</div>
+      <div class="code-wrap nuevo"><canvas id="c_dash_page"></canvas></div>
+    </div>
+
+    <!-- PASO 4 -->
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 4</span><span class="paso-titulo">Registrar la ruta del dashboard en App.jsx</span></div>
+      <div class="file-label" style="background:#FFF8E1;color:#92400E;border-color:#FFE082;">frontend/src/App.jsx — modificar</div>
+      <div class="code-wrap" style="border-color:#FFE082;"><canvas id="c_app_dash"></canvas></div>
+      <div class="info"><strong>Redirigir al dashboard después del login:</strong> en <code>LoginPage.jsx</code>, después de un login exitoso, cambia <code>navigate('/personas')</code> por <code>navigate('/dashboard')</code> para que el dashboard sea la pantalla de inicio.</div>
+    </div>
+  </div>
+
+  <!-- 3. README -->
+  <div class="seccion" id="readme">
+    <div class="seccion-titulo"><span class="seccion-num">3</span> README profesional</div>
+
+    <p>El <code>README.md</code> es la documentación principal del proyecto. Cualquier desarrollador que reciba el ZIP debe poder levantar el sistema en su máquina sin preguntar nada. Un README sin instrucciones claras hace que el proyecto no se pueda evaluar ni usar.</p>
+
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 5</span><span class="paso-titulo">Crear README.md en la raíz del proyecto</span></div>
+      <div class="file-label nuevo">README.md — raíz del proyecto</div>
+      <div class="code-wrap nuevo"><canvas id="c_readme"></canvas></div>
+      <div class="nota"><strong>El README es un documento Markdown</strong> — se ve formateado en GitHub, GitLab y en VS Code. Usa <code>#</code> para títulos, <code>**texto**</code> para negritas y bloques de código con tres backticks. No es un archivo de código — es documentación.</div>
+    </div>
+  </div>
+
+  <!-- 4. THUNDER CLIENT -->
+  <div class="seccion" id="thunder">
+    <div class="seccion-titulo"><span class="seccion-num">4</span> Pruebas integrales con Thunder Client</div>
+
+    <p>Las pruebas integrales verifican que el sistema completo funciona correctamente de punta a punta: autenticación, permisos por rol, todos los CRUDs, validaciones y respuestas de error. Se organizan como una colección de Thunder Client exportada.</p>
+
+    <div class="subseccion-titulo">Pruebas obligatorias — 24 en total</div>
+
+    <div class="thunder-grid">
+      <div class="thunder-item">
+        <span class="metodo POST">POST</span>
+        <div class="ruta">/api/auth/login</div>
+        <div class="desc">Login con credenciales correctas → 200 + cookie JWT</div>
+      </div>
+      <div class="thunder-item">
+        <span class="metodo POST">POST</span>
+        <div class="ruta">/api/auth/login (sin captcha)</div>
+        <div class="desc">Login sin captchaToken → 400 "CAPTCHA requerido"</div>
+      </div>
+      <div class="thunder-item">
+        <span class="metodo POST">POST</span>
+        <div class="ruta">/api/auth/login (mal password)</div>
+        <div class="desc">Credenciales incorrectas → 401 "Credenciales inválidas"</div>
+      </div>
+      <div class="thunder-item">
+        <span class="metodo GET">GET</span>
+        <div class="ruta">/api/auth/me</div>
+        <div class="desc">Verificar sesión activa → 200 con datos del usuario</div>
+      </div>
+      <div class="thunder-item">
+        <span class="metodo GET">GET</span>
+        <div class="ruta">/api/dashboard</div>
+        <div class="desc">Estadísticas del sistema → 200 con todos los conteos</div>
+      </div>
+      <div class="thunder-item">
+        <span class="metodo GET">GET</span>
+        <div class="ruta">/api/personas</div>
+        <div class="desc">Listar personas → 200 con arreglo (todos los roles)</div>
+      </div>
+      <div class="thunder-item">
+        <span class="metodo POST">POST</span>
+        <div class="ruta">/api/personas</div>
+        <div class="desc">Crear persona con datos válidos → 201</div>
+      </div>
+      <div class="thunder-item">
+        <span class="metodo POST">POST</span>
+        <div class="ruta">/api/personas (datos inválidos)</div>
+        <div class="desc">Nombre vacío → 400 con lista de errores de validación</div>
+      </div>
+      <div class="thunder-item">
+        <span class="metodo PUT">PUT</span>
+        <div class="ruta">/api/personas/:id</div>
+        <div class="desc">Editar persona existente → 200 "Persona actualizada"</div>
+      </div>
+      <div class="thunder-item">
+        <span class="metodo DEL">DELETE</span>
+        <div class="ruta">/api/personas/:id</div>
+        <div class="desc">Soft delete → 200 "Persona eliminada" (activo=0)</div>
+      </div>
+      <div class="thunder-item">
+        <span class="metodo GET">GET</span>
+        <div class="ruta">/api/proyectos</div>
+        <div class="desc">Listar con JOIN a personas (responsable) → 200</div>
+      </div>
+      <div class="thunder-item">
+        <span class="metodo POST">POST</span>
+        <div class="ruta">/api/proyectos</div>
+        <div class="desc">Crear proyecto → 201 con id generado</div>
+      </div>
+      <div class="thunder-item">
+        <span class="metodo GET">GET</span>
+        <div class="ruta">/api/tareas</div>
+        <div class="desc">Listar con JOIN triple → 200 con proyecto y responsable</div>
+      </div>
+      <div class="thunder-item">
+        <span class="metodo PATCH">PATCH</span>
+        <div class="ruta">/api/tareas/:id/estado</div>
+        <div class="desc">Cambiar estado parcial → 200 sin recargar todo</div>
+      </div>
+      <div class="thunder-item">
+        <span class="metodo GET">GET</span>
+        <div class="ruta">/api/usuarios</div>
+        <div class="desc">Solo admin → 200. Con rol "usuario" → 403 Forbidden</div>
+      </div>
+      <div class="thunder-item">
+        <span class="metodo POST">POST</span>
+        <div class="ruta">/api/usuarios (nombre duplicado)</div>
+        <div class="desc">ER_DUP_ENTRY → 409 Conflict (no 500)</div>
+      </div>
+      <div class="thunder-item">
+        <span class="metodo GET">GET</span>
+        <div class="ruta">/api/departamentos</div>
+        <div class="desc">Listar departamentos → 200</div>
+      </div>
+      <div class="thunder-item">
+        <span class="metodo GET">GET</span>
+        <div class="ruta">/api/puestos</div>
+        <div class="desc">Listar con JOIN a departamentos → 200</div>
+      </div>
+      <div class="thunder-item">
+        <span class="metodo GET">GET</span>
+        <div class="ruta">/api/evaluaciones</div>
+        <div class="desc">Listar con JOIN doble → 200</div>
+      </div>
+      <div class="thunder-item">
+        <span class="metodo POST">POST</span>
+        <div class="ruta">/api/evaluaciones (calificación fuera)</div>
+        <div class="desc">calificacion:150 → 400 "debe estar entre 1 y 10"</div>
+      </div>
+      <div class="thunder-item">
+        <span class="metodo GET">GET</span>
+        <div class="ruta">/api/personas (sin token)</div>
+        <div class="desc">Sin cookie JWT → 401 "Token requerido"</div>
+      </div>
+      <div class="thunder-item">
+        <span class="metodo POST">POST</span>
+        <div class="ruta">/api/auth/login (11 veces)</div>
+        <div class="desc">Intento 11 → 429 Too Many Requests (rate limit)</div>
+      </div>
+      <div class="thunder-item">
+        <span class="metodo GET">GET</span>
+        <div class="ruta">/api/personas (headers)</div>
+        <div class="desc">Verificar X-Content-Type-Options: nosniff (helmet)</div>
+      </div>
+      <div class="thunder-item">
+        <span class="metodo POST">POST</span>
+        <div class="ruta">/api/auth/logout</div>
+        <div class="desc">Cerrar sesión → 200 + cookie eliminada</div>
+      </div>
+    </div>
+
+    <div class="paso">
+      <div class="paso-header"><span class="paso-num">Paso 6</span><span class="paso-titulo">Exportar la colección de Thunder Client</span></div>
+      <p>Una vez que todas las pruebas pasen, exporta la colección para incluirla en el ZIP de entrega:</p>
+      <div class="info"><strong>Cómo exportar:</strong> en Thunder Client → icono de la colección → Export → guarda el archivo JSON como <code>thunder-collection.json</code> dentro de una carpeta <code>docs/</code> en la raíz del proyecto.</div>
+    </div>
+  </div>
+
+  <!-- 5. CHECKLIST DE CIERRE -->
+  <div class="seccion" id="checklist">
+    <div class="seccion-titulo"><span class="seccion-num">5</span> Checklist de cierre</div>
+
+    <p>Antes de preparar el ZIP final, verifica que todo esté en orden:</p>
+
+    <table class="tabla-gen">
+      <thead><tr><th>Área</th><th>Qué verificar</th><th>Cómo comprobarlo</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Base de datos</strong></td><td>Todas las tablas existen: personas, usuarios, proyectos, tareas, departamentos, puestos, evaluaciones, auditoria</td><td>phpMyAdmin → lista de tablas</td></tr>
+        <tr><td><strong>Backend arranca</strong></td><td><code>npm run dev</code> en backend/ no muestra errores</td><td>Terminal sin mensajes rojos</td></tr>
+        <tr><td><strong>Frontend arranca</strong></td><td><code>npm run dev</code> en frontend/ abre en localhost:5173</td><td>Navegador sin errores en consola</td></tr>
+        <tr><td><strong>Login funciona</strong></td><td>Puedes entrar con usuario admin y ver el dashboard</td><td>Navegador</td></tr>
+        <tr><td><strong>Los 3 roles</strong></td><td>Admin, usuario e invitado tienen acceso correcto según RBAC</td><td>Probar con cada usuario</td></tr>
+        <tr><td><strong>Validaciones</strong></td><td>Campos vacíos devuelven 400 con mensaje descriptivo</td><td>Thunder Client</td></tr>
+        <tr><td><strong>Duplicados → 409</strong></td><td>Insertar un registro duplicado devuelve 409, no 500</td><td>Thunder Client</td></tr>
+        <tr><td><strong>Rate limit</strong></td><td>El intento 11 de login devuelve 429</td><td>Thunder Client</td></tr>
+        <tr><td><strong>Helmet</strong></td><td>X-Content-Type-Options aparece en headers de respuesta</td><td>Thunder Client → Headers</td></tr>
+        <tr><td><strong>Auditoría</strong></td><td>CREATE/UPDATE/DELETE generan filas en tabla auditoria</td><td>phpMyAdmin → tabla auditoria</td></tr>
+        <tr><td><strong>.gitignore</strong></td><td>El archivo existe e incluye .env y node_modules/</td><td>Abrir el archivo</td></tr>
+        <tr><td><strong>node_modules fuera</strong></td><td>El ZIP NO contiene node_modules/ en ninguna carpeta</td><td>Inspeccionar el ZIP</td></tr>
+        <tr><td><strong>.env fuera</strong></td><td>El ZIP NO contiene el archivo .env</td><td>Inspeccionar el ZIP</td></tr>
+        <tr><td><strong>README completo</strong></td><td>Instrucciones para levantar el sistema desde cero</td><td>Abrir README.md</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 6. ACTIVIDADES -->
+  <div class="seccion" id="actividades">
+    <div class="seccion-titulo"><span class="seccion-num">6</span> Actividades</div>
+    <table class="actividades">
+      <thead><tr><th>Núm.</th><th>Actividad</th><th>Tipo</th></tr></thead>
+      <tbody>
+        <tr><td>A1</td><td>Implementa el endpoint <code>GET /api/dashboard</code> y la página <code>DashboardPage.jsx</code>. Verifica que los conteos son correctos desde el navegador y desde Thunder Client. Toma captura del dashboard con datos reales.</td><td><span class="tipo-badge tipo-codigo">Código</span></td></tr>
+        <tr><td>A2</td><td>Ejecuta las 24 pruebas de Thunder Client. Toma captura de cada una mostrando el código HTTP de respuesta. Las pruebas deben estar organizadas en una colección con nombre "Sistema Administrativo Web — P13".</td><td><span class="tipo-badge tipo-thunder">Thunder Client</span></td></tr>
+        <tr><td>A3</td><td>Redacta el <code>README.md</code> completo. Debe incluir: descripción del sistema, requisitos, instrucciones de instalación paso a paso, cómo crear la BD, cómo levantar backend y frontend, usuarios de prueba, y descripción de los endpoints principales.</td><td><span class="tipo-badge tipo-doc">Documentación</span></td></tr>
+        <tr><td>A4</td><td>Completa el checklist de cierre. Para cada punto que esté en rojo o falle, corrígelo antes de preparar el ZIP final. Documenta en un archivo <code>CHECKLIST.md</code> el estado de cada punto con ✅ o la corrección aplicada.</td><td><span class="tipo-badge tipo-doc">Documentación</span></td></tr>
+        <tr><td>A5</td><td>Prepara el ZIP final de entrega con la estructura correcta: <code>backend/</code>, <code>frontend/</code>, <code>docs/</code> (con thunder-collection.json), <code>README.md</code> y <code>CHECKLIST.md</code> en la raíz. Sin node_modules ni .env.</td><td><span class="tipo-badge tipo-doc">Entrega</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 7. REFLEXIÓN FINAL -->
+  <div class="seccion" id="reflexion">
+    <div class="seccion-titulo"><span class="seccion-num">7</span> Preguntas de reflexión final</div>
+    <ol class="reflexion-lista">
+      <li>Describe en tus propias palabras la arquitectura del sistema que construiste: qué capas tiene, qué tecnología usa cada capa y cómo se comunican entre sí. Incluye los mecanismos de seguridad en cada capa.</li>
+      <li>De todos los conceptos nuevos que aprendiste en este proyecto (JWT, bcrypt, RBAC, REST, React, validaciones, auditoría, etc.), ¿cuál fue el más difícil de entender y cuál fue el que más te sorprendió? Justifica ambas respuestas.</li>
+      <li>Si tuvieras que agregar un módulo completamente nuevo al sistema — por ejemplo, un módulo de "Clientes" con su CRUD completo y sus relaciones — ¿qué archivos crearías y en qué orden? Describe los pasos sin escribir código.</li>
+      <li>El sistema tiene autenticación con JWT y cookie httpOnly, bcrypt para contraseñas, RBAC para permisos, validaciones con express-validator, helmet, rate limiting, CAPTCHA y auditoría. ¿Qué vulnerabilidad importante crees que todavía no está cubierta y cómo la resolverías?</li>
+      <li>¿Cómo cambiaría el sistema si en lugar de XAMPP local tuvieras que desplegarlo en un servidor real en internet? Menciona al menos 4 cambios técnicos que serían necesarios.</li>
+    </ol>
+  </div>
+
+  <!-- 8. ENTREGABLE -->
+  <div class="seccion" id="entregable">
+    <div class="seccion-titulo"><span class="seccion-num">8</span> Entregable — Estructura del ZIP final</div>
+    <div class="file-label nuevo">sistema-administrativo-web.zip</div>
+    <div class="code-wrap nuevo"><canvas id="c_zip"></canvas></div>
+    <div class="peligro"><strong>Puntos que anulan la entrega:</strong> incluir <code>node_modules/</code> (el ZIP pesaría cientos de MB), incluir <code>.env</code> (exposición del JWT_SECRET), o entregar sin README.</div>
+    <div class="nota"><strong>Cómo crear el ZIP sin node_modules:</strong> antes de comprimir, elimina las carpetas <code>node_modules/</code> de backend/ y frontend/. Para restaurarlas después, ejecuta <code>npm install</code> dentro de cada carpeta.</div>
+  </div>
+
+  <!-- 9. RÚBRICA -->
+  <div class="seccion" id="rubrica">
+    <div class="seccion-titulo"><span class="seccion-num">9</span> Criterios de evaluación</div>
+    <table class="rubrica">
+      <thead><tr><th>Criterio</th><th>Descripción</th><th>Puntos</th></tr></thead>
+      <tbody>
+        <tr><td>Dashboard funcional</td><td>Endpoint /api/dashboard responde con datos reales. Página DashboardPage muestra los conteos correctos en el navegador. Captura incluida (A1).</td><td class="pts">20</td></tr>
+        <tr><td>24 pruebas Thunder Client</td><td>Todas las pruebas ejecutadas con captura de código HTTP. Colección exportada como JSON en docs/. Al menos 20 de 24 en verde (A2).</td><td class="pts">30</td></tr>
+        <tr><td>README completo</td><td>Instrucciones suficientes para que alguien sin contexto levante el sistema. Incluye instalación, BD, credenciales de prueba y endpoints (A3).</td><td class="pts">20</td></tr>
+        <tr><td>Checklist de cierre</td><td>Los 14 puntos documentados con estado y correcciones aplicadas. El sistema pasa todos los puntos críticos (A4).</td><td class="pts">15</td></tr>
+        <tr><td>ZIP correcto</td><td>Sin node_modules/ ni .env. Estructura correcta con docs/, README.md y CHECKLIST.md en la raíz (A5).</td><td class="pts">15</td></tr>
+      </tbody>
+      <tr class="total"><td colspan="2">Total P13</td><td>100</td></tr>
+    </table>
+
+    <div class="subseccion-titulo" style="margin-top:24px;">Calificación integral del Sistema Administrativo Web</div>
+    <table class="rubrica">
+      <thead><tr><th>Etapa</th><th>Prácticas</th><th>Peso sugerido</th></tr></thead>
+      <tbody>
+        <tr><td>Fase 1–2: Fundamentos</td><td>P01–P05 — BD, Backend, React base</td><td class="pts">20%</td></tr>
+        <tr><td>Fase 3: Autenticación</td><td>P06–P07 — JWT, bcrypt, AuthContext</td><td class="pts">20%</td></tr>
+        <tr><td>Fase 4: CRUD completo</td><td>P08–P10 — Usuarios, Proyectos, Tareas</td><td class="pts">25%</td></tr>
+        <tr><td>Fase 5: Seguridad y cierre</td><td>P11–P13 — Validaciones, seguridad, entrega</td><td class="pts">35%</td></tr>
+      </tbody>
+      <tr class="total"><td colspan="2">Total del proyecto</td><td>100%</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<div class="footer">
+  Ingeniería de Desarrollo y Gestión de Software &nbsp;·&nbsp; Práctica 13 de 13 — Cierre Final &nbsp;·&nbsp; Sistema Administrativo Web completo
+</div>
+
+<script>
+const KW='#7B40F2',ST='#C0392B',CM='#27AE60',FN='#16A085',PL='#1a1a2e',IM='#8E44AD';
+
+function draw(id, lines) {
+  const cv = document.getElementById(id);
+  if (!cv) return;
+  const CH=7.8, LH=22, PX=14, PY=12;
+  const FS='13px "Courier New",Courier,monospace';
+  let maxChars=0;
+  lines.forEach(segs => {
+    const len = segs.reduce((a,s) => a+s[1].length, 0);
+    if(len>maxChars) maxChars=len;
+  });
+  const W=Math.ceil(maxChars*CH+PX*2), H=lines.length*LH+PY*2;
+  const dpr=window.devicePixelRatio||1;
+  cv.width=W*dpr; cv.height=H*dpr;
+  cv.style.width=W+'px'; cv.style.height=H+'px';
+  const ctx=cv.getContext('2d');
+  ctx.scale(dpr,dpr);
+  ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,W,H);
+  ctx.font=FS; ctx.textBaseline='alphabetic';
+  lines.forEach((segs,i) => {
+    const y=PY+i*LH+LH*0.78;
+    let x=PX;
+    segs.forEach(s => {
+      ctx.fillStyle=s[0]; ctx.fillText(s[1],x,y);
+      x+=ctx.measureText(s[1]).width;
+    });
+  });
+}
+
+const B={
+
+c_dash_route:[
+  [[IM,'import'],[PL,' { Router } '],[IM,'from'],[PL,' '],[ST,"'express'"],[PL,';']],
+  [[IM,'import'],[PL,' pool      '],[IM,'from'],[PL,' '],[ST,"'../db.js'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'const'],[PL,' router = '],[FN,'Router'],[PL,'();']],
+  [[PL,'']],
+  [[CM,'// GET /api/dashboard — estadísticas generales del sistema']],
+  [[PL,'router.'],[FN,'get'],[PL,'('],[ST,"'/'"],[PL,', '],[KW,'async'],[PL,' (req, res, next) => {']],
+  [[PL,'  '],[KW,'try'],[PL,' {']],
+  [[CM,'    // Ejecutar todas las consultas en paralelo para mayor velocidad']],
+  [[PL,'    '],[KW,'const'],[PL,' [']],
+  [[PL,'      [personas], [proyectos], [tareas],']],
+  [[PL,'      [usuarios], [tareasEstado], [auditoria]']],
+  [[PL,'    ] = '],[KW,'await'],[PL,' Promise.'],[FN,'all'],[PL,'([']],
+  [[PL,'      pool.'],[FN,'query'],[PL,'('],[ST,"'SELECT COUNT(*) total FROM personas WHERE activo=1'"],[PL,'),']],
+  [[PL,'      pool.'],[FN,'query'],[PL,'('],[ST,"'SELECT COUNT(*) total FROM proyectos WHERE activo=1'"],[PL,'),']],
+  [[PL,'      pool.'],[FN,'query'],[PL,'('],[ST,"'SELECT COUNT(*) total FROM tareas WHERE activo=1'"],[PL,'),']],
+  [[PL,'      pool.'],[FN,'query'],[PL,'('],[ST,"'SELECT COUNT(*) total FROM usuarios WHERE activo=1'"],[PL,'),']],
+  [[PL,'      pool.'],[FN,'query'],[PL,'('],[ST,"'SELECT estado, COUNT(*) total FROM tareas'"],[PL,'']],
+  [[PL,'                   + '],[ST,"' WHERE activo=1 GROUP BY estado'"],[PL,'),']],
+  [[PL,'      pool.'],[FN,'query'],[PL,'('],[ST,"'SELECT COUNT(*) total FROM auditoria'"],[PL,')']],
+  [[PL,'    ]);']],
+  [[PL,'']],
+  [[PL,'    res.'],[FN,'json'],[PL,'({']],
+  [[PL,'      personas:       personas[0].total,']],
+  [[PL,'      proyectos:      proyectos[0].total,']],
+  [[PL,'      tareas:         tareas[0].total,']],
+  [[PL,'      usuarios:       usuarios[0].total,']],
+  [[PL,'      tareasPorEstado: tareasEstado,']],
+  [[PL,'      accionesAuditoria: auditoria[0].total']],
+  [[PL,'    });']],
+  [[PL,'  } '],[KW,'catch'],[PL,' (err) { '],[FN,'next'],[PL,'(err); }']],
+  [[PL,'});']],
+  [[PL,'']],
+  [[KW,'export default'],[PL,' router;']],
+],
+
+c_server_dash:[
+  [[IM,'import'],[PL,' dashboardRoutes '],[IM,'from'],[PL,' '],[ST,"'./routes/dashboard.routes.js'"],[PL,';']],
+  [[PL,'']],
+  [[CM,'// Agregar con las demás rutas — solo requiere token, todos los roles']],
+  [[PL,'app.'],[FN,'use'],[PL,'('],[ST,"'/api/dashboard'"],[PL,', verificarToken, dashboardRoutes);']],
+],
+
+c_dash_page:[
+  [[IM,'import'],[PL,' { useState, useEffect } '],[IM,'from'],[PL,' '],[ST,"'react'"],[PL,';']],
+  [[IM,'import'],[PL,' api                     '],[IM,'from'],[PL,' '],[ST,"'../api/axios.js'"],[PL,';']],
+  [[PL,'']],
+  [[KW,'function'],[PL,' '],[FN,'DashboardPage'],[PL,'() {']],
+  [[PL,'  '],[KW,'const'],[PL,' [stats, setStats] = '],[FN,'useState'],[PL,'(null);']],
+  [[PL,'  '],[KW,'const'],[PL,' [error, setError] = '],[FN,'useState'],[PL,'('],[ST,"''"],[PL,');']],
+  [[PL,'']],
+  [[PL,'  '],[FN,'useEffect'],[PL,'(() => {']],
+  [[PL,'    api.'],[FN,'get'],[PL,'('],[ST,"'/dashboard'"],[PL,')']],
+  [[PL,'      .'],[FN,'then'],[PL,'(r => '],[FN,'setStats'],[PL,'(r.data))']],
+  [[PL,'      .'],[FN,'catch'],[PL,'(() => '],[FN,'setError'],[PL,'('],[ST,"'Error al cargar estadísticas'"],[PL,'));']],
+  [[PL,'  }, []);']],
+  [[PL,'']],
+  [[PL,'  '],[KW,'if'],[PL,' (error) '],[KW,'return'],[PL,' <div className='],[ST,'"alert alert-danger"'],[PL,'>{error}</div>;']],
+  [[PL,'  '],[KW,'if'],[PL,' (!stats) '],[KW,'return'],[PL,' <p>Cargando estadísticas...</p>;']],
+  [[PL,'']],
+  [[PL,'  '],[KW,'return'],[PL,' (']],
+  [[PL,'    <div className='],[ST,'"container mt-4"'],[PL,'>']],
+  [[PL,'      <h2>Panel de control</h2>']],
+  [[PL,'      <div className='],[ST,'"row g-3 mt-2"'],[PL,'>']],
+  [[PL,'']],
+  [[CM,'        {/* Tarjeta personas */}']],
+  [[PL,'        <div className='],[ST,'"col-6 col-md-3"'],[PL,'>']],
+  [[PL,'          <div className='],[ST,'"card text-center border-primary"'],[PL,'>']],
+  [[PL,'            <div className='],[ST,'"card-body"'],[PL,'>']],
+  [[PL,'              <h1 className='],[ST,'"display-4 fw-bold text-primary"'],[PL,'>']],
+  [[PL,'                {stats.personas}']],
+  [[PL,'              </h1>']],
+  [[PL,'              <p className='],[ST,'"card-text text-muted"'],[PL,'>Personas activas</p>']],
+  [[PL,'            </div>']],
+  [[PL,'          </div>']],
+  [[PL,'        </div>']],
+  [[PL,'']],
+  [[CM,'        {/* Repetir patrón para proyectos, tareas y usuarios */}']],
+  [[CM,'        {/* Cambiar stats.proyectos, stats.tareas, stats.usuarios */}']],
+  [[PL,'']],
+  [[PL,'      </div>']],
+  [[PL,'    </div>']],
+  [[PL,'  );']],
+  [[PL,'}']],
+  [[PL,'']],
+  [[KW,'export default'],[PL,' DashboardPage;']],
+],
+
+c_app_dash:[
+  [[IM,'import'],[PL,' DashboardPage '],[IM,'from'],[PL,' '],[ST,"'./pages/DashboardPage'"],[PL,';']],
+  [[PL,'']],
+  [[CM,'// Agregar dentro del bloque de rutas protegidas']],
+  [[PL,'<Route path='],[ST,"'/dashboard'"],[PL,'']],
+  [[PL,'  element={<PrivateRoute><DashboardPage /></PrivateRoute>}']],
+  [[PL,'/>']],
+  [[PL,'']],
+  [[CM,'// Ruta raíz redirige al dashboard']],
+  [[PL,'<Route path='],[ST,"'/'"],[PL,' element={<Navigate to='],[ST,"'/dashboard'"],[PL,' replace />} />']],
+],
+
+c_readme:[
+  [[CM,'# Sistema Administrativo Web']],
+  [[PL,'']],
+  [[PL,'Sistema full-stack de gestión administrativa construido con']],
+  [[PL,'Node.js, Express, React y MySQL.']],
+  [[PL,'']],
+  [[CM,'## Requisitos previos']],
+  [[PL,'- Node.js v18 o superior']],
+  [[PL,'- XAMPP con MySQL activo']],
+  [[PL,'- phpMyAdmin para gestionar la BD']],
+  [[PL,'']],
+  [[CM,'## Instalación — Backend']],
+  [[PL,'cd backend']],
+  [[PL,'npm install']],
+  [[PL,'cp .env.example .env   # editar con tus credenciales']],
+  [[PL,'npm run dev']],
+  [[PL,'']],
+  [[CM,'## Instalación — Frontend']],
+  [[PL,'cd frontend']],
+  [[PL,'npm install']],
+  [[PL,'npm run dev']],
+  [[PL,'']],
+  [[CM,'## Base de datos']],
+  [[PL,'1. Crear BD "sistema_admin" en phpMyAdmin']],
+  [[PL,'2. Importar el archivo database.sql']],
+  [[PL,'']],
+  [[CM,'## Usuarios de prueba']],
+  [[PL,'admin    / Admin1234  (rol: admin)']],
+  [[PL,'usuario1 / User1234   (rol: usuario)']],
+  [[PL,'invitado / Inv1234    (rol: invitado)']],
+  [[PL,'']],
+  [[CM,'## Stack tecnológico']],
+  [[PL,'Backend:  Node.js + Express + mysql2 + JWT + bcrypt']],
+  [[PL,'Frontend: React 18 + Vite + Bootstrap + axios']],
+  [[PL,'Seguridad: Helmet + rate-limit + hCaptcha + express-validator']],
+],
+
+c_zip:[
+  [[PL,'sistema-administrativo-web.zip']],
+  [[PL,'├── backend/']],
+  [[PL,'│   ├── controllers/']],
+  [[PL,'│   ├── middlewares/']],
+  [[PL,'│   ├── validators/']],
+  [[PL,'│   ├── helpers/']],
+  [[PL,'│   ├── routes/']],
+  [[PL,'│   ├── db.js']],
+  [[PL,'│   ├── server.js']],
+  [[PL,'│   ├── database.sql']],
+  [[PL,'│   ├── .env.example     ← sin valores reales']],
+  [[PL,'│   ├── .gitignore']],
+  [[PL,'│   └── package.json']],
+  [[PL,'├── frontend/']],
+  [[PL,'│   ├── src/']],
+  [[PL,'│   │   ├── pages/']],
+  [[PL,'│   │   ├── components/']],
+  [[PL,'│   │   ├── context/']],
+  [[PL,'│   │   └── api/']],
+  [[PL,'│   └── package.json']],
+  [[PL,'├── docs/']],
+  [[PL,'│   └── thunder-collection.json']],
+  [[PL,'├── README.md']],
+  [[PL,'└── CHECKLIST.md']],
+  [[PL,'']],
+  [[CM,'❌ NO incluir: node_modules/ ni .env']],
+],
+
+};
+
+(function(){
+  function go(){
+    for(var id in B){ if(B.hasOwnProperty(id)) draw(id, B[id]); }
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', go);
+  } else {
+    setTimeout(go, 0);
+  }
+})();
+</script>
+</body>
+</html>
